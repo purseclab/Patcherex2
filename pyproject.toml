@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "patcherex2"
+version = "0.0.0"
+readme = "README.md"
+dependencies = [
+    "angr",
+    "pyelftools",
+    "lief",
+    "keystone-engine",
+    "intelhex",
+    "requests",
+]
+
+[project.optional-dependencies]
+Test = [
+    "shellphish-qemu",
+]
+
+[tool.setuptools.packages.find]
+where = ["patcherex2"]
