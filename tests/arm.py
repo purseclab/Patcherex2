@@ -18,7 +18,7 @@ class Tests(unittest.TestCase):
         self.bin_location = str(
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
-                "./test_binaries/aarch64",
+                "./test_binaries/armhf",
             )
         )
 
