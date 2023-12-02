@@ -16,4 +16,4 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["patcherex2"]
+where = ["src"]
