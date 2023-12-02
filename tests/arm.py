@@ -6,7 +6,6 @@ import unittest
 import shutil
 import tempfile
 import logging
-import shellphish_qemu
 
 from patcherex2 import *
 
@@ -22,7 +21,6 @@ class Tests(unittest.TestCase):
                 "./test_binaries/aarch64",
             )
         )
-        self.qemu_location = shellphish_qemu.qemu_path("arm")
 
     def test_raw_file_patch(self):
         self.run_one(
@@ -185,7 +183,7 @@ class Tests(unittest.TestCase):
             # os.system(f"readelf -hlS {tmp_file}")
 
             p = subprocess.Popen(
-                [self.qemu_location, "-L", "/usr/arm-linux-gnueabihf", tmp_file],
+                ["qemu-arm", "-L", "/usr/arm-linux-gnueabihf", tmp_file],
                 stdin=pipe,
                 stdout=pipe,
                 stderr=pipe,

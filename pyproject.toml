@@ -15,10 +15,5 @@ dependencies = [
     "requests",
 ]
 
-[project.optional-dependencies]
-Test = [
-    "shellphish-qemu",
-]
-
 [tool.setuptools.packages.find]
 where = ["patcherex2"]
