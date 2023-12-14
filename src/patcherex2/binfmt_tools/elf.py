@@ -475,6 +475,16 @@ class ELF(BinFmtTool):
         if offset + len(new_content) > self.file_size:
             self.file_size = offset + len(new_content)
 
+    def get_binary_content(self, offset, size):
+        # check if it's in file_updates
+        for update in self.file_updates:
+            if offset >= update["offset"] and offset + size <= update["offset"] + len(
+                update["content"]
+            ):
+                return update["content"][offset - update["offset"] :]
+        # otherwise return from original binary
+        return self.original_binary_content[offset : offset + size]
+
     def append_to_binary_content(self, new_content):
         self.file_updates.append({"offset": self.file_size, "content": new_content})
         self.file_size += len(new_content)
