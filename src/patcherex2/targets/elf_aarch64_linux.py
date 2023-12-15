@@ -24,37 +24,46 @@ class ElfAArch64Linux(Target):
                 return True
         return False
 
-    def get_assembler(self, assembler="keystone"):
+    def get_assembler(self, assembler):
+        assembler = assembler or "keystone"
         if assembler == "keystone":
             return Keystone(
                 self.p, keystone.KS_ARCH_ARM64, keystone.KS_MODE_LITTLE_ENDIAN
             )
         raise NotImplementedError()
 
-    def get_allocation_manager(self, allocation_manager="default"):
+    def get_allocation_manager(self, allocation_manager):
+        allocation_manager = allocation_manager or "default"
         if allocation_manager == "default":
             return AllocationManager(self.p)
         raise NotImplementedError()
 
-    def get_compiler(self, compiler="clang"):
+    def get_compiler(self, compiler):
+        compiler = compiler or "clang"
         if compiler == "clang":
             return Clang(self.p, compiler_flags=["-target", "aarch64-linux-gnu"])
         raise NotImplementedError()
 
-    def get_disassembler(self, disassembler="capstone"):
+    def get_disassembler(self, disassembler):
+        disassembler = disassembler or "capstone"
         if disassembler == "capstone":
             return Capstone(capstone.CS_ARCH_ARM64, capstone.CS_MODE_LITTLE_ENDIAN)
         raise NotImplementedError()
 
-    def get_binfmt_tool(self, binfmt_tool="pyelftools"):
+    def get_binfmt_tool(self, binfmt_tool):
+        binfmt_tool = binfmt_tool or "pyelftools"
         if binfmt_tool == "pyelftools":
             return ELF(self.p, self.binary_path)
         raise NotImplementedError()
 
-    def get_binary_analyzer(self, binary_analyzer="angr"):
+    def get_binary_analyzer(self, binary_analyzer):
+        binary_analyzer = binary_analyzer or "angr"
         if binary_analyzer == "angr":
             return Angr(self.binary_path)
         raise NotImplementedError()
 
-    def get_utils(self):
-        return Utils(self.p, self.binary_path)
+    def get_utils(self, utils):
+        utils = utils or "default"
+        if utils == "default":
+            return Utils(self.p, self.binary_path)
+        raise NotImplementedError()

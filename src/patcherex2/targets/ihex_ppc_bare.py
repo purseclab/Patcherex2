@@ -22,32 +22,38 @@ class IHex_PPC_Bare(Target):
     def detect_target(binary_path):
         return False
 
-    def get_assembler(self, assembler="default"):
+    def get_assembler(self, assembler):
+        assembler = assembler or "default"
         if assembler == "default":
             return PpcVleAssembler(self.p)
         raise NotImplementedError()
 
-    def get_allocation_manager(self, allocation_manager="default"):
+    def get_allocation_manager(self, allocation_manager):
+        allocation_manager = allocation_manager or "default"
         if allocation_manager == "default":
             return AllocationManager(self.p)
         raise NotImplementedError()
 
-    def get_compiler(self, compiler="default"):
+    def get_compiler(self, compiler):
+        compiler = compiler or "default"
         if compiler == "default":
             return PpcVleCompiler(self.p)
         raise NotImplementedError()
 
-    def get_disassembler(self, disassembler="default"):
+    def get_disassembler(self, disassembler):
+        disassembler = disassembler or "default"
         if disassembler == "default":
             return PpcVleDisassembler(self.p)
         raise NotImplementedError()
 
-    def get_binfmt_tool(self, binfmt_tool="default"):
+    def get_binfmt_tool(self, binfmt_tool):
+        binfmt_tool = binfmt_tool or "default"
         if binfmt_tool == "default":
             return IHex(self.p, self.binary_path)
         raise NotImplementedError()
 
-    def get_binary_analyzer(self, binary_analyzer="angr"):
+    def get_binary_analyzer(self, binary_analyzer):
+        binary_analyzer = binary_analyzer or "angr"
         if binary_analyzer == "angr":
             return Angr(
                 self.binary_path,
@@ -57,5 +63,8 @@ class IHex_PPC_Bare(Target):
             )
         raise NotImplementedError()
 
-    def get_utils(self):
-        return Utils(self.p, self.binary_path)
+    def get_utils(self, utils):
+        utils = utils or "default"
+        if utils == "default":
+            return Utils(self.p, self.binary_path)
+        raise NotImplementedError()

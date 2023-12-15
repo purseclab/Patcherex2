@@ -15,3 +15,6 @@ class Target:
             if target_class.detect_target(binary_path):
                 return target_class(p, binary_path)
         raise ValueError("Unknown target")
+
+    def get_component(self, component_name, component_opts):
+        return getattr(self, f"get_{component_name}")(component_opts)
