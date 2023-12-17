@@ -1,6 +1,6 @@
 from .patch import Patch
 from .raw_patches import ModifyRawBytesPatch
-from ..allocation_management.allocation_management import MemoryFlag
+from ..components.allocation_managers.allocation_manager import MemoryFlag
 
 
 class ModifyDataPatch(ModifyRawBytesPatch):

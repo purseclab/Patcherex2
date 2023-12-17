@@ -1,12 +1,12 @@
 from .target import Target
-from ..assemblers.keystone_sparc import KeystoneSparc, keystone
-from ..compilers.bcc import Bcc as BccCompiler
-from ..assemblers.bcc import Bcc as BccAssembler
-from ..disassemblers.capstone import Capstone, capstone
-from ..binfmt_tools.elf import ELF
-from ..binary_analyzers.angr import Angr
-from ..utils.utils import Utils
-from ..allocation_management.allocation_management import *
+from ..components.assemblers.keystone_sparc import KeystoneSparc, keystone
+from ..components.compilers.bcc import Bcc as BccCompiler
+from ..components.assemblers.bcc import Bcc as BccAssembler
+from ..components.disassemblers.capstone import Capstone, capstone
+from ..components.binfmt_tools.elf import ELF
+from ..components.binary_analyzers.angr import Angr
+from ..components.utils.utils import Utils
+from ..components.allocation_managers.allocation_manager import *
 
 import logging
 

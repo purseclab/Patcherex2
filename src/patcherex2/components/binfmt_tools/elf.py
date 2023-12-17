@@ -1,5 +1,5 @@
 from .binfmt_tool import BinFmtTool
-from ..allocation_management import *
+from ..allocation_managers import *
 from elftools.elf.elffile import ELFFile
 from elftools.elf.constants import P_FLAGS, SH_FLAGS
 from elftools.construct.lib import Container

@@ -1,11 +1,11 @@
 from .target import Target
-from ..compilers.ppc_vle import PpcVle as PpcVleCompiler
-from ..assemblers.ppc_vle import PpcVle as PpcVleAssembler
-from ..binfmt_tools.ihex import IHex
-from ..disassemblers.ppc_vle import PpcVle as PpcVleDisassembler
-from ..binary_analyzers.angr import Angr
-from ..utils.utils import Utils
-from ..allocation_management.allocation_management import *
+from ..components.compilers.ppc_vle import PpcVle as PpcVleCompiler
+from ..components.assemblers.ppc_vle import PpcVle as PpcVleAssembler
+from ..components.binfmt_tools.ihex import IHex
+from ..components.disassemblers.ppc_vle import PpcVle as PpcVleDisassembler
+from ..components.binary_analyzers.angr import Angr
+from ..components.utils.utils import Utils
+from ..components.allocation_managers.allocation_manager import *
 
 import logging
 

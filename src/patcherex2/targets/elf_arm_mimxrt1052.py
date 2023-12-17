@@ -1,6 +1,6 @@
-from ..allocation_management.allocation_management import *
+from ..components.allocation_managers.allocation_manager import *
 from .elf_arm_linux import ElfArmLinux
-from ..binfmt_tools.elf import ELF
+from ..components.binfmt_tools.elf import ELF
 import copy
 
 

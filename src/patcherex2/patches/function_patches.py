@@ -1,5 +1,5 @@
 from .patch import Patch
-from ..allocation_management.allocation_management import MemoryFlag
+from ..components.allocation_managers.allocation_manager import MemoryFlag
 import logging
 
 logger = logging.getLogger(__name__)

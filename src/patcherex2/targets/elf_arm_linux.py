@@ -1,11 +1,11 @@
 from .target import Target
-from ..assemblers.keystone_arm import KeystoneArm
-from ..disassemblers.capstone_arm import CapstoneArm
-from ..compilers.clang_arm import ClangArm
-from ..binfmt_tools.elf import ELF
-from ..binary_analyzers.angr import Angr
-from ..utils.utils import Utils
-from ..allocation_management.allocation_management import AllocationManager
+from ..components.assemblers.keystone_arm import KeystoneArm
+from ..components.disassemblers.capstone_arm import CapstoneArm
+from ..components.compilers.clang_arm import ClangArm
+from ..components.binfmt_tools.elf import ELF
+from ..components.binary_analyzers.angr import Angr
+from ..components.utils.utils import Utils
+from ..components.allocation_managers.allocation_manager import AllocationManager
 
 
 class ElfArmLinux(Target):

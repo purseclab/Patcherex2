@@ -1,11 +1,11 @@
 from .target import Target
-from ..assemblers.keystone import Keystone, keystone
-from ..disassemblers.capstone import Capstone, capstone
-from ..compilers.clang import Clang
-from ..binfmt_tools.elf import ELF
-from ..binary_analyzers.angr import Angr
-from ..utils.utils import Utils
-from ..allocation_management.allocation_management import AllocationManager
+from ..components.assemblers.keystone import Keystone, keystone
+from ..components.disassemblers.capstone import Capstone, capstone
+from ..components.compilers.clang import Clang
+from ..components.binfmt_tools.elf import ELF
+from ..components.binary_analyzers.angr import Angr
+from ..components.utils.utils import Utils
+from ..components.allocation_managers.allocation_manager import AllocationManager
 
 
 class ElfAArch64Linux(Target):

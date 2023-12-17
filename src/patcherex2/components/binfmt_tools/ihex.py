@@ -1,5 +1,5 @@
 from .binfmt_tool import BinFmtTool
-from ..allocation_management import *
+from ..allocation_managers import *
 import intelhex, io
 
 import logging

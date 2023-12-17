@@ -1,6 +1,6 @@
 from .targets import Target
 from .patches import *
-from .allocation_management import *
+from .components.allocation_managers import *
 
 import logging
 
