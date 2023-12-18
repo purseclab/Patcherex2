@@ -1,6 +1,8 @@
-from .compiler import Compiler
+import logging
+import os
+
 from ..assets.assets import Assets
-import logging, os
+from .compiler import Compiler
 
 logger = logging.getLogger(__name__)
 

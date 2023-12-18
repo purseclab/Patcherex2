@@ -1,7 +1,9 @@
-from .binary_analyzer import BinaryAnalyzer
+import logging
+
 import angr
 from archinfo import ArchARM
-import logging
+
+from .binary_analyzer import BinaryAnalyzer
 
 logger = logging.getLogger(__name__)
 

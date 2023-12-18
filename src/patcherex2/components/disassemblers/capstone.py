@@ -1,4 +1,5 @@
 import capstone
+
 from .disassembler import Disassembler
 
 

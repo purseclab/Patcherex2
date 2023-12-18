@@ -1,8 +1,8 @@
-from .targets import Target
-from .patches import *
-from .components.allocation_managers import *
-
 import logging
+
+from .components.allocation_managers import *
+from .patches import *
+from .targets import Target
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,6 @@ class Patcherex:
                 component,
                 self.target.get_component(component, target_opts.get(component)),
             )
-
 
     def apply_patches(self):
         # TODO: sort patches properly

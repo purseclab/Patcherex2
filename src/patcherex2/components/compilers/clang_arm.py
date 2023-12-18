@@ -1,5 +1,6 @@
-from .compiler import Compiler
 import logging
+
+from .compiler import Compiler
 
 logger = logging.getLogger(__name__)
 

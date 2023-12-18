@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-import os
-import subprocess
-import unittest
-import shutil
-import tempfile
 import logging
+import os
+import shutil
+import subprocess
+import tempfile
+import unittest
 
 from patcherex2 import *
 

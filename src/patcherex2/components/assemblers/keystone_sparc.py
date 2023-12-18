@@ -1,4 +1,8 @@
-import keystone, logging, re
+import logging
+import re
+
+import keystone
+
 from .keystone import Keystone
 
 logger = logging.getLogger(__name__)

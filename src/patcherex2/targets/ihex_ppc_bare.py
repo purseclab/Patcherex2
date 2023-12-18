@@ -1,13 +1,13 @@
-from .target import Target
-from ..components.compilers.ppc_vle import PpcVle as PpcVleCompiler
-from ..components.assemblers.ppc_vle import PpcVle as PpcVleAssembler
-from ..components.binfmt_tools.ihex import IHex
-from ..components.disassemblers.ppc_vle import PpcVle as PpcVleDisassembler
-from ..components.binary_analyzers.angr import Angr
-from ..components.utils.utils import Utils
-from ..components.allocation_managers.allocation_manager import *
-
 import logging
+
+from ..components.allocation_managers.allocation_manager import *
+from ..components.assemblers.ppc_vle import PpcVle as PpcVleAssembler
+from ..components.binary_analyzers.angr import Angr
+from ..components.binfmt_tools.ihex import IHex
+from ..components.compilers.ppc_vle import PpcVle as PpcVleCompiler
+from ..components.disassemblers.ppc_vle import PpcVle as PpcVleDisassembler
+from ..components.utils.utils import Utils
+from .target import Target
 
 logger = logging.getLogger(__name__)
 

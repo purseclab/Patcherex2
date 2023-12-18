@@ -1,4 +1,5 @@
 import logging
+
 from ..allocation_managers.allocation_manager import MemoryFlag
 
 logger = logging.getLogger(__name__)

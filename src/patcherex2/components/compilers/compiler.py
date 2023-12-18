@@ -1,4 +1,9 @@
-import logging, tempfile, os, subprocess, cle
+import logging
+import os
+import subprocess
+import tempfile
+
+import cle
 
 logger = logging.getLogger(__name__)
 

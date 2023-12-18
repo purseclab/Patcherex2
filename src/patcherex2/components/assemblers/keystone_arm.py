@@ -1,6 +1,8 @@
-import keystone
-from .assembler import Assembler
 import logging
+
+import keystone
+
+from .assembler import Assembler
 
 logger = logging.getLogger(__name__)
 

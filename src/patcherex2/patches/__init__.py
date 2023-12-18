@@ -1,8 +1,8 @@
-from .raw_patches import *
 from .data_patches import *
 from .dummy_patches import *
-from .instruction_patches import *
 from .function_patches import *
+from .instruction_patches import *
+from .raw_patches import *
 
 
 # Other Patches

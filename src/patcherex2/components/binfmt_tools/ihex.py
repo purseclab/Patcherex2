@@ -1,8 +1,10 @@
-from .binfmt_tool import BinFmtTool
-from ..allocation_managers import *
-import intelhex, io
-
+import io
 import logging
+
+import intelhex
+
+from ..allocation_managers import *
+from .binfmt_tool import BinFmtTool
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,6 @@
-from .binary_analyzer import BinaryAnalyzer
 from headless_ida import HeadlessIdaRemote
+
+from .binary_analyzer import BinaryAnalyzer
 
 
 class Ida(BinaryAnalyzer):

@@ -1,10 +1,12 @@
-from .binfmt_tool import BinFmtTool
-from ..allocation_managers import *
-from elftools.elf.elffile import ELFFile
-from elftools.elf.constants import P_FLAGS, SH_FLAGS
-from elftools.construct.lib import Container
+import logging
+import os
 
-import logging, os
+from elftools.construct.lib import Container
+from elftools.elf.constants import P_FLAGS, SH_FLAGS
+from elftools.elf.elffile import ELFFile
+
+from ..allocation_managers import *
+from .binfmt_tool import BinFmtTool
 
 logger = logging.getLogger(__name__)
 

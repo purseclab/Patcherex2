@@ -1,14 +1,14 @@
-from .target import Target
-from ..components.assemblers.keystone_sparc import KeystoneSparc, keystone
-from ..components.compilers.bcc import Bcc as BccCompiler
-from ..components.assemblers.bcc import Bcc as BccAssembler
-from ..components.disassemblers.capstone import Capstone, capstone
-from ..components.binfmt_tools.elf import ELF
-from ..components.binary_analyzers.angr import Angr
-from ..components.utils.utils import Utils
-from ..components.allocation_managers.allocation_manager import *
-
 import logging
+
+from ..components.allocation_managers.allocation_manager import *
+from ..components.assemblers.bcc import Bcc as BccAssembler
+from ..components.assemblers.keystone_sparc import KeystoneSparc, keystone
+from ..components.binary_analyzers.angr import Angr
+from ..components.binfmt_tools.elf import ELF
+from ..components.compilers.bcc import Bcc as BccCompiler
+from ..components.disassemblers.capstone import Capstone, capstone
+from ..components.utils.utils import Utils
+from .target import Target
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,11 @@
-import tempfile, os, subprocess
+import logging
+import os
+import re
+import subprocess
+import tempfile
+
 from ..assets.assets import Assets
 from .disassembler import Disassembler
-import logging
-import re
-
 
 logger = logging.getLogger(__name__)
 

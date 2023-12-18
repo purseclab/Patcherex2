@@ -1,3 +1,3 @@
-from .patch_manager import PatchManager
-from .imp import Imp
 from .builtin import BuiltIn
+from .imp import Imp
+from .patch_manager import PatchManager

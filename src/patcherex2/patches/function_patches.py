@@ -1,6 +1,7 @@
-from .patch import Patch
-from ..components.allocation_managers.allocation_manager import MemoryFlag
 import logging
+
+from ..components.allocation_managers.allocation_manager import MemoryFlag
+from .patch import Patch
 
 logger = logging.getLogger(__name__)
 

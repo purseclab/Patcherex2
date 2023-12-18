@@ -1,5 +1,6 @@
-from .patch import Patch
 import logging
+
+from .patch import Patch
 
 logger = logging.getLogger(__name__)
 

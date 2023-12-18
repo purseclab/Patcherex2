@@ -1,6 +1,10 @@
-from .assembler import Assembler
+import logging
+import os
+import subprocess
+import tempfile
+
 from ..assets.assets import Assets
-import logging, os, subprocess, tempfile
+from .assembler import Assembler
 
 logger = logging.getLogger(__name__)
 

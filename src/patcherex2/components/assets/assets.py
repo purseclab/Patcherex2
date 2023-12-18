@@ -1,5 +1,10 @@
-import os, requests, tempfile, tarfile, logging
+import logging
+import os
+import tarfile
+import tempfile
 from pathlib import Path
+
+import requests
 
 logger = logging.getLogger(__name__)
 

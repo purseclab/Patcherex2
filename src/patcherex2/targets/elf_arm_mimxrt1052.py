@@ -1,7 +1,8 @@
-from ..components.allocation_managers.allocation_manager import *
-from .elf_arm_linux import ElfArmLinux
-from ..components.binfmt_tools.elf import ELF
 import copy
+
+from ..components.allocation_managers.allocation_manager import *
+from ..components.binfmt_tools.elf import ELF
+from .elf_arm_linux import ElfArmLinux
 
 
 class CustomElf(ELF):
