@@ -4,7 +4,10 @@ on:
   pull_request:
 
 jobs:
-  test:
+  ci:
+    strategy:
+      matrix:
+        task: [test, lint, format]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -25,8 +28,18 @@ jobs:
       - name: Install Package
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade pytest
+          python3 -m pip install --upgrade pytest ruff black isort
           python3 -m pip install -e .
       - name: Run pytest
+        if: matrix.task == 'test'
         run: |
           python3 -m pytest
+      - name: Run formatter
+        if: matrix.task == 'format'
+        run: |
+          python3 -m isort . --profile black --check-only --diff
+          python3 -m black . --check
+      - name: Run linter
+        if: matrix.task == 'lint'
+        run: |
+          python3 -m ruff check .
