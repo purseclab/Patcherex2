@@ -28,7 +28,7 @@ jobs:
       - name: Install Package
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade pytest ruff black isort
+          python3 -m pip install --upgrade pytest ruff
           python3 -m pip install -e .
       - name: Run pytest
         if: matrix.task == 'test'
@@ -37,8 +37,7 @@ jobs:
       - name: Run formatter
         if: matrix.task == 'format'
         run: |
-          python3 -m isort . --profile black --check-only --diff
-          python3 -m black . --check
+          python3 -m ruff format . --check
       - name: Run linter
         if: matrix.task == 'lint'
         run: |
