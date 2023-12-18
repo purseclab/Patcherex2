@@ -7,7 +7,9 @@ class Assembler:
     def __init__(self, p):
         self.p = p
 
-    def resolve_symbols(self, code, symbols={}):
+    def resolve_symbols(self, code, symbols=None):
+        if symbols is None:
+            symbols = {}
         _symbols = {}
         _symbols.update(self.p.symbols)
         _symbols.update(self.p.binary_analyzer.get_all_symbols())
@@ -23,7 +25,9 @@ class Assembler:
     def _pre_assemble_hook(self, code, base=0):
         return code
 
-    def assemble(self, code, base=0, symbols={}, **kwargs):
+    def assemble(self, code, base=0, symbols=None, **kwargs):
+        if symbols is None:
+            symbols = {}
         logger.debug(f"Assembling `{code}` at {hex(base)}")
         code = self.resolve_symbols(code, symbols=symbols)
         code = self._pre_assemble_hook(code, base=base)

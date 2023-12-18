@@ -107,9 +107,7 @@ class Tests(unittest.TestCase):
             ldr r1, ={added_data}
             mov r2, %s
             svc 0
-        """ % hex(
-            tlen
-        )
+        """ % hex(tlen)
         p2 = InsertInstructionPatch(0x103EC, instrs)
         self.run_one(
             "printf_nopie",

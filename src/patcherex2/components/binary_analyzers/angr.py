@@ -90,7 +90,7 @@ class Angr(BinaryAnalyzer):
         for func in self.p.kb.functions.values():
             if func.size == 0:
                 continue
-            for dst, xrefs in self.p.kb.xrefs.xrefs_by_dst.items():
+            for dst, _ in self.p.kb.xrefs.xrefs_by_dst.items():
                 if dst == func.addr:
                     break
             else:

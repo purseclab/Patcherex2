@@ -1,2 +1,2 @@
-class BinaryAnalyzer(object):
+class BinaryAnalyzer:
     pass

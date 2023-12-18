@@ -7,7 +7,9 @@ logger = logging.getLogger(__name__)
 
 
 class Patcherex:
-    def __init__(self, binary_path, target_cls=None, target_opts={}):
+    def __init__(self, binary_path, target_cls=None, target_opts=None):
+        if target_opts is None:
+            target_opts = {}
         self.binary_path = binary_path
         if target_cls is None:
             self.target = Target.detect_target(self, binary_path)

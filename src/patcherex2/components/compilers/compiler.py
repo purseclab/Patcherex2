@@ -12,7 +12,11 @@ class Compiler:
     def __init__(self, p):
         self.p = p
 
-    def compile(self, code, base=0, symbols={}, extra_compiler_flags=[], **kwargs):
+    def compile(self, code, base=0, symbols=None, extra_compiler_flags=None, **kwargs):
+        if symbols is None:
+            symbols = {}
+        if extra_compiler_flags is None:
+            extra_compiler_flags = []
         with tempfile.TemporaryDirectory() as td:
             # source file
             with open(os.path.join(td, "code.c"), "w") as f:

@@ -6,8 +6,10 @@ logger = logging.getLogger(__name__)
 
 
 class ClangArm(Compiler):
-    def __init__(self, p, clang_version=15, compiler_flags=[]):
+    def __init__(self, p, clang_version=15, compiler_flags=None):
         super().__init__(p)
+        if compiler_flags is None:
+            compiler_flags = []
         self._compiler = f"clang-{clang_version}"
         self._linker = f"ld.lld-{clang_version}"
         self._compiler_flags = compiler_flags
@@ -16,11 +18,15 @@ class ClangArm(Compiler):
         self,
         code,
         base=0,
-        symbols={},
-        extra_compiler_flags=[],
+        symbols=None,
+        extra_compiler_flags=None,
         is_thumb=False,
         **kwargs,
     ):
+        if symbols is None:
+            symbols = {}
+        if extra_compiler_flags is None:
+            extra_compiler_flags = []
         if is_thumb:
             extra_compiler_flags += ["-mthumb"]
         else:

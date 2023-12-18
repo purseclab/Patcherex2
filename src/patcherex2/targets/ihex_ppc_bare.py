@@ -14,7 +14,7 @@ from .target import Target
 logger = logging.getLogger(__name__)
 
 
-class IHex_PPC_Bare(Target):
+class IHexPPCBare(Target):
     NOP_BYTES = b"\x01\x00\x00\x00"
     NOP_SIZE = 4
     JMP_ASM = "b {dst}"
