@@ -1,6 +1,6 @@
 import copy
 
-from ..components.allocation_managers.allocation_manager import *
+from ..components.allocation_managers.allocation_manager import MappedBlock, MemoryFlag
 from ..components.binfmt_tools.elf import ELF
 from .elf_arm_linux import ElfArmLinux
 

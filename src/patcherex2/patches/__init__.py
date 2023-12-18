@@ -1,8 +1,33 @@
-from .data_patches import *
-from .dummy_patches import *
-from .function_patches import *
-from .instruction_patches import *
-from .raw_patches import *
+from .data_patches import InsertDataPatch, ModifyDataPatch, RemoveDataPatch
+from .dummy_patches import InsertLabelPatch, ModifyLabelPatch, RemoveLabelPatch
+from .function_patches import (
+    InsertFunctionPatch,
+    ModifyFunctionPatch,
+    RemoveFunctionPatch,
+)
+from .instruction_patches import (
+    InsertInstructionPatch,
+    ModifyInstructionPatch,
+    RemoveInstructionPatch,
+)
+from .patch import Patch
+from .raw_patches import ModifyRawBytesPatch
+
+__all__ = [
+    "ModifyDataPatch",
+    "InsertDataPatch",
+    "RemoveDataPatch",
+    "InsertLabelPatch",
+    "ModifyLabelPatch",
+    "RemoveLabelPatch",
+    "ModifyFunctionPatch",
+    "InsertFunctionPatch",
+    "RemoveFunctionPatch",
+    "ModifyInstructionPatch",
+    "InsertInstructionPatch",
+    "RemoveInstructionPatch",
+    "ModifyRawBytesPatch",
+]
 
 
 # Other Patches

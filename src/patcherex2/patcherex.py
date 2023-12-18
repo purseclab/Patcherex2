@@ -1,7 +1,6 @@
 import logging
 
-from .components.allocation_managers import *
-from .patches import *
+from .patches import InsertDataPatch, ModifyDataPatch, RemoveDataPatch
 from .targets import Target
 
 logger = logging.getLogger(__name__)

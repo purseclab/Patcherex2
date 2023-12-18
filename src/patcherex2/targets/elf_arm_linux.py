@@ -1,5 +1,4 @@
-from ..components.allocation_managers.allocation_manager import \
-    AllocationManager
+from ..components.allocation_managers.allocation_manager import AllocationManager
 from ..components.assemblers.keystone_arm import KeystoneArm
 from ..components.binary_analyzers.angr import Angr
 from ..components.binfmt_tools.elf import ELF

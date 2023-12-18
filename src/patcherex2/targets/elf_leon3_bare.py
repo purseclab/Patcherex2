@@ -1,6 +1,10 @@
 import logging
 
-from ..components.allocation_managers.allocation_manager import *
+from ..components.allocation_managers.allocation_manager import (
+    AllocationManager,
+    MappedBlock,
+    MemoryFlag,
+)
 from ..components.assemblers.bcc import Bcc as BccAssembler
 from ..components.assemblers.keystone_sparc import KeystoneSparc, keystone
 from ..components.binary_analyzers.angr import Angr

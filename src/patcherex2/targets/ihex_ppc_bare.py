@@ -1,6 +1,8 @@
 import logging
 
-from ..components.allocation_managers.allocation_manager import *
+import archinfo
+
+from ..components.allocation_managers.allocation_manager import AllocationManager
 from ..components.assemblers.ppc_vle import PpcVle as PpcVleAssembler
 from ..components.binary_analyzers.angr import Angr
 from ..components.binfmt_tools.ihex import IHex

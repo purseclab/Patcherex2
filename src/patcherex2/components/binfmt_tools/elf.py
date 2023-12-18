@@ -5,7 +5,12 @@ from elftools.construct.lib import Container
 from elftools.elf.constants import P_FLAGS, SH_FLAGS
 from elftools.elf.elffile import ELFFile
 
-from ..allocation_managers import *
+from ..allocation_managers.allocation_manager import (
+    FileBlock,
+    MappedBlock,
+    MemoryBlock,
+    MemoryFlag,
+)
 from .binfmt_tool import BinFmtTool
 
 logger = logging.getLogger(__name__)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# ruff: noqa
 import logging
 import os
 import shutil
