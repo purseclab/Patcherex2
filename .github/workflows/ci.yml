@@ -2,12 +2,13 @@ on:
   push:
     branches: [ main ]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   ci:
     strategy:
       matrix:
-        task: [test, lint, format]
+        task: [test, lint, format, private-test]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -42,3 +43,15 @@ jobs:
         if: matrix.task == 'lint'
         run: |
           python3 -m ruff check .
+      - name: Checkout Private Tests
+        if: matrix.task == 'private-test'
+        uses: actions/checkout@v4
+        with:
+          repository: purseclab/patcherex2-private
+          ssh-key: ${{ secrets.PRIVATE_TESTS_DEPLOY_KEY }}
+          path: private
+      - name: Run pytest for Private Tests
+        if: matrix.task == 'private-test'
+        working-directory: ./private
+        run: |
+          python3 -m pytest -q --no-summary
