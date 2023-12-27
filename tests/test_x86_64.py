@@ -43,13 +43,13 @@ class Tests(unittest.TestCase):
         self.run_one(
             "printf_nopie",
             [
-                ModifyInstructionPatch(0x40113e, "lea rax, [0x402007]"),
+                ModifyInstructionPatch(0x40113E, "lea rax, [0x402007]"),
                 ModifyInstructionPatch(0x401145, "mov rsi, rax"),
             ],
             expected_output=b"%s",
             expected_returnCode=0,
         )
-    
+
     def test_insert_instruction_patch(self):
         instrs = """
             mov rax, 0x1
@@ -60,7 +60,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "printf_nopie",
-            [InsertInstructionPatch(0x40115c, instrs)],
+            [InsertInstructionPatch(0x40115C, instrs)],
             expected_output=b"Hi\x00Hi",
             expected_returnCode=0,
         )
@@ -75,7 +75,7 @@ class Tests(unittest.TestCase):
             "printf_nopie",
             [
                 InsertInstructionPatch("return_0x32", instrs),
-                ModifyInstructionPatch(0x40115c, "jmp {return_0x32}"),
+                ModifyInstructionPatch(0x40115C, "jmp {return_0x32}"),
             ],
             expected_returnCode=0x32,
         )
@@ -107,7 +107,7 @@ class Tests(unittest.TestCase):
             mov rdx, %s
             syscall
         """ % hex(tlen)
-        p2 = InsertInstructionPatch(0x40115c, instrs)
+        p2 = InsertInstructionPatch(0x40115C, instrs)
         self.run_one(
             "printf_nopie",
             [p1, p2],
@@ -160,45 +160,45 @@ class Tests(unittest.TestCase):
         )
 
     def run_one(
-            self,
-            filename,
-            patches,
-            set_oep=None,
-            inputvalue=None,
-            expected_output=None,
-            expected_returnCode=None,
-        ):
-            filepath = os.path.join(self.bin_location, filename)
-            pipe = subprocess.PIPE
+        self,
+        filename,
+        patches,
+        set_oep=None,
+        inputvalue=None,
+        expected_output=None,
+        expected_returnCode=None,
+    ):
+        filepath = os.path.join(self.bin_location, filename)
+        pipe = subprocess.PIPE
 
-            with tempfile.TemporaryDirectory() as td:
-                tmp_file = os.path.join(td, "patched")
-                p = Patcherex(filepath)
-                for patch in patches:
-                    p.patches.append(patch)
-                p.apply_patches()
-                p.binfmt_tool.save_binary(tmp_file)
-                # os.system(f"readelf -hlS {tmp_file}")
+        with tempfile.TemporaryDirectory() as td:
+            tmp_file = os.path.join(td, "patched")
+            p = Patcherex(filepath)
+            for patch in patches:
+                p.patches.append(patch)
+            p.apply_patches()
+            p.binfmt_tool.save_binary(tmp_file)
+            # os.system(f"readelf -hlS {tmp_file}")
 
-                p = subprocess.Popen(
-                    [tmp_file],
-                    stdin=pipe,
-                    stdout=pipe,
-                    stderr=pipe,
-                )
-                res = p.communicate(inputvalue)
-                if expected_output:
-                    if res[0] != expected_output:
-                        self.fail(
-                            f"AssertionError: {res[0]} != {expected_output}, binary dumped: {self.dump_file(tmp_file)}"
-                        )
-                    # self.assertEqual(res[0], expected_output)
-                if expected_returnCode:
-                    if p.returncode != expected_returnCode:
-                        self.fail(
-                            f"AssertionError: {p.returncode} != {expected_returnCode}, binary dumped: {self.dump_file(tmp_file)}"
-                        )
-                    # self.assertEqual(p.returncode, expected_returnCode)
+            p = subprocess.Popen(
+                [tmp_file],
+                stdin=pipe,
+                stdout=pipe,
+                stderr=pipe,
+            )
+            res = p.communicate(inputvalue)
+            if expected_output:
+                if res[0] != expected_output:
+                    self.fail(
+                        f"AssertionError: {res[0]} != {expected_output}, binary dumped: {self.dump_file(tmp_file)}"
+                    )
+                # self.assertEqual(res[0], expected_output)
+            if expected_returnCode:
+                if p.returncode != expected_returnCode:
+                    self.fail(
+                        f"AssertionError: {p.returncode} != {expected_returnCode}, binary dumped: {self.dump_file(tmp_file)}"
+                    )
+                # self.assertEqual(p.returncode, expected_returnCode)
 
     def dump_file(self, file):
         shutil.copy(file, "/tmp/patcherex_failed_binary")

@@ -23,14 +23,16 @@ class ElfX8664Linux(Target):
             ):  # EM_X86_64
                 return True
         return False
-    
+
     def get_assembler(self, assembler):
-            assembler = assembler or "keystone"
-            if assembler == "keystone":
-                return Keystone(
-                    self.p, keystone.KS_ARCH_X86, keystone.KS_MODE_LITTLE_ENDIAN + keystone.KS_MODE_64
-                )
-            raise NotImplementedError()
+        assembler = assembler or "keystone"
+        if assembler == "keystone":
+            return Keystone(
+                self.p,
+                keystone.KS_ARCH_X86,
+                keystone.KS_MODE_LITTLE_ENDIAN + keystone.KS_MODE_64,
+            )
+        raise NotImplementedError()
 
     def get_allocation_manager(self, allocation_manager):
         allocation_manager = allocation_manager or "default"
@@ -47,7 +49,10 @@ class ElfX8664Linux(Target):
     def get_disassembler(self, disassembler):
         disassembler = disassembler or "capstone"
         if disassembler == "capstone":
-            return Capstone(capstone.CS_ARCH_X86, capstone.CS_MODE_LITTLE_ENDIAN + capstone.CS_MODE_64)
+            return Capstone(
+                capstone.CS_ARCH_X86,
+                capstone.CS_MODE_LITTLE_ENDIAN + capstone.CS_MODE_64,
+            )
         raise NotImplementedError()
 
     def get_binfmt_tool(self, binfmt_tool):
