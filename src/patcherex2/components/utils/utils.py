@@ -15,12 +15,20 @@ class Utils:
         assert force_insert or self.is_valid_insert_point(
             addr
         ), f"Cannot insert instruction at {hex(addr)}"
+        moved_instrs = self.get_instrs_to_be_moved(addr)
+        moved_instrs_len = len(
+            self.p.assembler.assemble(
+                moved_instrs,
+                addr,  # TODO: we don't really need this addr, but better than 0x0 because 0x0 is too far away from the code
+                is_thumb=self.p.binary_analyzer.is_thumb(addr)
+            )
+        )
         trempoline_instrs_with_jump_back = (
             instrs
             + "\n"
-            + self.get_instrs_to_be_moved(addr)
+            + moved_instrs
             + "\n"
-            + self.p.target.JMP_ASM.format(dst=hex(addr + self.p.target.JMP_SIZE))
+            + self.p.target.JMP_ASM.format(dst=hex(addr + moved_instrs_len))
         )
         trempoline_size = (
             len(
