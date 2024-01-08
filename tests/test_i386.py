@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import pytest
 
 from patcherex2 import *
 
@@ -34,7 +35,7 @@ class Tests(unittest.TestCase):
     def test_raw_mem_patch(self):
         self.run_one(
             "printf_nopie",
-            [ModifyRawBytesPatch(0x804a008, b"No")],
+            [ModifyRawBytesPatch(0x804A008, b"No")],
             expected_output=b"No",
             expected_returnCode=0,
         )
@@ -60,7 +61,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "printf_nopie",
-            [InsertInstructionPatch(0x80491a7, instrs)],
+            [InsertInstructionPatch(0x80491A7, instrs)],
             expected_output=b"Hi\x00Hi",
             expected_returnCode=0,
         )
@@ -75,7 +76,7 @@ class Tests(unittest.TestCase):
             "printf_nopie",
             [
                 InsertInstructionPatch("return_0x32", instrs),
-                ModifyInstructionPatch(0x80491a7, "jmp {return_0x32}"),
+                ModifyInstructionPatch(0x80491A7, "jmp {return_0x32}"),
             ],
             expected_returnCode=0x32,
         )
@@ -84,7 +85,7 @@ class Tests(unittest.TestCase):
         self.run_one(
             "printf_nopie",
             [
-                RemoveInstructionPatch(0x804a009, num_bytes=1),
+                RemoveInstructionPatch(0x804A009, num_bytes=1),
             ],
             expected_output=b"H\x90",
             expected_returnCode=0,
@@ -93,7 +94,7 @@ class Tests(unittest.TestCase):
     def test_modify_data_patch(self):
         self.run_one(
             "printf_nopie",
-            [ModifyDataPatch(0x804a008, b"No")],
+            [ModifyDataPatch(0x804A008, b"No")],
             expected_output=b"No",
             expected_returnCode=0,
         )
@@ -107,7 +108,7 @@ class Tests(unittest.TestCase):
             mov edx, %s
             int 0x80
         """ % hex(tlen)
-        p2 = InsertInstructionPatch(0x80491a7, instrs)
+        p2 = InsertInstructionPatch(0x80491A7, instrs)
         self.run_one(
             "printf_nopie",
             [p1, p2],
@@ -118,7 +119,7 @@ class Tests(unittest.TestCase):
     def test_remove_data_patch(self):
         self.run_one(
             "printf_nopie",
-            [RemoveDataPatch(0x804a009, 1)],
+            [RemoveDataPatch(0x804A009, 1)],
             expected_output=b"H",
             expected_returnCode=0,
         )
@@ -129,11 +130,12 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "replace_function_patch",
-            [ModifyFunctionPatch(0x119d, code)],
+            [ModifyFunctionPatch(0x119D, code)],
             expected_output=b"70707070",
             expected_returnCode=0,
         )
 
+    @pytest.mark.skip(reason="waiting for cle relocation support")
     def test_replace_function_patch_with_function_reference(self):
         code = """
         extern int add(int, int);
@@ -142,7 +144,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "replace_function_patch",
-            [ModifyFunctionPatch(0x11c9, code)],
+            [ModifyFunctionPatch(0x11C9, code)],
             expected_output=b"-21-21",
             expected_returnCode=0,
         )

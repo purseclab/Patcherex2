@@ -20,7 +20,7 @@ class Utils:
             self.p.assembler.assemble(
                 moved_instrs,
                 addr,  # TODO: we don't really need this addr, but better than 0x0 because 0x0 is too far away from the code
-                is_thumb=self.p.binary_analyzer.is_thumb(addr)
+                is_thumb=self.p.binary_analyzer.is_thumb(addr),
             )
         )
         trempoline_instrs_with_jump_back = (
