@@ -7,16 +7,19 @@ logger = logging.getLogger(__name__)
 
 
 class ModifyFunctionPatch(Patch):
-    def __init__(self, addr_or_name, code, detour_pos=-1) -> None:
+    def __init__(self, addr_or_name, code, detour_pos=-1, **kwargs) -> None:
         self.code = code
         self.detour_pos = detour_pos
         self.addr_or_name = addr_or_name
+        self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
 
     def apply(self, p):
         func = p.binary_analyzer.get_function(self.addr_or_name)
         compiled_size = len(
             p.compiler.compile(
-                self.code, is_thumb=p.binary_analyzer.is_thumb(func["addr"])
+                self.code,
+                is_thumb=p.binary_analyzer.is_thumb(func["addr"]),
+                **self.compile_opts,
             )
         )
         if compiled_size < func["size"]:
@@ -46,13 +49,18 @@ class ModifyFunctionPatch(Patch):
         p.binfmt_tool.update_binary_content(
             file_addr,
             p.compiler.compile(
-                self.code, mem_addr, is_thumb=p.binary_analyzer.is_thumb(func["addr"])
+                self.code,
+                mem_addr,
+                is_thumb=p.binary_analyzer.is_thumb(func["addr"]),
+                **self.compile_opts,
             ),
         )
 
 
 class InsertFunctionPatch(Patch):
-    def __init__(self, addr_or_name, code, detour_pos=-1, is_thumb=False) -> None:
+    def __init__(
+        self, addr_or_name, code, detour_pos=-1, is_thumb=False, **kwargs
+    ) -> None:
         self.addr = None
         self.name = None
         if isinstance(addr_or_name, int):
@@ -62,12 +70,19 @@ class InsertFunctionPatch(Patch):
         self.code = code
         self.detour_pos = detour_pos
         self.is_thumb = is_thumb
+        self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
 
     def apply(self, p):
         if self.addr:
             raise NotImplementedError()
         elif self.name:
-            compiled_size = len(p.compiler.compile(self.code, is_thumb=self.is_thumb))
+            compiled_size = len(
+                p.compiler.compile(
+                    self.code,
+                    is_thumb=self.is_thumb,
+                    **self.compile_opts,
+                )
+            )
             if self.detour_pos == -1:
                 block = p.allocation_manager.allocate(
                     compiled_size + 0x20, align=0x4, flag=MemoryFlag.RX
@@ -80,7 +95,12 @@ class InsertFunctionPatch(Patch):
             p.symbols[self.name] = mem_addr
             p.binfmt_tool.update_binary_content(
                 file_addr,
-                p.compiler.compile(self.code, mem_addr, is_thumb=self.is_thumb),
+                p.compiler.compile(
+                    self.code,
+                    mem_addr,
+                    is_thumb=self.is_thumb,
+                    **self.compile_opts,
+                ),
             )
 
 

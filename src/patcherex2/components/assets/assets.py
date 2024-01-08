@@ -20,6 +20,10 @@ class Assets:
             "url": "https://f002.backblazeb2.com/file/patcherex/assets/powerpc-eabivle.tgz",
             "path": ASSETS_DIR / "ppc_vle" / "bin",
         },
+        "llvm_recomp": {
+            "url": "https://f002.backblazeb2.com/file/patcherex/assets/llvm_recomp.tgz",
+            "path": ASSETS_DIR / "llvm_recomp",
+        },
     }
 
     def __init__(self, name):
@@ -33,7 +37,8 @@ class Assets:
     def download(self):
         r = requests.get(self.url)
         with tempfile.TemporaryDirectory() as td:
-            with open(os.path.join(td, "asset.tar.xz"), "wb") as f:
+            with open(os.path.join(td, "asset.tgz"), "wb") as f:
                 f.write(r.content)
-            with tarfile.open(os.path.join(td, "asset.tar.xz")) as tar:
+            with tarfile.open(os.path.join(td, "asset.tgz")) as tar:
+                # FIXME: better use filter here but it requires > py3.12. all tarball are manually verified to be safe so it's fine for now
                 tar.extractall(path=self.ASSETS_DIR / self.name)
