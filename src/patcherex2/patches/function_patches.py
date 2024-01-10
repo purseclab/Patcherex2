@@ -59,7 +59,13 @@ class ModifyFunctionPatch(Patch):
 
 class InsertFunctionPatch(Patch):
     def __init__(
-        self, addr_or_name, code, detour_pos=-1, is_thumb=False, **kwargs
+        self,
+        addr_or_name,
+        code,
+        force_insert=False,
+        detour_pos=-1,
+        is_thumb=False,
+        **kwargs,
     ) -> None:
         self.addr = None
         self.name = None
@@ -70,11 +76,26 @@ class InsertFunctionPatch(Patch):
         self.code = code
         self.detour_pos = detour_pos
         self.is_thumb = is_thumb
+        self.force_insert = force_insert
+        self.prefunc = kwargs["prefunc"] if "prefunc" in kwargs else None
+        self.postfunc = kwargs["postfunc"] if "postfunc" in kwargs else None
         self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
 
     def apply(self, p):
         if self.addr:
-            raise NotImplementedError()
+            ifp = InsertFunctionPatch(f"__patcherex_{hex(self.addr)}", self.code)
+            ifp.apply(p)
+            instrs = self.prefunc if self.prefunc else ""
+            instrs += "\n"
+            instrs += p.target.JMP_ASM.format(dst=f"{{__patcherex_{hex(self.addr)}}}")
+            instrs += "\n"
+            instrs += self.postfunc if self.postfunc else ""
+            p.utils.insert_trampoline_code(
+                self.addr,
+                instrs,
+                force_insert=self.force_insert,
+                detour_pos=self.detour_pos,
+            )
         elif self.name:
             compiled_size = len(
                 p.compiler.compile(
