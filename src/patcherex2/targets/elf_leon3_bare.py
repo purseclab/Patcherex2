@@ -39,7 +39,7 @@ class CustomElf(ELF):
                 func["addr"],
                 func["size"],
                 is_free=True,
-                flag=MemoryFlag.RWX,
+                flag=MemoryFlag.RX,
             )
             self.p.allocation_manager.add_block(block)
 

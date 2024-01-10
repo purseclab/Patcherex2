@@ -87,6 +87,23 @@ class AllocationManager:
         self.blocks[type(block)].sort()
         self.coalesce(self.blocks[type(block)])
 
+    def add_free_space(self, addr, size, flag="RX"):
+        _flag = 0
+        if "r" in flag.lower():
+            _flag |= MemoryFlag.R
+        if "w" in flag.lower():
+            _flag |= MemoryFlag.W
+        if "x" in flag.lower():
+            _flag |= MemoryFlag.X
+        block = MappedBlock(
+            self.p.binary_analyzer.mem_addr_to_file_offset(addr),
+            addr,
+            size,
+            is_free=True,
+            flag=_flag,
+        )
+        self.p.allocation_manager.add_block(block)
+
     def _find_in_mapped_blocks(self, size, flag=MemoryFlag.RWX, align=0x1):
         best_fit = None
         for block in self.blocks[MappedBlock]:
