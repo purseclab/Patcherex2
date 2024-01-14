@@ -13,15 +13,15 @@ class Assets:
     ASSETS_DIR = Path(__file__).parent
     ASSETS = {
         "bcc": {
-            "url": "https://f002.backblazeb2.com/file/patcherex/assets/bcc-2.2.4-gcc-linux64.tar.xz",
+            "url": "https://assets.patcherex.pursec.han.ac/bcc-2.2.4-gcc-linux64.tar.xz",
             "path": ASSETS_DIR / "bcc" / "bcc-2.2.4-gcc" / "bin",
         },
         "ppc_vle": {
-            "url": "https://f002.backblazeb2.com/file/patcherex/assets/powerpc-eabivle.tgz",
+            "url": "https://assets.patcherex.pursec.han.ac/powerpc-eabivle.tgz",
             "path": ASSETS_DIR / "ppc_vle" / "bin",
         },
         "llvm_recomp": {
-            "url": "https://f002.backblazeb2.com/file/patcherex/assets/llvm_recomp.tgz",
+            "url": "https://assets.patcherex.pursec.han.ac/llvm_recomp.tgz",
             "path": ASSETS_DIR / "llvm_recomp",
         },
     }
