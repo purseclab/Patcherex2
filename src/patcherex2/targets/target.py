@@ -16,5 +16,7 @@ class Target:
                 return target_class(p, binary_path)
         raise ValueError("Unknown target")
 
-    def get_component(self, component_name, component_opts):
-        return getattr(self, f"get_{component_name}")(component_opts)
+    def get_component(self, component_type, component_name, component_opts=None):
+        if component_opts is None:
+            component_opts = {}
+        return getattr(self, f"get_{component_type}")(component_name, **component_opts)

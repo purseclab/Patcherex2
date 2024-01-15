@@ -9,31 +9,37 @@ logger = logging.getLogger(__name__)
 
 
 class Angr(BinaryAnalyzer):
-    _DEFAULT_LOAD_BASE = 0x400000
-
     def __init__(self, binary_path, **kwargs) -> None:
         self.binary_path = binary_path
-        self.kwargs = kwargs
+        # self.use_pickle = kwargs.pop("use_pickle", False) # TODO: implement this
+        self.angr_kwargs = kwargs.pop("angr_kwargs", {})
         self._p = None
         self._cfg = None
+        self._load_base = None
+
+    @property
+    def load_base(self):
+        if self._load_base is None:
+            self._load_base = self.p.loader.main_object.mapped_base
+        return self._load_base
 
     def normalize_addr(self, addr):
         if self.p.loader.main_object.pic:
-            return addr - self._DEFAULT_LOAD_BASE
+            return addr - self.load_base
         return addr
 
     def denormalize_addr(self, addr):
         if self.p.loader.main_object.pic:
-            return addr + self._DEFAULT_LOAD_BASE
+            return addr + self.load_base
         return addr
 
     @property
     def p(self):
         if self._p is None:
             logger.info("Loading binary with angr")
-            if "load_options" not in self.kwargs:
-                self.kwargs["load_options"] = {"auto_load_libs": False}
-            self._p = angr.Project(self.binary_path, **self.kwargs)
+            if "load_options" not in self.angr_kwargs:
+                self.angr_kwargs["load_options"] = {"auto_load_libs": False}
+            self._p = angr.Project(self.binary_path, **self.angr_kwargs)
             logger.info("Loaded binary with angr")
         return self._p
 
