@@ -100,22 +100,13 @@ class Tests(unittest.TestCase):
 
     def test_insert_data_patch(self, tlen=5):
         p1 = InsertDataPatch("added_data", b"A" * tlen)
-        p = Patcherex(os.path.join(self.bin_location, "printf_nopie"))
-        p.patches.append(p1)
-        p.apply_patches()
-        added_data_address = p.symbols["added_data"] - 0x120000000
-        upper = added_data_address >> 16
-        lower = added_data_address & 0b1111111111111111
         instrs = """
             li $v0, 0x1389
             li $a0, 0x1
-            ld $at, -0x7fc0($gp)
-            lui $a1, %s
-            ori $a1, $a1, %s
-            daddu $a1, $at, $a1
+            dla $a1, {added_data}
             li $a2, %s
             syscall
-        """ % (hex(upper), hex(lower), hex(tlen))
+        """ % hex(tlen)
         p2 = InsertInstructionPatch(0x120000AC0, instrs)
         self.run_one(
             "printf_nopie",
@@ -189,11 +180,6 @@ class Tests(unittest.TestCase):
             p.binfmt_tool.save_binary(tmp_file)
             # os.system(f"readelf -hlS {tmp_file}")
 
-            if expected_returnCode == 0x32:
-                with open(tmp_file, "rb") as f:
-                    result = f.read()
-                with open("/home/bilbin/patched_test", "wb") as f:
-                    f.write(result)
             p = subprocess.Popen(
                 ["qemu-mips64", "-L", "/usr/mips64-linux-gnuabi64", tmp_file],
                 stdin=pipe,

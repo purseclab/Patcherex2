@@ -12,7 +12,8 @@ class ElfMips64Linux(Target):
     NOP_BYTES = b"\x00\x00\x00\x00"
     NOP_SIZE = 4
     JMP_ASM = "j {dst}"
-    JMP_SIZE = 8  # keystone will automatically insert a nop for the branch delay slot
+    # NOTE: keystone will always add nop for branch delay slot, so include it in size
+    JMP_SIZE = 8
 
     @staticmethod
     def detect_target(binary_path):
