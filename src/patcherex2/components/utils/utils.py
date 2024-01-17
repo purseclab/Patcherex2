@@ -28,9 +28,9 @@ class Utils:
             moved_instrs = ""
             moved_instrs_len = 0
         trempoline_instrs_with_jump_back = (
-            instrs
+            moved_instrs
             + "\n"
-            + moved_instrs
+            + instrs
             + "\n"
             + self.p.target.JMP_ASM.format(dst=hex(addr + moved_instrs_len))
         )
