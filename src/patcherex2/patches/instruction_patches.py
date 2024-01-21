@@ -7,14 +7,18 @@ logger = logging.getLogger(__name__)
 
 
 class ModifyInstructionPatch(Patch):
-    def __init__(self, addr, instr) -> None:
+    def __init__(self, addr, instr, symbols=None) -> None:
         self.addr = addr
         self.instr = instr
+        self.symbols = symbols if symbols else {}
 
     def apply(self, p):
         # TODO: check size, insert jump if necessary
         asm_bytes = p.assembler.assemble(
-            self.instr, self.addr, is_thumb=p.binary_analyzer.is_thumb(self.addr)
+            self.instr,
+            self.addr,
+            symbols=self.symbols,
+            is_thumb=p.binary_analyzer.is_thumb(self.addr),
         )
         offset = p.binary_analyzer.mem_addr_to_file_offset(self.addr)
         p.binfmt_tool.update_binary_content(offset, asm_bytes)
@@ -22,7 +26,13 @@ class ModifyInstructionPatch(Patch):
 
 class InsertInstructionPatch(Patch):
     def __init__(
-        self, addr_or_name, instr, force_insert=False, detour_pos=-1, is_thumb=False
+        self,
+        addr_or_name,
+        instr,
+        force_insert=False,
+        detour_pos=-1,
+        symbols=None,
+        is_thumb=False,
     ) -> None:
         self.addr = None
         self.name = None
@@ -33,6 +43,7 @@ class InsertInstructionPatch(Patch):
         self.instr = instr
         self.force_insert = force_insert
         self.detour_pos = detour_pos
+        self.symbols = symbols if symbols else {}
         self.is_thumb = is_thumb
 
     def apply(self, p):
@@ -42,10 +53,13 @@ class InsertInstructionPatch(Patch):
                 self.instr,
                 force_insert=self.force_insert,
                 detour_pos=self.detour_pos,
+                symbols=self.symbols,
             )
         elif self.name:
             assembled_size = len(
-                p.assembler.assemble(self.instr, is_thumb=self.is_thumb)
+                p.assembler.assemble(
+                    self.instr, symbols=self.symbols, is_thumb=self.is_thumb
+                )
             )
             if self.detour_pos == -1:
                 block = p.allocation_manager.allocate(
@@ -55,7 +69,10 @@ class InsertInstructionPatch(Patch):
                 p.binfmt_tool.update_binary_content(
                     block.file_addr,
                     p.assembler.assemble(
-                        self.instr, block.mem_addr, is_thumb=self.is_thumb
+                        self.instr,
+                        block.mem_addr,
+                        symbols=self.symbols,
+                        is_thumb=self.is_thumb,
                     ),
                 )
             else:
@@ -63,7 +80,10 @@ class InsertInstructionPatch(Patch):
                 p.binfmt_tool.update_binary_content(
                     self.detour_pos,
                     p.assembler.assemble(
-                        self.instr, self.detour_pos, is_thumb=self.is_thumb
+                        self.instr,
+                        self.detour_pos,
+                        symbols=self.symbols,
+                        is_thumb=self.is_thumb,
                     ),
                 )
 

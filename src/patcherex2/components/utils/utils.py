@@ -10,8 +10,11 @@ class Utils:
         self.p = p
         self.binary_path = binary_path
 
-    def insert_trampoline_code(self, addr, instrs, force_insert=False, detour_pos=-1):
+    def insert_trampoline_code(
+        self, addr, instrs, force_insert=False, detour_pos=-1, symbols=None
+    ):
         logger.debug(f"Inserting trampoline code at {hex(addr)}: {instrs}")
+        symbols = symbols if symbols else {}
         assert force_insert or self.is_valid_insert_point(
             addr
         ), f"Cannot insert instruction at {hex(addr)}"
@@ -39,6 +42,7 @@ class Utils:
                 self.p.assembler.assemble(
                     trempoline_instrs_with_jump_back,
                     addr,  # TODO: we don't really need this addr, but better than 0x0 because 0x0 is too far away from the code
+                    symbols=symbols,
                     is_thumb=self.p.binary_analyzer.is_thumb(addr),
                 )
             )
@@ -58,6 +62,7 @@ class Utils:
         trempoline_bytes = self.p.assembler.assemble(
             trempoline_instrs_with_jump_back,
             mem_addr,
+            symbols=symbols,
             is_thumb=self.p.binary_analyzer.is_thumb(addr),
         )
         self.p.binfmt_tool.update_binary_content(file_addr, trempoline_bytes)
@@ -79,7 +84,9 @@ class Utils:
             if end <= insn_addr:
                 # we have enough space to insert a jump
                 disasms = self.p.disassembler.disassemble(
-                    instrs, addr, is_thumb=self.p.binary_analyzer.is_thumb(addr)
+                    instrs,
+                    addr,
+                    is_thumb=self.p.binary_analyzer.is_thumb(addr),
                 )
                 disasm_str = "\n".join(
                     [self.p.disassembler.to_asm_string(d) for d in disasms]

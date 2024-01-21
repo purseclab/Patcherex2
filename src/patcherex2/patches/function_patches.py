@@ -7,10 +7,13 @@ logger = logging.getLogger(__name__)
 
 
 class ModifyFunctionPatch(Patch):
-    def __init__(self, addr_or_name, code, detour_pos=-1, **kwargs) -> None:
+    def __init__(
+        self, addr_or_name, code, detour_pos=-1, symbols=None, **kwargs
+    ) -> None:
         self.code = code
         self.detour_pos = detour_pos
         self.addr_or_name = addr_or_name
+        self.symbols = symbols if symbols else {}
         self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
 
     def apply(self, p):
@@ -18,6 +21,7 @@ class ModifyFunctionPatch(Patch):
         compiled_size = len(
             p.compiler.compile(
                 self.code,
+                symbols=self.symbols,
                 is_thumb=p.binary_analyzer.is_thumb(func["addr"]),
                 **self.compile_opts,
             )
@@ -51,6 +55,7 @@ class ModifyFunctionPatch(Patch):
             p.compiler.compile(
                 self.code,
                 mem_addr,
+                symbols=self.symbols,
                 is_thumb=p.binary_analyzer.is_thumb(func["addr"]),
                 **self.compile_opts,
             ),
@@ -64,6 +69,7 @@ class InsertFunctionPatch(Patch):
         code,
         force_insert=False,
         detour_pos=-1,
+        symbols=None,
         is_thumb=False,
         **kwargs,
     ) -> None:
@@ -75,6 +81,7 @@ class InsertFunctionPatch(Patch):
             self.name = addr_or_name
         self.code = code
         self.detour_pos = detour_pos
+        self.symbols = symbols if symbols else {}
         self.is_thumb = is_thumb
         self.force_insert = force_insert
         self.prefunc = kwargs["prefunc"] if "prefunc" in kwargs else None
@@ -95,11 +102,13 @@ class InsertFunctionPatch(Patch):
                 instrs,
                 force_insert=self.force_insert,
                 detour_pos=self.detour_pos,
+                symbols=self.symbols,
             )
         elif self.name:
             compiled_size = len(
                 p.compiler.compile(
                     self.code,
+                    symbols=self.symbols,
                     is_thumb=self.is_thumb,
                     **self.compile_opts,
                 )
@@ -119,6 +128,7 @@ class InsertFunctionPatch(Patch):
                 p.compiler.compile(
                     self.code,
                     mem_addr,
+                    symbols=self.symbols,
                     is_thumb=self.is_thumb,
                     **self.compile_opts,
                 ),
