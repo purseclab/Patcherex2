@@ -65,6 +65,102 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    def test_insert_instruction_patch_2(self):
+        instrs = """
+            li 3, 0x32
+            li 0, 0x1
+            sc
+        """
+        self.run_one(
+            "printf_nopie",
+            [
+                InsertInstructionPatch("return_0x32", instrs),
+                ModifyInstructionPatch(0x10000774, "b {return_0x32}"),
+            ],
+            expected_returnCode=0x32,
+        )
+
+    def test_remove_instruction_patch(self):
+        self.run_one(
+            "printf_nopie",
+            [
+                RemoveInstructionPatch(0x10000890, num_bytes=4),
+            ],
+            expected_output=b"H\x60",
+            expected_returnCode=0,
+        )
+
+    def test_modify_data_patch(self):
+        self.run_one(
+            "printf_nopie",
+            [ModifyDataPatch(0x1000088f, b"No")],
+            expected_output=b"No",
+            expected_returnCode=0,
+        )
+
+    def test_insert_data_patch(self, tlen=5):
+        p1 = InsertDataPatch("added_data", b"A" * tlen)
+        instrs = """
+            li 0, 0x4
+            li 3, 0x1
+            lis 4, {added_data}@h
+            addi 4, 4, {added_data}@l
+            li 5, %s
+            sc
+        """ % hex(tlen)
+        p2 = InsertInstructionPatch(0x10000774, instrs)
+        self.run_one(
+            "printf_nopie",
+            [p1, p2],
+            expected_output=b"A" * tlen + b"Hi",
+            expected_returnCode=0,
+        )
+
+    def test_remove_data_patch(self):
+        self.run_one(
+            "printf_nopie",
+            [RemoveDataPatch(0x10000890, 1)],
+            expected_output=b"H",
+            expected_returnCode=0,
+        )
+
+    def test_replace_function_patch(self):
+        code = """
+        int add(int a, int b){ for(;; b--, a+=2) if(b <= 0) return a; }
+        """
+        self.run_one(
+            "replace_function_patch",
+            [ModifyFunctionPatch(0xb44, code)],
+            expected_output=b"70707070",
+            expected_returnCode=0,
+        )
+
+    @unittest.skip
+    def test_replace_function_patch_with_function_reference(self):
+        code = """
+        extern int add(int, int);
+        extern int subtract(int, int);
+        int multiply(int a, int b){ for(int c = 0;; b = subtract(b, 1), c = subtract(c, a)) if(b <= 0) return c; }
+        """
+        self.run_one(
+            "replace_function_patch",
+            [ModifyFunctionPatch(0xbec, code)],
+            expected_output=b"-21-21",
+            expected_returnCode=0,
+        )
+
+    @unittest.skip
+    def test_replace_function_patch_with_function_reference_and_rodata(self):
+        code = """
+        extern int printf(const char *format, ...);
+        int multiply(int a, int b){ printf("%sWorld %s %s %s %d\\n", "Hello ", "Hello ", "Hello ", "Hello ", a * b);printf("%sWorld\\n", "Hello "); return a * b; }
+        """
+        self.run_one(
+            "replace_function_patch",
+            [ModifyFunctionPatch(0xbec, code)],
+            expected_output=b"Hello World Hello  Hello  Hello  21\nHello World\n2121",
+            expected_returnCode=0,
+        )
 
     def run_one(
         self,
