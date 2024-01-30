@@ -50,8 +50,7 @@ class ElfPpcLinux(Target):
         disassembler = disassembler or "capstone"
         if disassembler == "capstone":
             cs = Capstone(
-                capstone.CS_ARCH_PPC,
-                capstone.CS_MODE_BIG_ENDIAN + capstone.CS_MODE_32
+                capstone.CS_ARCH_PPC, capstone.CS_MODE_BIG_ENDIAN + capstone.CS_MODE_32
             )
             # NOTE: Doing this because keystone expects registers to just be numbers
             cs.cs.syntax = capstone.CS_OPT_SYNTAX_NOREGNAME

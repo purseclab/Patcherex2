@@ -26,7 +26,7 @@ class Tests(unittest.TestCase):
     def test_raw_file_patch(self):
         self.run_one(
             "printf_nopie",
-            [ModifyRawBytesPatch(0x6a4, b"No", addr_type="raw")],
+            [ModifyRawBytesPatch(0x6A4, b"No", addr_type="raw")],
             expected_output=b"No",
             expected_returnCode=0,
         )
@@ -34,7 +34,7 @@ class Tests(unittest.TestCase):
     def test_raw_mem_patch(self):
         self.run_one(
             "printf_nopie",
-            [ModifyRawBytesPatch(0x100006a4, b"No")],
+            [ModifyRawBytesPatch(0x100006A4, b"No")],
             expected_output=b"No",
             expected_returnCode=0,
         )
@@ -84,7 +84,7 @@ class Tests(unittest.TestCase):
         self.run_one(
             "printf_nopie",
             [
-                RemoveInstructionPatch(0x100006a5, num_bytes=4),
+                RemoveInstructionPatch(0x100006A5, num_bytes=4),
             ],
             expected_output=b"H\x60",
             expected_returnCode=0,
@@ -93,27 +93,21 @@ class Tests(unittest.TestCase):
     def test_modify_data_patch(self):
         self.run_one(
             "printf_nopie",
-            [ModifyDataPatch(0x100006a4, b"No")],
+            [ModifyDataPatch(0x100006A4, b"No")],
             expected_output=b"No",
             expected_returnCode=0,
         )
 
     def test_insert_data_patch(self, tlen=5):
-        p = Patcherex(os.path.join(self.bin_location, "printf_nopie"))
-        p.patches.append(InsertDataPatch("added_data", b"A" * tlen))
-        p.apply_patches()
-        added_data_address = p.symbols["added_data"]
-        lower = added_data_address & 0b1111111111111111
-        higher = added_data_address >> 16
         p1 = InsertDataPatch("added_data", b"A" * tlen)
         instrs = """
             li 0, 0x4
             li 3, 0x1
-            lis 9, %s
-            addi 4, 9, %s
+            lis 9, {added_data}@h
+            addi 4, 9, {added_data}@l
             li 5, %s
             sc
-        """ % (higher, lower, hex(tlen))
+        """ % hex(tlen)
         p2 = InsertInstructionPatch(0x10000528, instrs)
         self.run_one(
             "printf_nopie",
@@ -125,7 +119,7 @@ class Tests(unittest.TestCase):
     def test_remove_data_patch(self):
         self.run_one(
             "printf_nopie",
-            [RemoveDataPatch(0x100006a5, 1)],
+            [RemoveDataPatch(0x100006A5, 1)],
             expected_output=b"H",
             expected_returnCode=0,
         )
@@ -136,7 +130,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "replace_function_patch",
-            [ModifyFunctionPatch(0x100004fc, code)],
+            [ModifyFunctionPatch(0x100004FC, code)],
             expected_output=b"70707070",
             expected_returnCode=0,
         )
@@ -150,7 +144,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "replace_function_patch",
-            [ModifyFunctionPatch(0x100005ac, code)],
+            [ModifyFunctionPatch(0x100005AC, code)],
             expected_output=b"-21-21",
             expected_returnCode=0,
         )
@@ -163,7 +157,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "replace_function_patch",
-            [ModifyFunctionPatch(0x100005ac, code)],
+            [ModifyFunctionPatch(0x100005AC, code)],
             expected_output=b"Hello World Hello  Hello  Hello  21\nHello World\n2121",
             expected_returnCode=0,
         )
