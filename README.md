@@ -27,13 +27,13 @@ Coming soon.
 
 |           | Linux x86 | Linux amd64 | Linux arm | Linux aarch64 | Linux PowerPC (32bit) | Linux PowerPC (64bit) | Linux MIPS (32bit) | Linux MIPS (64bit) | SPARCv8 (LEON3) | PowerPC (VLE) (IHEX)
 |-|-|-|-|-|-|-|-|-|-|-|
-InsertDataPatch         | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
-RemoveDataPatch         | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
-ModifyDataPatch         | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
-InsertInstructionPatch  | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
-RemoveInstructionPatch  | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
-ModifyInstructionPatch  | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
-InsertFunctionPatch     | ⬜ | ⬜ | ⬜ | ⬜ | 🟪 | 🟪 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-ModifyFunctionPatch     | 🟨 | 🟩 | 🟩 | 🟩 | 🟪 | 🟪 | 🟨 | 🟨 | ⬜ | ⬜ | 🟩 | 🟩 |
+InsertDataPatch         | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
+RemoveDataPatch         | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
+ModifyDataPatch         | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
+InsertInstructionPatch  | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
+RemoveInstructionPatch  | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
+ModifyInstructionPatch  | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 | 🟪 | 🟩 | 🟩 | ⬜ | ⬜ | 🟩 | 🟩 |
+InsertFunctionPatch     | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | 🟪 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+ModifyFunctionPatch     | 🟨 | 🟩 | 🟩 | 🟩 | 🟨 | 🟪 | 🟨 | 🟨 | ⬜ | ⬜ | 🟩 | 🟩 |
 
 🟩 Fully Functional, 🟨 Limited Functionality, 🟥 Not Working, ⬜ Not Tested, 🟪 Work in Progress
