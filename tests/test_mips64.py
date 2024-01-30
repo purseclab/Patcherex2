@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import pytest
 
 from patcherex2 import *
 
@@ -134,6 +135,7 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    @pytest.mark.skip(reason="waiting for cle relocation support")
     def test_replace_function_patch_with_function_reference(self):
         code = """
         extern int add(int, int);
@@ -147,6 +149,7 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    @pytest.mark.skip(reason="waiting for cle relocation support")
     def test_replace_function_patch_with_function_reference_and_rodata(self):
         code = """
         extern int printf(const char *format, ...);
