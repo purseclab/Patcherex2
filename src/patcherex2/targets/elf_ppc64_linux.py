@@ -25,14 +25,14 @@ class ElfPpc64Linux(Target):
         return False
 
     def get_assembler(self, assembler):
-            assembler = assembler or "keystone"
-            if assembler == "keystone":
-                return Keystone(
-                    self.p,
-                    keystone.KS_ARCH_PPC,
-                    keystone.KS_MODE_BIG_ENDIAN + keystone.KS_MODE_PPC64,
-                )
-            raise NotImplementedError()
+        assembler = assembler or "keystone"
+        if assembler == "keystone":
+            return Keystone(
+                self.p,
+                keystone.KS_ARCH_PPC,
+                keystone.KS_MODE_BIG_ENDIAN + keystone.KS_MODE_PPC64,
+            )
+        raise NotImplementedError()
 
     def get_allocation_manager(self, allocation_manager):
         allocation_manager = allocation_manager or "default"
@@ -50,8 +50,7 @@ class ElfPpc64Linux(Target):
         disassembler = disassembler or "capstone"
         if disassembler == "capstone":
             cs = Capstone(
-                capstone.CS_ARCH_PPC,
-                capstone.CS_MODE_BIG_ENDIAN + capstone.CS_MODE_64
+                capstone.CS_ARCH_PPC, capstone.CS_MODE_BIG_ENDIAN + capstone.CS_MODE_64
             )
             # NOTE: Doing this because keystone expects registers to just be numbers
             cs.cs.syntax = capstone.CS_OPT_SYNTAX_NOREGNAME

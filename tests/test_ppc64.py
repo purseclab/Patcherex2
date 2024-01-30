@@ -26,7 +26,7 @@ class Tests(unittest.TestCase):
     def test_raw_file_patch(self):
         self.run_one(
             "printf_nopie",
-            [ModifyRawBytesPatch(0x88f, b"No", addr_type="raw")],
+            [ModifyRawBytesPatch(0x88F, b"No", addr_type="raw")],
             expected_output=b"No",
             expected_returnCode=0,
         )
@@ -34,7 +34,7 @@ class Tests(unittest.TestCase):
     def test_raw_mem_patch(self):
         self.run_one(
             "printf_nopie",
-            [ModifyRawBytesPatch(0x1000088f, b"No")],
+            [ModifyRawBytesPatch(0x1000088F, b"No")],
             expected_output=b"No",
             expected_returnCode=0,
         )
@@ -43,7 +43,7 @@ class Tests(unittest.TestCase):
         self.run_one(
             "printf_nopie",
             [
-                ModifyInstructionPatch(0x1000076c, "subi 4, 4, 0x7674"),
+                ModifyInstructionPatch(0x1000076C, "subi 4, 4, 0x7674"),
             ],
             expected_output=b"%s",
             expected_returnCode=0,
@@ -93,7 +93,7 @@ class Tests(unittest.TestCase):
     def test_modify_data_patch(self):
         self.run_one(
             "printf_nopie",
-            [ModifyDataPatch(0x1000088f, b"No")],
+            [ModifyDataPatch(0x1000088F, b"No")],
             expected_output=b"No",
             expected_returnCode=0,
         )
@@ -130,7 +130,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "replace_function_patch",
-            [ModifyFunctionPatch(0xb44, code)],
+            [ModifyFunctionPatch(0xB44, code)],
             expected_output=b"70707070",
             expected_returnCode=0,
         )
@@ -144,7 +144,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "replace_function_patch",
-            [ModifyFunctionPatch(0xbec, code)],
+            [ModifyFunctionPatch(0xBEC, code)],
             expected_output=b"-21-21",
             expected_returnCode=0,
         )
@@ -157,7 +157,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "replace_function_patch",
-            [ModifyFunctionPatch(0xbec, code)],
+            [ModifyFunctionPatch(0xBEC, code)],
             expected_output=b"Hello World Hello  Hello  Hello  21\nHello World\n2121",
             expected_returnCode=0,
         )
