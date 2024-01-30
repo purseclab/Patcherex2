@@ -109,7 +109,7 @@ class AllocationManager:
         for block in self.blocks[MappedBlock]:
             if block.is_free and block.size >= size and block.flag & flag == flag:
                 # check for alignment
-                offset = align - (block.mem_addr % align)
+                offset = (align - (block.mem_addr % align)) % align
                 if block.size >= size + offset:
                     if block.size == size + offset and offset > 0:
                         block.is_free = False
@@ -119,7 +119,7 @@ class AllocationManager:
 
         if best_fit:
             # Adjust for alignment
-            offset = align - (best_fit.mem_addr % align)
+            offset = (align - (best_fit.mem_addr % align)) % align
             remaining_size = best_fit.size - size - offset
             allocated_block = MappedBlock(
                 best_fit.file_addr + offset,
