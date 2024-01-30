@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import pytest
 
 from patcherex2 import *
 
@@ -53,8 +54,7 @@ class Tests(unittest.TestCase):
         instrs = """
             li $v0, 0xfa4
             li $a0, 0x1
-            lw $at, -0x7fe4($gp)
-            addiu $a1, $at, 0x81B
+            la $a1, 0x40081b
             li $a2, 0x3
             syscall
         """
@@ -84,7 +84,7 @@ class Tests(unittest.TestCase):
         self.run_one(
             "printf_nopie",
             [
-                RemoveInstructionPatch(0x40081c, num_bytes=4),
+                RemoveInstructionPatch(0x40081C, num_bytes=4),
             ],
             expected_output=b"H",
             expected_returnCode=0,
@@ -93,7 +93,7 @@ class Tests(unittest.TestCase):
     def test_modify_data_patch(self):
         self.run_one(
             "printf_nopie",
-            [ModifyDataPatch(0x40081b, b"No")],
+            [ModifyDataPatch(0x40081B, b"No")],
             expected_output=b"No",
             expected_returnCode=0,
         )
@@ -118,7 +118,7 @@ class Tests(unittest.TestCase):
     def test_remove_data_patch(self):
         self.run_one(
             "printf_nopie",
-            [RemoveDataPatch(0x40081c, 1)],
+            [RemoveDataPatch(0x40081C, 1)],
             expected_output=b"H",
             expected_returnCode=0,
         )
@@ -134,6 +134,7 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    @pytest.mark.skip(reason="waiting for cle relocation support")
     def test_replace_function_patch_with_function_reference(self):
         code = """
         extern int add(int, int);
@@ -147,6 +148,7 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    @pytest.mark.skip(reason="waiting for cle relocation support")
     def test_replace_function_patch_with_function_reference_and_rodata(self):
         code = """
         extern int printf(const char *format, ...);
