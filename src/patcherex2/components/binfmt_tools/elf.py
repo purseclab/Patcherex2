@@ -262,7 +262,9 @@ class ELF(BinFmtTool):
                 prev_seg = self._segments[i]
                 next_seg = self._segments[i + 1]
                 if (
-                    prev_seg["p_offset"] + prev_seg["p_filesz"] == next_seg["p_offset"]
+                    prev_seg["p_type"] == next_seg["p_type"] == "PT_LOAD"
+                    and prev_seg["p_offset"] + prev_seg["p_filesz"]
+                    == next_seg["p_offset"]
                     and prev_seg["p_vaddr"] + prev_seg["p_memsz"] == next_seg["p_vaddr"]
                     and prev_seg["p_flags"] == next_seg["p_flags"]
                     and prev_seg["p_align"] == next_seg["p_align"]
