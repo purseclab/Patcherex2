@@ -30,17 +30,17 @@ class Utils:
         else:
             moved_instrs = ""
             moved_instrs_len = 0
-        trempoline_instrs_with_jump_back = (
+        trampoline_instrs_with_jump_back = (
             instrs
             + "\n"
             + moved_instrs
             + "\n"
             + self.p.target.JMP_ASM.format(dst=hex(addr + moved_instrs_len))
         )
-        trempoline_size = (
+        trampoline_size = (
             len(
                 self.p.assembler.assemble(
-                    trempoline_instrs_with_jump_back,
+                    trampoline_instrs_with_jump_back,
                     addr,  # TODO: we don't really need this addr, but better than 0x0 because 0x0 is too far away from the code
                     symbols=symbols,
                     is_thumb=self.p.binary_analyzer.is_thumb(addr),
@@ -50,7 +50,7 @@ class Utils:
         )
         if detour_pos == -1:
             trampoline_block = self.p.allocation_manager.allocate(
-                trempoline_size, align=0x4, flag=MemoryFlag.RX
+                trampoline_size, align=0x4, flag=MemoryFlag.RX
             )  # TODO: get alignment from arch info
             logger.debug(f"Allocated trampoline block: {trampoline_block}")
             mem_addr = trampoline_block.mem_addr
@@ -59,20 +59,20 @@ class Utils:
             mem_addr = detour_pos
             file_addr = self.p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
         self.p.sypy_info["patcherex_added_functions"].append(hex(mem_addr))
-        trempoline_bytes = self.p.assembler.assemble(
-            trempoline_instrs_with_jump_back,
+        trampoline_bytes = self.p.assembler.assemble(
+            trampoline_instrs_with_jump_back,
             mem_addr,
             symbols=symbols,
             is_thumb=self.p.binary_analyzer.is_thumb(addr),
         )
-        self.p.binfmt_tool.update_binary_content(file_addr, trempoline_bytes)
-        jmp_to_trempoline = self.p.assembler.assemble(
+        self.p.binfmt_tool.update_binary_content(file_addr, trampoline_bytes)
+        jmp_to_trampoline = self.p.assembler.assemble(
             self.p.target.JMP_ASM.format(dst=hex(mem_addr)),
             addr,
             is_thumb=self.p.binary_analyzer.is_thumb(addr),
         )
         self.p.binfmt_tool.update_binary_content(
-            self.p.binary_analyzer.mem_addr_to_file_offset(addr), jmp_to_trempoline
+            self.p.binary_analyzer.mem_addr_to_file_offset(addr), jmp_to_trampoline
         )
 
     def get_instrs_to_be_moved(self, addr):
