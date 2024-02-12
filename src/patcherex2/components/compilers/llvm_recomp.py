@@ -48,7 +48,7 @@ class LLVMRecomp(Clang):
             )
             for name, addr in _symbols.items():
                 linker_script += name + " = " + hex(addr) + ";"
-            linker_script += "} }"
+            linker_script += "} /DISCARD/ : { *(.eh_frame) } }"
             with open(os.path.join(td, "linker.ld"), "w") as f:
                 f.write(linker_script)
 
