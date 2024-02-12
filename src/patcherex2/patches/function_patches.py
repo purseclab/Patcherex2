@@ -26,7 +26,7 @@ class ModifyFunctionPatch(Patch):
                 **self.compile_opts,
             )
         )
-        if compiled_size < func["size"]:
+        if compiled_size <= func["size"]:
             mem_addr = func["addr"]
             file_addr = p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
         else:
