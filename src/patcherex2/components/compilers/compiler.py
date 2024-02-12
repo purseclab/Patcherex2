@@ -28,7 +28,12 @@ class Compiler:
             _symbols.update(self.p.binary_analyzer.get_all_symbols())
             _symbols.update(symbols)
             linker_script = (
-                "SECTIONS { .text : SUBALIGN(0) { . = " + hex(base) + "; *(.text) "
+                "SECTIONS { .text : SUBALIGN(0) { . = "
+                + hex(base)
+                # TODO: shouldn't put .rodata in .text, but otherwise switch case jump table won't work
+                # Note that even we don't include .rodata here, cle might still include it if there is
+                # no gap between .text and .rodata
+                + "; *(.text) *(.rodata) "
             )
             for name, addr in _symbols.items():
                 linker_script += name + " = " + hex(addr) + ";"

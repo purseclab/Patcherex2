@@ -42,7 +42,9 @@ class LLVMRecomp(Clang):
             _symbols.update(self.p.binary_analyzer.get_all_symbols())
             _symbols.update(symbols)
             linker_script = (
-                "SECTIONS { .text : SUBALIGN(0) { . = " + hex(base) + "; *(.text) "
+                "SECTIONS { .text : SUBALIGN(0) { . = "
+                + hex(base)
+                + "; *(.text) *(.rodata) "
             )
             for name, addr in _symbols.items():
                 linker_script += name + " = " + hex(addr) + ";"
