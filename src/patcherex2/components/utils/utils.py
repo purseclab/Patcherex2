@@ -29,7 +29,13 @@ class Utils:
             )
         else:
             moved_instrs = ""
-            moved_instrs_len = 0
+            moved_instrs_len = len(
+                self.p.assembler.assemble(
+                    self.get_instrs_to_be_moved(addr, ignore_unmovable=True),
+                    addr,  # TODO: we don't really need this addr, but better than 0x0 because 0x0 is too far away from the code
+                    is_thumb=self.p.binary_analyzer.is_thumb(addr),
+                )
+            )
         trampoline_instrs_with_jump_back = (
             instrs
             + "\n"
@@ -75,12 +81,13 @@ class Utils:
             self.p.binary_analyzer.mem_addr_to_file_offset(addr), jmp_to_trampoline
         )
 
-    def get_instrs_to_be_moved(self, addr):
+    def get_instrs_to_be_moved(self, addr, ignore_unmovable=False):
         basic_block = self.p.binary_analyzer.get_basic_block(addr)
         idx = basic_block["instruction_addrs"].index(addr)
         end = addr + self.p.target.JMP_SIZE
         instrs = b""
-        for insn_addr in basic_block["instruction_addrs"][idx:]:
+
+        for insn_addr in basic_block["instruction_addrs"][idx:] + [basic_block["end"]]:
             if end <= insn_addr:
                 # we have enough space to insert a jump
                 disasms = self.p.disassembler.disassemble(
@@ -88,11 +95,13 @@ class Utils:
                     addr,
                     is_thumb=self.p.binary_analyzer.is_thumb(addr),
                 )
-                disasm_str = "\n".join(
+                return "\n".join(
                     [self.p.disassembler.to_asm_string(d) for d in disasms]
                 )
-                return disasm_str
-            if not self.is_movable_instruction(insn_addr):
+            if insn_addr == basic_block["end"]:
+                # we reached the end of the basic block
+                return None
+            if not ignore_unmovable and not self.is_movable_instruction(insn_addr):
                 logger.error(f"Instruction at {hex(insn_addr)} is not movable")
                 # we cannot insert a jump here
                 return None
