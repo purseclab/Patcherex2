@@ -85,8 +85,8 @@ class Angr(BinaryAnalyzer):
         }
 
     def get_instr_bytes_at(self, addr):
-        addr = self.denormalize_addr(addr)
         addr += 1 if self.is_thumb(addr) else 0
+        addr = self.denormalize_addr(addr)
         return self.p.factory.block(addr, num_inst=1).bytes
 
     def get_unused_funcs(self):
