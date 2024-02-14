@@ -159,6 +159,24 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    def test_insert_function_patch(self):
+        insert_code = """
+        int min(int a, int b) { return (a < b) ? a : b; }
+        """
+        replace_code = """
+        extern int min(int, int);
+        int max(int a, int b) { return min(a, b); }
+        """
+        self.run_one(
+            "replace_function_patch",
+            [
+                InsertFunctionPatch("min", insert_code),
+                ModifyFunctionPatch(0x1219, replace_code),
+            ],
+            expected_output=b"2121212121",
+            expected_returnCode=0,
+        )
+
     def test_insert_instruction_patch_with_force_insert(self):
         instrs = """
             mov rdi, rax
