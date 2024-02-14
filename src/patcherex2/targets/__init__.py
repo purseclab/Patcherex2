@@ -7,6 +7,7 @@ from .elf_leon3_bare import ElfLeon3Bare
 from .elf_mips64_linux import ElfMips64Linux
 from .elf_mips_linux import ElfMipsLinux
 from .elf_ppc64_linux import ElfPpc64Linux
+from .elf_ppc64le_linux import ElfPpc64leLinux
 from .elf_ppc_linux import ElfPpcLinux
 from .elf_x86_64_linux import ElfX8664Linux
 from .elf_x86_64_linux_recomp import ElfX8664LinuxRecomp
@@ -23,6 +24,7 @@ __all__ = [
     "ElfMips64Linux",
     "ElfMipsLinux",
     "ElfPpc64Linux",
+    "ElfPpc64leLinux",
     "ElfPpcLinux",
     "ElfX8664Linux",
     "ElfX8664LinuxRecomp",
