@@ -25,7 +25,9 @@ jobs:
             clang-15 lld-15 \
             libc6-armhf-cross libc6-arm64-cross \
             libc6-mips-cross libc6-mips64-cross \
-            libc6-powerpc-cross libc6-powerpc-ppc64-cross
+            libc6-powerpc-cross libc6-powerpc-ppc64-cross \
+            libc6-mipsel-cross libc6-mips64el-cross \
+            libc6-ppc64el-cross
       - name: Install Package
         run: |
           python3 -m pip install --upgrade pip
