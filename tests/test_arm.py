@@ -66,6 +66,18 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    def test_insert_instruction_pie_patch(self):
+        instrs = """
+            mov r7, 0x1
+            mov r0, 0x32
+            svc 0
+        """
+        self.run_one(
+            "printf_pie",
+            [InsertInstructionPatch(0x51E, instrs)],
+            expected_returnCode=0x32,
+        )
+
     def test_insert_instruction_patch_2(self):
         instrs = """
             mov r7, 0x1
@@ -157,6 +169,24 @@ class Tests(unittest.TestCase):
             "replace_function_patch",
             [ModifyFunctionPatch(0x588, code)],
             expected_output=b"Hello World Hello  Hello  Hello  21\nHello World\n2121",
+            expected_returnCode=0,
+        )
+
+    def test_insert_function_patch(self):
+        insert_code = """
+        int min(int a, int b) { return (a < b) ? a : b; }
+        """
+        replace_code = """
+        extern int min(int, int);
+        int max(int a, int b) { return min(a, b); }
+        """
+        self.run_one(
+            "replace_function_patch",
+            [
+                InsertFunctionPatch("min", insert_code),
+                ModifyFunctionPatch(0x50C, replace_code),
+            ],
+            expected_output=b"2121212121",
             expected_returnCode=0,
         )
 

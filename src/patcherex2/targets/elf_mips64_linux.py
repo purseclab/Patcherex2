@@ -19,7 +19,6 @@ class ElfMips64Linux(Target):
     def detect_target(binary_path):
         with open(binary_path, "rb") as f:
             magic = f.read(0x14)
-            print(magic)
             if magic.startswith(b"\x7fELF\x02") and magic.startswith(
                 b"\x00\x08", 0x12
             ):  # EM_MIPS

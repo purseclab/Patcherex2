@@ -149,6 +149,38 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    @pytest.mark.skip(reason="waiting for cle relocation support")
+    def test_replace_function_patch_with_function_reference_and_rodata(self):
+        code = """
+        extern int printf(const char *format, ...);
+        int multiply(int a, int b){ printf("%sWorld %s %s %s %d\\n", "Hello ", "Hello ", "Hello ", "Hello ", a * b);printf("%sWorld\\n", "Hello "); return a * b; }
+        """
+        self.run_one(
+            "replace_function_patch",
+            [ModifyFunctionPatch(0x11C9, code)],
+            expected_output=b"Hello World Hello  Hello  Hello  21\nHello World\n2121",
+            expected_returnCode=0,
+        )
+
+    @pytest.mark.skip(reason="waiting for cle relocation support")
+    def test_insert_function_patch(self):
+        insert_code = """
+        int min(int a, int b) { return (a < b) ? a : b; }
+        """
+        replace_code = """
+        extern int min(int, int);
+        int max(int a, int b) { return min(a, b); }
+        """
+        self.run_one(
+            "replace_function_patch",
+            [
+                InsertFunctionPatch("min", insert_code),
+                ModifyFunctionPatch(0x1261, replace_code),
+            ],
+            expected_output=b"2121212121",
+            expected_returnCode=0,
+        )
+
     def run_one(
         self,
         filename,
