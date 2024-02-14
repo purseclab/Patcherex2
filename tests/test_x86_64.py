@@ -177,6 +177,19 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    def test_insert_instruction_patch_with_force_insert(self):
+        instrs = """
+            mov rdi, rax
+            add rdi, 3
+            call {puts}
+        """
+        self.run_one(
+            "issue8",
+            [InsertInstructionPatch(0x117A, instrs, force_insert=True)],
+            expected_output=b"ched failed\n",
+            expected_returnCode=0,
+        )
+
     def run_one(
         self,
         filename,
