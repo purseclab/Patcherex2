@@ -5,6 +5,7 @@ from .elf_arm_mimxrt1052 import ElfArmMimxrt1052
 from .elf_i386_linux import ElfI386Linux
 from .elf_leon3_bare import ElfLeon3Bare
 from .elf_mips64_linux import ElfMips64Linux
+from .elf_mips64el_linux import ElfMips64elLinux
 from .elf_mips_linux import ElfMipsLinux
 from .elf_mipsel_linux import ElfMipselLinux
 from .elf_ppc64_linux import ElfPpc64Linux
@@ -22,6 +23,7 @@ __all__ = [
     "ElfI386Linux",
     "ElfLeon3Bare",
     "ElfMips64Linux",
+    "ElfMips64elLinux",
     "ElfMipsLinux",
     "ElfMipselLinux",
     "ElfPpc64Linux",
