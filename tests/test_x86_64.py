@@ -176,7 +176,7 @@ class Tests(unittest.TestCase):
             expected_output=b"2121212121",
             expected_returnCode=0,
         )
-        
+
     def test_insert_instruction_patch_with_force_insert(self):
         instrs = """
             mov rdi, rax

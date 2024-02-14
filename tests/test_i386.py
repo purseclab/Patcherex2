@@ -157,7 +157,7 @@ class Tests(unittest.TestCase):
         """
         self.run_one(
             "replace_function_patch",
-            [ModifyFunctionPatch(0x11c9, code)],
+            [ModifyFunctionPatch(0x11C9, code)],
             expected_output=b"Hello World Hello  Hello  Hello  21\nHello World\n2121",
             expected_returnCode=0,
         )
