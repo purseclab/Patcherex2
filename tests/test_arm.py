@@ -66,6 +66,18 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    def test_insert_instruction_pie_patch(self):
+        instrs = """
+            mov r7, 0x1
+            mov r0, 0x32
+            svc 0
+        """
+        self.run_one(
+            "printf_pie",
+            [InsertInstructionPatch(0x51E, instrs)],
+            expected_returnCode=0x32,
+        )
+
     def test_insert_instruction_patch_2(self):
         instrs = """
             mov r7, 0x1

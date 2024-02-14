@@ -44,14 +44,14 @@ jobs:
         run: |
           python3 -m ruff check .
       - name: Checkout Private Tests
-        if: matrix.task == 'private-test'
+        if: matrix.task == 'private-test' && github.event_name != 'pull_request'
         uses: actions/checkout@v4
         with:
           repository: purseclab/patcherex2-private
           ssh-key: ${{ secrets.PRIVATE_TESTS_DEPLOY_KEY }}
           path: private
       - name: Run pytest for Private Tests
-        if: matrix.task == 'private-test'
+        if: matrix.task == 'private-test' && github.event_name != 'pull_request'
         working-directory: ./private
         run: |
           python3 -m pytest -q --no-summary
