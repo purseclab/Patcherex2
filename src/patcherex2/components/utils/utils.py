@@ -63,7 +63,12 @@ class Utils:
             file_addr = trampoline_block.file_addr
         else:
             mem_addr = detour_pos
-            file_addr = self.p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
+            for block in self.p.allocation_manager.new_mapped_blocks:
+                if block.mem_addr == mem_addr:
+                    file_addr = block.file_addr
+                    break
+            else:
+                file_addr = self.p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
         self.p.sypy_info["patcherex_added_functions"].append(hex(mem_addr))
         trampoline_bytes = self.p.assembler.assemble(
             trampoline_instrs_with_jump_back,
