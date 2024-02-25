@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import pytest
 
 from patcherex2 import *
 
@@ -23,7 +24,7 @@ class Tests(unittest.TestCase):
             )
         )
 
-    def test_raw_file_patch(self):
+    def test_raw_file_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [ModifyRawBytesPatch(0x44C, b"No", addr_type="raw")],
@@ -31,7 +32,15 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_raw_mem_patch(self):
+    def test_raw_file_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [ModifyRawBytesPatch(0x5DF, b"No", addr_type="raw")],
+            expected_output=b"No",
+            expected_returnCode=0,
+        )
+
+    def test_raw_mem_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [ModifyRawBytesPatch(0x1044C, b"No")],
@@ -39,7 +48,15 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_modify_instruction_patch(self):
+    def test_raw_mem_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [ModifyRawBytesPatch(0x5DF, b"No")],
+            expected_output=b"No",
+            expected_returnCode=0,
+        )
+
+    def test_modify_instruction_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [
@@ -51,7 +68,18 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_insert_instruction_patch(self):
+    def test_modify_instruction_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [
+                ModifyInstructionPatch(0x520, "mov r1, 0xb0"),
+                ModifyInstructionPatch(0x524, "add r1, pc, r1"),
+            ],
+            expected_output=b"%s",
+            expected_returnCode=0,
+        )
+
+    def test_insert_instruction_patch_nopie(self):
         instrs = """
             mov r7, 0x4
             mov r0, 0x1
@@ -66,19 +94,26 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_insert_instruction_pie_patch(self):
+    def test_insert_instruction_patch_pie(self):
         instrs = """
-            mov r7, 0x1
-            mov r0, 0x32
+            mov r7, 0x4
+            mov r0, 0x1
+            mov r1, lr
+            ldr r2, =0xfffff000
+            and r1, r1, r2
+            ldr r2, =0x5df
+            add r1, r1, r2
+            mov r2, 3
             svc 0
         """
         self.run_one(
             "printf_pie",
-            [InsertInstructionPatch(0x51E, instrs)],
-            expected_returnCode=0x32,
+            [InsertInstructionPatch(0x52C, instrs)],
+            expected_output=b"Hi\x00Hi",
+            expected_returnCode=0,
         )
 
-    def test_insert_instruction_patch_2(self):
+    def test_insert_instruction_patch_2_nopie(self):
         instrs = """
             mov r7, 0x1
             mov r0, 0x32
@@ -93,7 +128,31 @@ class Tests(unittest.TestCase):
             expected_returnCode=0x32,
         )
 
-    def test_remove_instruction_patch(self):
+    @pytest.mark.skip(reason="difficult to do with pie")
+    def test_insert_instruction_patch_2_pie(self):
+        return_instrs = """
+            mov r7, 0x1
+            mov r0, 0x32
+            svc 0
+        """
+        jump_instrs = """
+            mov r0, pc
+            ldr r1, =0xfff00000
+            and r0, r0, r1
+            ldr r1, ={return_0x32}
+            add r0, r0, r1
+            blx r0
+        """
+        self.run_one(
+            "printf_pie",
+            [
+                InsertInstructionPatch("return_0x32", return_instrs, is_thumb=True),
+                InsertInstructionPatch(0x52C, jump_instrs),
+            ],
+            expected_returnCode=0x32,
+        )
+
+    def test_remove_instruction_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [
@@ -103,7 +162,17 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_modify_data_patch(self):
+    def test_remove_instruction_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [
+                RemoveInstructionPatch(0x5DE, num_bytes=4),
+            ],
+            expected_output=b"\xF0\x20\xE3",
+            expected_returnCode=0,
+        )
+
+    def test_modify_data_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [ModifyDataPatch(0x1044C, b"No")],
@@ -111,7 +180,15 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_insert_data_patch(self, tlen=5):
+    def test_modify_data_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [ModifyDataPatch(0x5DF, b"No")],
+            expected_output=b"No",
+            expected_returnCode=0,
+        )
+
+    def test_insert_data_patch_nopie(self, tlen=5):
         p1 = InsertDataPatch("added_data", b"A" * tlen)
         instrs = """
             mov r7, 0x4
@@ -128,10 +205,39 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_remove_data_patch(self):
+    def test_insert_data_patch_pie(self, tlen=5):
+        p1 = InsertDataPatch("added_data", b"A" * tlen)
+        instrs = """
+            mov r7, 0x4
+            mov r0, 0x1
+            mov r1, pc
+            ldr r2, =0xfff00000
+            and r1, r1, r2
+            ldr r2, ={added_data}
+            add r1, r1, r2
+            mov r2, %s
+            svc 0
+        """ % hex(tlen)
+        p2 = InsertInstructionPatch(0x52C, instrs)
+        self.run_one(
+            "printf_pie",
+            [p1, p2],
+            expected_output=b"A" * tlen + b"Hi",
+            expected_returnCode=0,
+        )
+
+    def test_remove_data_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [RemoveDataPatch(0x1044D, 1)],
+            expected_output=b"H",
+            expected_returnCode=0,
+        )
+
+    def test_remove_data_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [RemoveDataPatch(0x5E0, 1)],
             expected_output=b"H",
             expected_returnCode=0,
         )
