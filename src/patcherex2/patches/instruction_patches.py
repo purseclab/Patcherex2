@@ -1,4 +1,5 @@
 import logging
+from typing import Dict, Optional, Union
 
 from ..components.allocation_managers.allocation_manager import MemoryFlag
 from .patch import Patch
@@ -7,12 +8,14 @@ logger = logging.getLogger(__name__)
 
 
 class ModifyInstructionPatch(Patch):
-    def __init__(self, addr, instr, symbols=None) -> None:
+    def __init__(
+        self, addr: int, instr: str, symbols: Optional[Dict[str, int]] = None
+    ) -> None:
         self.addr = addr
         self.instr = instr
         self.symbols = symbols if symbols else {}
 
-    def apply(self, p):
+    def apply(self, p) -> None:
         # TODO: check size, insert jump if necessary
         asm_bytes = p.assembler.assemble(
             self.instr,
@@ -27,11 +30,11 @@ class ModifyInstructionPatch(Patch):
 class InsertInstructionPatch(Patch):
     def __init__(
         self,
-        addr_or_name,
-        instr,
+        addr_or_name: Union[int, str],
+        instr: str,
         force_insert=False,
         detour_pos=-1,
-        symbols=None,
+        symbols: Optional[Dict[str, int]] = None,
         is_thumb=False,
     ) -> None:
         self.addr = None
@@ -46,7 +49,7 @@ class InsertInstructionPatch(Patch):
         self.symbols = symbols if symbols else {}
         self.is_thumb = is_thumb
 
-    def apply(self, p):
+    def apply(self, p) -> None:
         if self.addr:
             p.utils.insert_trampoline_code(
                 self.addr,
@@ -89,7 +92,12 @@ class InsertInstructionPatch(Patch):
 
 
 class RemoveInstructionPatch(Patch):
-    def __init__(self, addr, num_instr=None, num_bytes=None) -> None:
+    def __init__(
+        self,
+        addr: int,
+        num_instr: Optional[int] = None,
+        num_bytes: Optional[int] = None,
+    ) -> None:
         self.addr = addr
         self.num_instr = num_instr
         self.num_bytes = num_bytes

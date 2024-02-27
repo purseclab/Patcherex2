@@ -2,6 +2,7 @@ import logging
 import os
 import subprocess
 import tempfile
+from typing import Dict, List, Optional
 
 import cle
 
@@ -9,10 +10,17 @@ logger = logging.getLogger(__name__)
 
 
 class Compiler:
-    def __init__(self, p):
+    def __init__(self, p) -> None:
         self.p = p
 
-    def compile(self, code, base=0, symbols=None, extra_compiler_flags=None, **kwargs):
+    def compile(
+        self,
+        code: str,
+        base=0,
+        symbols: Optional[Dict[str, int]] = None,
+        extra_compiler_flags: Optional[List[str]] = None,
+        **kwargs,
+    ) -> bytes:
         if symbols is None:
             symbols = {}
         if extra_compiler_flags is None:

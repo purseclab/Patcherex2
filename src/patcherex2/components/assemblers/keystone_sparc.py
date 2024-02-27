@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class KeystoneSparc(Keystone):
-    def _pre_assemble_hook(self, code, base=0):
+    def _pre_assemble_hook(self, code: str, base=0) -> str:
         # Hack for sparc, remove this hack if keystone supports sparc relative addressing correctly
         # https://www.gaisler.com/doc/sparcv8.pdf
         # call (B.24.), all branches instr (B.21.) jumps to PC + 4ximm, so we need to convert absolute address to relative address

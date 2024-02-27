@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class PpcVle(Compiler):
-    def __init__(self, p):
+    def __init__(self, p) -> None:
         super().__init__(p)
         self.assets_path = Assets("ppc_vle").path
         self._compiler = os.path.join(self.assets_path, "powerpc-eabivle-gcc")

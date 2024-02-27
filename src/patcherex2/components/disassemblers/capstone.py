@@ -1,13 +1,17 @@
+from typing import Dict, List, Union
+
 import capstone
 
 from .disassembler import Disassembler
 
 
 class Capstone(Disassembler):
-    def __init__(self, arch, mode):
+    def __init__(self, arch: int, mode: int) -> None:
         self.cs = capstone.Cs(arch, mode)
 
-    def disassemble(self, input, base=0, **kwargs):
+    def disassemble(
+        self, input: bytes, base=0, **kwargs
+    ) -> List[Dict[str, Union[int, str]]]:
         cs_insns = self.cs.disasm(input, base)
         result = []
         for insn in cs_insns:

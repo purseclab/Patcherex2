@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class Bcc(Compiler):
-    def __init__(self, p):
+    def __init__(self, p) -> None:
         super().__init__(p)
         self.assets_path = Assets("bcc").path
         self._compiler = os.path.join(self.assets_path, "sparc-gaisler-elf-gcc")

@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Optional
 
 from elftools.construct.lib import Container
 from elftools.elf.constants import P_FLAGS, SH_FLAGS
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class ELF(BinFmtTool):
-    def __init__(self, p, binary_path):
+    def __init__(self, p, binary_path: str) -> None:
         super().__init__(p, binary_path)
         self._file = open(binary_path, "rb")
         self._elf = ELFFile(self._file)
@@ -30,10 +31,10 @@ class ELF(BinFmtTool):
         self.updated_binary_content = self.original_binary_content
         self._init_memory_analysis()
 
-    def __del__(self):
+    def __del__(self) -> None:
         self._file.close()
 
-    def _find_space_between_sections(self):
+    def _find_space_between_sections(self) -> None:
         load_segments = sorted(
             (
                 segment
@@ -145,7 +146,7 @@ class ELF(BinFmtTool):
                     )
                     self.p.allocation_manager.add_block(block)
 
-    def _find_space_between_segments(self):
+    def _find_space_between_segments(self) -> None:
         load_segments = sorted(
             (
                 segment
@@ -170,7 +171,7 @@ class ELF(BinFmtTool):
                 )
                 self.p.allocation_manager.add_block(block)
 
-    def _add_end_of_file_block(self):
+    def _add_end_of_file_block(self) -> None:
         load_segments = sorted(
             (
                 segment
@@ -188,7 +189,7 @@ class ELF(BinFmtTool):
         block = MemoryBlock(addr, -1)
         self.p.allocation_manager.add_block(block)
 
-    def _init_memory_analysis(self):
+    def _init_memory_analysis(self) -> None:
         self._find_space_between_sections()
         self._find_space_between_segments()
         self._add_end_of_file_block()
@@ -222,7 +223,7 @@ class ELF(BinFmtTool):
         #             "callback": self._extend_segment
         #         })
 
-    def finalize(self):
+    def finalize(self) -> None:
         self.p.allocation_manager.finalize()
 
         if len(self.p.allocation_manager.new_mapped_blocks) == 0:
@@ -451,7 +452,7 @@ class ELF(BinFmtTool):
             new_ehdr = self._elf.structs.Elf_Ehdr.build(ehdr)
             self.p.binfmt_tool.update_binary_content(0, new_ehdr)
 
-    def save_binary(self, filename=None):
+    def save_binary(self, filename: Optional[str] = None) -> None:
         self.updated_binary_content = self.updated_binary_content.ljust(
             self.file_size, b"\x00"
         )
@@ -469,7 +470,7 @@ class ELF(BinFmtTool):
             f.write(self.updated_binary_content)
         os.chmod(filename, 0o755)
 
-    def update_binary_content(self, offset, new_content):
+    def update_binary_content(self, offset: int, new_content: bytes) -> None:
         logger.debug(
             f"Updating offset {hex(offset)} with content ({len(new_content)} bytes) {new_content}"
         )
@@ -484,7 +485,7 @@ class ELF(BinFmtTool):
         if offset + len(new_content) > self.file_size:
             self.file_size = offset + len(new_content)
 
-    def get_binary_content(self, offset, size):
+    def get_binary_content(self, offset: int, size: int) -> bytes:
         # check if it's in file_updates
         for update in self.file_updates:
             if offset >= update["offset"] and offset + size <= update["offset"] + len(
@@ -494,6 +495,6 @@ class ELF(BinFmtTool):
         # otherwise return from original binary
         return self.original_binary_content[offset : offset + size]
 
-    def append_to_binary_content(self, new_content):
+    def append_to_binary_content(self, new_content: bytes) -> None:
         self.file_updates.append({"offset": self.file_size, "content": new_content})
         self.file_size += len(new_content)

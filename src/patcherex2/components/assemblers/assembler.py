@@ -4,10 +4,10 @@ logger = logging.getLogger(__name__)
 
 
 class Assembler:
-    def __init__(self, p):
+    def __init__(self, p) -> None:
         self.p = p
 
-    def resolve_symbols(self, code, symbols=None):
+    def resolve_symbols(self, code: str, symbols=None):
         if symbols is None:
             symbols = {}
         _symbols = {}
@@ -19,13 +19,13 @@ class Assembler:
             code = code.replace(f"{{{symbol}}}", hex(addr))
         return code
 
-    def _assemble(self, code, base=0, **kwargs):
+    def _assemble(self, code: str, base=0, **kwargs) -> None:
         raise NotImplementedError()
 
-    def _pre_assemble_hook(self, code, base=0):
+    def _pre_assemble_hook(self, code: str, base=0) -> None:
         return code
 
-    def assemble(self, code, base=0, symbols=None, **kwargs):
+    def assemble(self, code: str, base=0, symbols=None, **kwargs) -> None:
         if symbols is None:
             symbols = {}
         logger.debug(f"Assembling `{code}` at {hex(base)}")

@@ -26,7 +26,7 @@ class Assets:
         },
     }
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
         self.url = self.ASSETS[name]["url"]
         self.path = self.ASSETS[name]["path"]
@@ -34,7 +34,7 @@ class Assets:
             logger.info(f"{self.name} not found, downloading...")
             self.download()
 
-    def download(self):
+    def download(self) -> None:
         r = requests.get(self.url)
         with tempfile.TemporaryDirectory() as td:
             with open(os.path.join(td, "asset.tgz"), "wb") as f:

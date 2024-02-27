@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import tempfile
+from typing import Dict, List, Union
 
 from ..assets.assets import Assets
 from .disassembler import Disassembler
@@ -11,11 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class PpcVle(Disassembler):
-    def __init__(self, p):
+    def __init__(self, p) -> None:
         self.p = p
         self.assets_path = Assets("ppc_vle").path
 
-    def disassemble(self, input, base=0, **kwargs):
+    def disassemble(
+        self, input: bytes, base=0, **kwargs
+    ) -> List[Dict[str, Union[str, int]]]:
         if isinstance(input, str):
             input = bytes(map(ord, input))
         with tempfile.TemporaryDirectory() as td:

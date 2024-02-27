@@ -1,5 +1,6 @@
 import enum
 import logging
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -7,22 +8,22 @@ logger = logging.getLogger(__name__)
 class Block:
     subclasses = []
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
         Block.subclasses.append(cls)
 
-    def __init__(self, addr, size, is_free=True):
+    def __init__(self, addr: int, size: int, is_free=True) -> None:
         self.addr = addr
         self.size = size
         self.is_free = is_free
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Block") -> bool:
         return self.addr < other.addr
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__} addr={hex(self.addr)} size={hex(self.size)} is_free={self.is_free}>"
 
-    def coalesce(self, other):
+    def coalesce(self, other: "Block") -> bool:
         if self.is_free == other.is_free and self.addr + self.size == other.addr:
             self.size += other.size
             return True
@@ -34,10 +35,10 @@ class FileBlock(Block):
 
 
 class MemoryBlock(Block):
-    def __init__(self, addr, size, is_free=True):
+    def __init__(self, addr: int, size: int, is_free=True) -> None:
         super().__init__(addr, size, is_free)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__} addr={hex(self.addr)} size={hex(self.size)} is_free={self.is_free}>"
 
 
@@ -52,19 +53,21 @@ class MemoryFlag(enum.IntFlag):
 
 
 class MappedBlock(Block):
-    def __init__(self, file_addr, mem_addr, size, is_free=True, flag=None):
+    def __init__(
+        self, file_addr: int, mem_addr: int, size: int, is_free=True, flag=None
+    ) -> None:
         super().__init__(None, size, is_free)
         self.file_addr = file_addr
         self.mem_addr = mem_addr
         self.flag = flag
 
-    def __lt__(self, other):
+    def __lt__(self, other: "MappedBlock") -> bool:
         return self.mem_addr < other.mem_addr
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__} file_addr={hex(self.file_addr)} mem_addr={hex(self.mem_addr)} size={hex(self.size)} is_free={self.is_free} flag={str(self.flag)}>"
 
-    def coalesce(self, other):
+    def coalesce(self, other: "MappedBlock") -> bool:
         if (
             self.flag == other.flag
             and self.is_free == other.is_free
@@ -77,17 +80,17 @@ class MappedBlock(Block):
 
 
 class AllocationManager:
-    def __init__(self, p):
+    def __init__(self, p) -> None:
         self.blocks = {cls: [] for cls in Block.subclasses}
         self.p = p
         self.new_mapped_blocks = []
 
-    def add_block(self, block):
+    def add_block(self, block: Block) -> None:
         self.blocks[type(block)].append(block)
         self.blocks[type(block)].sort()
         self.coalesce(self.blocks[type(block)])
 
-    def add_free_space(self, addr, size, flag="RX"):
+    def add_free_space(self, addr: int, size: int, flag: str = "RX") -> None:
         _flag = 0
         if "r" in flag.lower():
             _flag |= MemoryFlag.R
@@ -104,7 +107,9 @@ class AllocationManager:
         )
         self.p.allocation_manager.add_block(block)
 
-    def _find_in_mapped_blocks(self, size, flag=MemoryFlag.RWX, align=0x1):
+    def _find_in_mapped_blocks(
+        self, size: int, flag=MemoryFlag.RWX, align=0x1
+    ) -> MappedBlock:
         best_fit = None
         for block in self.blocks[MappedBlock]:
             if block.is_free and block.size >= size and block.flag & flag == flag:
@@ -146,7 +151,9 @@ class AllocationManager:
                 self.blocks[MappedBlock].remove(best_fit)
             return allocated_block
 
-    def _create_new_mapped_block(self, size, flag=MemoryFlag.RWX, align=0x1):
+    def _create_new_mapped_block(
+        self, size: int, flag=MemoryFlag.RWX, align=0x1
+    ) -> bool:
         # map 0x1000 bytes # TODO: currently we won't use available file/mem blocks, instead we create new one at the end of the file
         file_addr = None
         mem_addr = None
@@ -169,7 +176,7 @@ class AllocationManager:
             return True
         return False
 
-    def allocate(self, size, flag=MemoryFlag.RWX, align=0x1):
+    def allocate(self, size: int, flag=MemoryFlag.RWX, align=0x1) -> MappedBlock:
         logger.debug(
             f"allocating size: {size}, flag: {flag.__repr__()}, align: {align}"
         )
@@ -184,18 +191,18 @@ class AllocationManager:
         else:
             raise MemoryError("Insufficient memory")
 
-    def free(self, block):
+    def free(self, block: Block) -> None:
         block.is_free = True
         self.coalesce(self.blocks[type(block)])
 
-    def coalesce(self, blocks: list):
+    def coalesce(self, blocks: List[Block]) -> None:
         for curr, next in zip(blocks, blocks[1:]):
             if curr.coalesce(next):
                 blocks.remove(next)
                 self.coalesce(blocks)
                 return
 
-    def finalize(self):
+    def finalize(self) -> None:
         for block in self.new_mapped_blocks:
             for mapped_block in self.blocks[MappedBlock]:
                 if mapped_block.is_free:
