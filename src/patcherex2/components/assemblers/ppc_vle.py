@@ -11,11 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 class PpcVle(Assembler):
-    def __init__(self, p):
+    def __init__(self, p) -> None:
         super().__init__(p)
         self.assets_path = Assets("ppc_vle").path
 
-    def _assemble(self, code, base=0, **kwargs):
+    def _assemble(self, code: str, base=0, **kwargs) -> bytes:
         code = re.subn(r"\br(\d+)\b", r"\1", code)[0]
 
         if base is not None:

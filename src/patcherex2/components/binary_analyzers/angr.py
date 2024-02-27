@@ -1,4 +1,5 @@
 import logging
+from typing import Dict, List, Optional, Union
 
 import angr
 from archinfo import ArchARM
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class Angr(BinaryAnalyzer):
-    def __init__(self, binary_path, **kwargs) -> None:
+    def __init__(self, binary_path: str, **kwargs) -> None:
         self.binary_path = binary_path
         # self.use_pickle = kwargs.pop("use_pickle", False) # TODO: implement this
         self.angr_kwargs = kwargs.pop("angr_kwargs", {})
@@ -18,23 +19,23 @@ class Angr(BinaryAnalyzer):
         self._load_base = None
 
     @property
-    def load_base(self):
+    def load_base(self) -> int:
         if self._load_base is None:
             self._load_base = self.p.loader.main_object.mapped_base
         return self._load_base
 
-    def normalize_addr(self, addr):
+    def normalize_addr(self, addr: int) -> int:
         if self.p.loader.main_object.pic:
             return addr - self.load_base
         return addr
 
-    def denormalize_addr(self, addr):
+    def denormalize_addr(self, addr: int) -> int:
         if self.p.loader.main_object.pic:
             return addr + self.load_base
         return addr
 
     @property
-    def p(self):
+    def p(self) -> angr.Project:
         if self._p is None:
             logger.info("Loading binary with angr")
             if "load_options" not in self.angr_kwargs:
@@ -44,7 +45,7 @@ class Angr(BinaryAnalyzer):
         return self._p
 
     @property
-    def cfg(self):
+    def cfg(self) -> angr.analyses.cfg.cfg_fast.CFGFast:
         if self._cfg is None:
             logger.info("Generating CFG with angr")
             self._cfg = self.p.analyses.CFGFast(
@@ -53,7 +54,7 @@ class Angr(BinaryAnalyzer):
             logger.info("Generated CFG with angr")
         return self._cfg
 
-    def mem_addr_to_file_offset(self, addr):
+    def mem_addr_to_file_offset(self, addr: int) -> int:
         addr = self.denormalize_addr(addr)
         file_addr = self.p.loader.main_object.addr_to_offset(addr)
         if file_addr is None:
@@ -63,7 +64,7 @@ class Angr(BinaryAnalyzer):
             return addr
         return file_addr
 
-    def get_basic_block(self, addr):
+    def get_basic_block(self, addr: int) -> Dict[str, Union[int, List[int]]]:
         if self.is_thumb(addr):
             addr += 1
         addr = self.denormalize_addr(addr)
@@ -84,12 +85,12 @@ class Angr(BinaryAnalyzer):
             ],
         }
 
-    def get_instr_bytes_at(self, addr):
+    def get_instr_bytes_at(self, addr: int) -> angr.Block:
         addr += 1 if self.is_thumb(addr) else 0
         addr = self.denormalize_addr(addr)
         return self.p.factory.block(addr, num_inst=1).bytes
 
-    def get_unused_funcs(self):
+    def get_unused_funcs(self) -> List[Dict[str, int]]:
         logger.info("Getting unused functions with angr")
         unused_funcs = []
         assert self.cfg is not None
@@ -109,7 +110,7 @@ class Angr(BinaryAnalyzer):
                 )
         return unused_funcs
 
-    def get_all_symbols(self):
+    def get_all_symbols(self) -> Dict[str, int]:
         assert self.cfg is not None
         logger.info("Getting all symbols with angr")
         symbols = {}
@@ -123,7 +124,7 @@ class Angr(BinaryAnalyzer):
             symbols[func.name] = self.normalize_addr(func.addr)
         return symbols
 
-    def get_function(self, name_or_addr):
+    def get_function(self, name_or_addr: Union[int, str]) -> Optional[Dict[str, int]]:
         assert self.cfg is not None
         if isinstance(name_or_addr, (str, int)):
             if isinstance(name_or_addr, int):
@@ -140,7 +141,7 @@ class Angr(BinaryAnalyzer):
         else:
             raise Exception(f"Invalid type for name_or_addr: {type(name_or_addr)}")
 
-    def is_thumb(self, addr):
+    def is_thumb(self, addr: int) -> bool:
         if not isinstance(self.p.arch, ArchARM):
             return False
         addr = self.denormalize_addr(addr)

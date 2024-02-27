@@ -1,5 +1,6 @@
 import io
 import logging
+from typing import Optional
 
 import intelhex
 
@@ -9,23 +10,23 @@ logger = logging.getLogger(__name__)
 
 
 class IHex(BinFmtTool):
-    def __init__(self, p, binary_path):
+    def __init__(self, p, binary_path: str) -> None:
         super().__init__(p, binary_path)
         self._file = open(binary_path, "rb")
         self._ihex = intelhex.IntelHex(binary_path)
         self.file_size = self._ihex.maxaddr() + 1
         self.file_updates = []
 
-    def __del__(self):
+    def __del__(self) -> None:
         self._file.close()
 
-    def _init_memory_analysis(self):
+    def _init_memory_analysis(self) -> None:
         pass
 
-    def finalize(self):
+    def finalize(self) -> None:
         pass
 
-    def save_binary(self, filename=None):
+    def save_binary(self, filename: Optional[str] = None) -> None:
         for update in self.file_updates:
             self._ihex.puts(update["offset"], update["content"])
         if filename is None:
@@ -48,7 +49,7 @@ class IHex(BinFmtTool):
         with open(filename, "w") as f:
             f.write(final)
 
-    def update_binary_content(self, offset, new_content):
+    def update_binary_content(self, offset: int, new_content: bytes) -> None:
         logger.debug(
             f"Updating offset {hex(offset)} with content ({len(new_content)} bytes) {new_content}"
         )
@@ -63,6 +64,6 @@ class IHex(BinFmtTool):
         if offset + len(new_content) > self.file_size:
             self.file_size = offset + len(new_content)
 
-    def append_to_binary_content(self, new_content):
+    def append_to_binary_content(self, new_content: bytes) -> None:
         self.file_updates.append({"offset": self.file_size, "content": new_content})
         self.file_size += len(new_content)

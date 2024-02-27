@@ -1,4 +1,5 @@
 import logging
+from typing import Dict, Optional, Union
 
 from ..components.allocation_managers.allocation_manager import MemoryFlag
 from .patch import Patch
@@ -8,7 +9,12 @@ logger = logging.getLogger(__name__)
 
 class ModifyFunctionPatch(Patch):
     def __init__(
-        self, addr_or_name, code, detour_pos=-1, symbols=None, **kwargs
+        self,
+        addr_or_name: Union[int, str],
+        code: str,
+        detour_pos=-1,
+        symbols: Optional[Dict[str, int]] = None,
+        **kwargs,
     ) -> None:
         self.code = code
         self.detour_pos = detour_pos
@@ -16,7 +22,7 @@ class ModifyFunctionPatch(Patch):
         self.symbols = symbols if symbols else {}
         self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
 
-    def apply(self, p):
+    def apply(self, p) -> None:
         func = p.binary_analyzer.get_function(self.addr_or_name)
         compiled_size = len(
             p.compiler.compile(
@@ -65,11 +71,11 @@ class ModifyFunctionPatch(Patch):
 class InsertFunctionPatch(Patch):
     def __init__(
         self,
-        addr_or_name,
-        code,
+        addr_or_name: Union[int, str],
+        code: str,
         force_insert=False,
         detour_pos=-1,
-        symbols=None,
+        symbols: Optional[Dict[str, int]] = None,
         is_thumb=False,
         **kwargs,
     ) -> None:
@@ -88,7 +94,7 @@ class InsertFunctionPatch(Patch):
         self.postfunc = kwargs["postfunc"] if "postfunc" in kwargs else None
         self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
 
-    def apply(self, p):
+    def apply(self, p) -> None:
         if self.addr:
             ifp = InsertFunctionPatch(f"__patcherex_{hex(self.addr)}", self.code)
             ifp.apply(p)

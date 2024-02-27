@@ -1,3 +1,5 @@
+from typing import Dict, List, Union
+
 from headless_ida import HeadlessIdaRemote
 
 from .binary_analyzer import BinaryAnalyzer
@@ -6,7 +8,7 @@ from .binary_analyzer import BinaryAnalyzer
 class Ida(BinaryAnalyzer):
     _DEFAULT_LOAD_BASE = 0x0
 
-    def __init__(self, binary_path, **kwargs) -> None:
+    def __init__(self, binary_path: str, **kwargs) -> None:
         self.binary_path = binary_path
         self.kwargs = kwargs
         self.ida_server_host = (
@@ -39,10 +41,10 @@ class Ida(BinaryAnalyzer):
         for lib in ida_libs:
             setattr(self, lib, self._headlessida.import_module(lib))
 
-    def mem_addr_to_file_offset(self, addr):
+    def mem_addr_to_file_offset(self, addr: int) -> int:
         return self.ida_loader.get_fileregion_offset(addr)
 
-    def get_basic_block(self, addr):
+    def get_basic_block(self, addr: int) -> Dict[str, Union[int, List[int]]]:
         func = self.ida_funcs.get_func(addr)
         instr_addrs = list(func.code_items())
         assert addr in instr_addrs, "Invalid address"
@@ -59,5 +61,5 @@ class Ida(BinaryAnalyzer):
                     ],
                 }
 
-    def get_instr_bytes_at(self, addr):
+    def get_instr_bytes_at(self, addr: int):
         return self.p.factory.block(addr, num_inst=1).bytes

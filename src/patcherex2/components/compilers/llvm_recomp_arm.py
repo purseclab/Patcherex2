@@ -1,4 +1,5 @@
 import logging
+from typing import Dict, List, Optional
 
 from .llvm_recomp import LLVMRecomp
 
@@ -8,13 +9,13 @@ logger = logging.getLogger(__name__)
 class LLVMRecompArm(LLVMRecomp):
     def compile(
         self,
-        code,
+        code: str,
         base=0,
-        symbols=None,
-        extra_compiler_flags=None,
+        symbols: Optional[Dict[str, int]] = None,
+        extra_compiler_flags: Optional[List[str]] = None,
         is_thumb=False,
         **kwargs,
-    ):
+    ) -> bytes:
         if symbols is None:
             symbols = {}
         if extra_compiler_flags is None:

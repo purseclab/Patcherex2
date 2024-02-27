@@ -1,4 +1,5 @@
 import logging
+from typing import Dict, Optional
 
 from ..allocation_managers.allocation_manager import MemoryFlag
 
@@ -6,13 +7,18 @@ logger = logging.getLogger(__name__)
 
 
 class Utils:
-    def __init__(self, p, binary_path):
+    def __init__(self, p, binary_path: str) -> None:
         self.p = p
         self.binary_path = binary_path
 
     def insert_trampoline_code(
-        self, addr, instrs, force_insert=False, detour_pos=-1, symbols=None
-    ):
+        self,
+        addr: int,
+        instrs: str,
+        force_insert=False,
+        detour_pos=-1,
+        symbols: Dict[str, int] = None,
+    ) -> None:
         logger.debug(f"Inserting trampoline code at {hex(addr)}: {instrs}")
         symbols = symbols if symbols else {}
         assert force_insert or self.is_valid_insert_point(
@@ -86,7 +92,9 @@ class Utils:
             self.p.binary_analyzer.mem_addr_to_file_offset(addr), jmp_to_trampoline
         )
 
-    def get_instrs_to_be_moved(self, addr, ignore_unmovable=False):
+    def get_instrs_to_be_moved(
+        self, addr: int, ignore_unmovable=False
+    ) -> Optional[str]:
         basic_block = self.p.binary_analyzer.get_basic_block(addr)
         idx = basic_block["instruction_addrs"].index(addr)
         end = addr + self.p.target.JMP_SIZE
@@ -113,10 +121,10 @@ class Utils:
             instrs += self.p.binary_analyzer.get_instr_bytes_at(insn_addr)
         return None
 
-    def is_valid_insert_point(self, addr):
+    def is_valid_insert_point(self, addr: int) -> bool:
         return self.get_instrs_to_be_moved(addr) is not None
 
-    def is_movable_instruction(self, addr):
+    def is_movable_instruction(self, addr: int) -> bool:
         is_thumb = self.p.binary_analyzer.is_thumb(addr)
         insn = self.p.binary_analyzer.get_instr_bytes_at(addr)
         asm = self.p.disassembler.disassemble(insn, addr, is_thumb=is_thumb)[0]

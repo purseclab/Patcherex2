@@ -1,10 +1,12 @@
+from typing import Dict, List, Union
+
 import capstone
 
 from .disassembler import Disassembler
 
 
 class CapstoneArm(Disassembler):
-    def __init__(self, p):
+    def __init__(self, p) -> None:
         super().__init__(p)
         self.cs_arm = capstone.Cs(
             capstone.CS_ARCH_ARM, capstone.CS_MODE_ARM + capstone.CS_MODE_LITTLE_ENDIAN
@@ -14,7 +16,9 @@ class CapstoneArm(Disassembler):
             capstone.CS_MODE_THUMB + capstone.CS_MODE_LITTLE_ENDIAN,
         )
 
-    def disassemble(self, input, base=0, is_thumb=False, **kwargs):
+    def disassemble(
+        self, input: bytes, base=0, is_thumb=False, **kwargs
+    ) -> List[Dict[str, Union[int, str]]]:
         cs = self.cs_thumb if is_thumb else self.cs_arm
         cs_insns = cs.disasm(input, base)
         result = []

@@ -10,11 +10,11 @@ logger = logging.getLogger(__name__)
 
 
 class Bcc(Assembler):
-    def __init__(self, p):
+    def __init__(self, p) -> None:
         super().__init__(p)
         self.assets_path = Assets("bcc").path
 
-    def _assemble(self, code, base=0, **kwargs):
+    def _assemble(self, code: str, base=0, **kwargs) -> bytes:
         with tempfile.TemporaryDirectory() as td:
             with open(os.path.join(td, "code.s"), "w") as f:
                 f.write(f".org {hex(base)}\n")

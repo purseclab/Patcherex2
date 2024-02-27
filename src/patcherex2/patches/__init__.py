@@ -32,14 +32,14 @@ __all__ = [
 
 # Other Patches
 class ModifyEntryPointPatch(Patch):
-    def __init__(self, addr, parent=None) -> None:
+    def __init__(self, addr: int, parent=None) -> None:
         self.addr = addr
         super().__init__(parent)
 
 
 # Complex Patches
 class InsertFunctionWrapperPatch(Patch):
-    def __init__(self, addr, wrapper_code, parent=None) -> None:
+    def __init__(self, addr: int, wrapper_code: str, parent=None) -> None:
         self.addr = addr
         self.wrapper_code = wrapper_code
         super().__init__(parent)
