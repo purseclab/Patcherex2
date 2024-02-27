@@ -21,6 +21,3 @@ where = ["src"]
 
 [tool.ruff]
 extend-select = ["I", "N", "UP", "B"]
-
-[mypy]
-include = ["src/patcherex2/components/**/*.py"]
