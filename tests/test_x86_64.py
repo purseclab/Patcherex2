@@ -23,7 +23,7 @@ class Tests(unittest.TestCase):
             )
         )
 
-    def test_raw_file_patch(self):
+    def test_raw_file_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [ModifyRawBytesPatch(0x2004, b"No", addr_type="raw")],
@@ -31,7 +31,15 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_raw_mem_patch(self):
+    def test_raw_file_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [ModifyRawBytesPatch(0x2007, b"No", addr_type="raw")],
+            expected_output=b"No",
+            expected_returnCode=0,
+        )
+
+    def test_raw_mem_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [ModifyRawBytesPatch(0x402004, b"No")],
@@ -39,7 +47,15 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_modify_instruction_patch(self):
+    def test_raw_mem_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [ModifyRawBytesPatch(0x2007, b"No")],
+            expected_output=b"No",
+            expected_returnCode=0,
+        )
+
+    def test_modify_instruction_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [
@@ -50,7 +66,17 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_insert_instruction_patch(self):
+    def test_modify_instruction_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [
+                ModifyInstructionPatch(0x1156, "lea rsi, [rip + 0xea7]"),
+            ],
+            expected_output=b"%s",
+            expected_returnCode=0,
+        )
+
+    def test_insert_instruction_patch_nopie(self):
         instrs = """
             mov rax, 0x1
             mov rdi, 0x1
@@ -65,7 +91,22 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_insert_instruction_patch_2(self):
+    def test_insert_instruction_patch_pie(self):
+        instrs = """
+            mov rax, 0x1
+            mov rdi, 0x1
+            lea rsi, [0x2007]
+            mov rdx, 0x3
+            syscall
+        """
+        self.run_one(
+            "printf_pie",
+            [InsertInstructionPatch(0x1164, instrs)],
+            expected_output=b"Hi\x00Hi",
+            expected_returnCode=0,
+        )
+
+    def test_insert_instruction_patch_2_nopie(self):
         instrs = """
             mov rax, 0x32
             leave
@@ -80,7 +121,22 @@ class Tests(unittest.TestCase):
             expected_returnCode=0x32,
         )
 
-    def test_remove_instruction_patch(self):
+    def test_insert_instruction_patch_2_pie(self):
+        instrs = """
+            mov rax, 0x32
+            leave
+            ret
+        """
+        self.run_one(
+            "printf_pie",
+            [
+                InsertInstructionPatch("return_0x32", instrs),
+                ModifyInstructionPatch(0x1164, "jmp {return_0x32}"),
+            ],
+            expected_returnCode=0x32,
+        )
+
+    def test_remove_instruction_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [
@@ -90,7 +146,17 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_modify_data_patch(self):
+    def test_remove_instruction_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [
+                RemoveInstructionPatch(0x2008, num_bytes=1),
+            ],
+            expected_output=b"H\x90",
+            expected_returnCode=0,
+        )
+
+    def test_modify_data_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [ModifyDataPatch(0x402004, b"No")],
@@ -98,7 +164,15 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_insert_data_patch(self, tlen=5):
+    def test_modify_data_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [ModifyDataPatch(0x2004, b"No")],
+            expected_output=b"No",
+            expected_returnCode=0,
+        )
+
+    def test_insert_data_patch_nopie(self, tlen=5):
         p1 = InsertDataPatch("added_data", b"A" * tlen)
         instrs = """
             mov rax, 1
@@ -115,10 +189,35 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
-    def test_remove_data_patch(self):
+    def test_insert_data_patch_pie(self, tlen=5):
+        p1 = InsertDataPatch("added_data", b"A" * tlen)
+        instrs = """
+            mov rax, 1
+            mov rdi, 1
+            lea rsi, [{added_data}]
+            mov rdx, %s
+            syscall
+        """ % hex(tlen)
+        p2 = InsertInstructionPatch(0x1164, instrs)
+        self.run_one(
+            "printf_pie",
+            [p1, p2],
+            expected_output=b"A" * tlen + b"Hi",
+            expected_returnCode=0,
+        )
+
+    def test_remove_data_patch_nopie(self):
         self.run_one(
             "printf_nopie",
             [RemoveDataPatch(0x402005, 1)],
+            expected_output=b"H",
+            expected_returnCode=0,
+        )
+
+    def test_remove_data_patch_pie(self):
+        self.run_one(
+            "printf_pie",
+            [RemoveDataPatch(0x2008, 1)],
             expected_output=b"H",
             expected_returnCode=0,
         )
