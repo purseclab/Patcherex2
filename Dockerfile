@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /patcherex2
-WORKDIR /patcherex2
 
 RUN pip install -U pip pytest ruff
 RUN pip install -e /patcherex2
