@@ -100,7 +100,7 @@ class InsertFunctionPatch(Patch):
             ifp.apply(p)
             instrs = self.prefunc if self.prefunc else ""
             instrs += "\n"
-            instrs += p.target.JMP_ASM.format(dst=f"{{__patcherex_{hex(self.addr)}}}")
+            instrs += p.target.CALL_ASM.format(dst=f"{{__patcherex_{hex(self.addr)}}}")
             instrs += "\n"
             instrs += self.postfunc if self.postfunc else ""
             p.utils.insert_trampoline_code(

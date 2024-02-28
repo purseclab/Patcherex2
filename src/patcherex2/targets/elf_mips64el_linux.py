@@ -14,6 +14,7 @@ class ElfMips64elLinux(Target):
     JMP_ASM = "j {dst}"
     # NOTE: keystone will always add nop for branch delay slot, so include it in size
     JMP_SIZE = 8
+    CALL_ASM = "jal {dst}"
 
     @staticmethod
     def detect_target(binary_path):

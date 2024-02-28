@@ -13,6 +13,7 @@ class ElfX8664Linux(Target):
     NOP_SIZE = 1
     JMP_ASM = "jmp {dst}"
     JMP_SIZE = 6
+    CALL_ASM = "call {dst}"
 
     @staticmethod
     def detect_target(binary_path):

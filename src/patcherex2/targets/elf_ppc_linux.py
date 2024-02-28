@@ -13,6 +13,7 @@ class ElfPpcLinux(Target):
     NOP_SIZE = 4
     JMP_ASM = "b {dst}"
     JMP_SIZE = 4
+    CALL_ASM = "bl {dst}"
 
     @staticmethod
     def detect_target(binary_path):

@@ -49,6 +49,7 @@ class ElfLeon3Bare(Target):
     NOP_SIZE = 4
     JMP_ASM = "b {dst}\nnop"  # nop due to delay slot
     JMP_SIZE = 8
+    CALL_ASM = "call {dst}"
 
     @staticmethod
     def detect_target(binary_path):
