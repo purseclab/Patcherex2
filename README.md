@@ -13,18 +13,35 @@ Patcherex 2 is a rewritten adaptation of the original [Patcherex](https://github
 
 ## Installation
 
-Patcherex 2 is available on PyPI and can be installed with pip.
+Patcherex 2 is available on PyPI and can be installed using pip. Alternatively, you can use the provided Docker image.
 
-
+### pip
 ```bash
 pip install patcherex2
 ```
+<details>
+<summary>Install from latest commit</summary>
 
-Additionally, we provide a Docker image for those who prefer containerized development environments.
+```bash
+pip install git+https://github.com/purseclab/Patcherex2.git
+```
+</details>
 
+### Docker
 ```bash
 docker run --rm -it -v ${PWD}:/workdir -w /workdir ghcr.io/purseclab/patcherex2
 ```
+
+<details>
+<summary>Build from latest commit</summary>
+
+```bash
+docker build -t patcherex2 https://github.com/purseclab/Patcherex2.git
+docker run --rm -it -v ${PWD}:/workdir -w /workdir patcherex2
+```
+</details>
+
+
 
 ## Usage
 
