@@ -4,3 +4,5 @@ class SparcInfo:
     jmp_asm = "b {dst}\nnop"  # nop due to delay slot
     jmp_size = 8
     call_asm = "call {dst}"
+    save_context_asm = ""  # TODO
+    restore_context_asm = ""  # TODO

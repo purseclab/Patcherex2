@@ -4,3 +4,9 @@ class X86Info:
     jmp_asm = "jmp {dst}"
     jmp_size = 5
     call_asm = "call {dst}"
+    save_context_asm = """
+    pusha
+    """
+    restore_context_asm = """
+    popa
+    """

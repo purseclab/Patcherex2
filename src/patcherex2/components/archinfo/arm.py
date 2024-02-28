@@ -4,3 +4,9 @@ class ArmInfo:
     jmp_asm = "b {dst}"
     jmp_size = 4
     call_asm = "bl {dst}"
+    save_context_asm = """
+        push {r0-r11}
+    """
+    restore_context_asm = """
+        pop {r0-r11}
+    """

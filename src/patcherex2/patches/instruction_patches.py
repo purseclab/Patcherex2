@@ -36,6 +36,7 @@ class InsertInstructionPatch(Patch):
         detour_pos=-1,
         symbols: Optional[Dict[str, int]] = None,
         is_thumb=False,
+        **kwargs,
     ) -> None:
         self.addr = None
         self.name = None
@@ -48,9 +49,22 @@ class InsertInstructionPatch(Patch):
         self.detour_pos = detour_pos
         self.symbols = symbols if symbols else {}
         self.is_thumb = is_thumb
+        self.save_context = (
+            kwargs["save_context"] if "save_context" in kwargs else False
+        )
 
     def apply(self, p) -> None:
         if self.addr:
+            if "SAVE_CONTEXT" in self.instr:
+                self.instr = self.instr.replace(
+                    "SAVE_CONTEXT", f"\n{p.archinfo.save_context_asm}\n"
+                )
+            if "RESTORE_CONTEXT" in self.instr:
+                self.instr = self.instr.replace(
+                    "RESTORE_CONTEXT", f"\n{p.archinfo.restore_context_asm}\n"
+                )
+            if self.save_context:
+                self.instr = f"{p.archinfo.save_context_asm}\n{self.instr}\n{p.archinfo.restore_context_asm}"
             p.utils.insert_trampoline_code(
                 self.addr,
                 self.instr,

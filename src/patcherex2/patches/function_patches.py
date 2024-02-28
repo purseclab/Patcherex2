@@ -93,18 +93,42 @@ class InsertFunctionPatch(Patch):
         self.prefunc = kwargs["prefunc"] if "prefunc" in kwargs else None
         self.postfunc = kwargs["postfunc"] if "postfunc" in kwargs else None
         self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
+        self.save_context = (
+            kwargs["save_context"] if "save_context" in kwargs else False
+        )
 
     def apply(self, p) -> None:
         if self.addr:
+            if self.prefunc:
+                if "SAVE_CONTEXT" in self.prefunc:
+                    self.prefunc = self.prefunc.replace(
+                        "SAVE_CONTEXT", f"\n{p.archinfo.save_context_asm}\n"
+                    )
+                if "RESTORE_CONTEXT" in self.prefunc:
+                    self.prefunc = self.prefunc.replace(
+                        "RESTORE_CONTEXT", f"\n{p.archinfo.restore_context_asm}\n"
+                    )
+            if self.postfunc:
+                if "SAVE_CONTEXT" in self.postfunc:
+                    self.postfunc = self.postfunc.replace(
+                        "SAVE_CONTEXT", f"\n{p.archinfo.save_context_asm}\n"
+                    )
+                if "RESTORE_CONTEXT" in self.postfunc:
+                    self.postfunc = self.postfunc.replace(
+                        "RESTORE_CONTEXT", f"\n{p.archinfo.restore_context_asm}\n"
+                    )
             ifp = InsertFunctionPatch(f"__patcherex_{hex(self.addr)}", self.code)
             ifp.apply(p)
-            instrs = self.prefunc if self.prefunc else ""
+            instrs = ""
+            instrs += p.archinfo.save_context_asm if self.save_context else ""
+            instrs += self.prefunc if self.prefunc else ""
             instrs += "\n"
             instrs += p.archinfo.call_asm.format(
                 dst=f"{{__patcherex_{hex(self.addr)}}}"
             )
             instrs += "\n"
             instrs += self.postfunc if self.postfunc else ""
+            instrs += p.archinfo.restore_context_asm if self.save_context else ""
             p.utils.insert_trampoline_code(
                 self.addr,
                 instrs,
