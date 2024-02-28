@@ -9,18 +9,13 @@ from ..components.binfmt_tools.ihex import IHex
 from ..components.compilers.ppc_vle import PpcVle as PpcVleCompiler
 from ..components.disassemblers.ppc_vle import PpcVle as PpcVleDisassembler
 from ..components.utils.utils import Utils
+from ..components.archinfo.ppc_vle import PpcVleInfo
 from .target import Target
 
 logger = logging.getLogger(__name__)
 
 
 class IHexPPCBare(Target):
-    NOP_BYTES = b"\x01\x00\x00\x00"
-    NOP_SIZE = 4
-    JMP_ASM = "b {dst}"
-    JMP_SIZE = 4
-    CALL_ASM = "bl {dst}"
-
     @staticmethod
     def detect_target(binary_path):
         return False
@@ -66,8 +61,8 @@ class IHexPPCBare(Target):
             )
         raise NotImplementedError()
 
-    def get_utils(self, utils):
-        utils = utils or "default"
-        if utils == "default":
-            return Utils(self.p, self.binary_path)
+    def get_archinfo(self, archinfo):
+        archinfo = archinfo or "default"
+        if archinfo == "default":
+            return PpcVleInfo()
         raise NotImplementedError()

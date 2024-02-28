@@ -47,7 +47,7 @@ class Utils:
             + "\n"
             + moved_instrs
             + "\n"
-            + self.p.target.JMP_ASM.format(dst=hex(addr + moved_instrs_len))
+            + self.p.archinfo.jmp_asm.format(dst=hex(addr + moved_instrs_len))
         )
         trampoline_size = (
             len(
@@ -84,7 +84,7 @@ class Utils:
         )
         self.p.binfmt_tool.update_binary_content(file_addr, trampoline_bytes)
         jmp_to_trampoline = self.p.assembler.assemble(
-            self.p.target.JMP_ASM.format(dst=hex(mem_addr)),
+            self.p.archinfo.jmp_asm.format(dst=hex(mem_addr)),
             addr,
             is_thumb=self.p.binary_analyzer.is_thumb(addr),
         )
@@ -97,7 +97,7 @@ class Utils:
     ) -> Optional[str]:
         basic_block = self.p.binary_analyzer.get_basic_block(addr)
         idx = basic_block["instruction_addrs"].index(addr)
-        end = addr + self.p.target.JMP_SIZE
+        end = addr + self.p.archinfo.jmp_size
         instrs = b""
 
         for insn_addr in basic_block["instruction_addrs"][idx:] + [basic_block["end"]]:

@@ -1,9 +1,9 @@
 from ..components.binary_analyzers.angr import Angr
 from ..components.compilers.llvm_recomp import LLVMRecomp
-from .elf_x86_64_linux import ElfX8664Linux
+from .elf_amd64_linux import ElfAmd64Linux
 
 
-class ElfX8664LinuxRecomp(ElfX8664Linux):
+class ElfAmd64LinuxRecomp(ElfAmd64Linux):
     @staticmethod
     def detect_target(binary_path):
         return False

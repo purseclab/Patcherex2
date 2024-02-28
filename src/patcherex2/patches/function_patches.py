@@ -46,7 +46,7 @@ class ModifyFunctionPatch(Patch):
             else:
                 mem_addr = self.detour_pos
                 file_addr = p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
-            jmp_instr = p.target.JMP_ASM.format(dst=hex(mem_addr))
+            jmp_instr = p.archinfo.jmp_asm.format(dst=hex(mem_addr))
             jmp_bytes = p.assembler.assemble(
                 jmp_instr,
                 func["addr"],
@@ -100,7 +100,9 @@ class InsertFunctionPatch(Patch):
             ifp.apply(p)
             instrs = self.prefunc if self.prefunc else ""
             instrs += "\n"
-            instrs += p.target.CALL_ASM.format(dst=f"{{__patcherex_{hex(self.addr)}}}")
+            instrs += p.archinfo.call_asm.format(
+                dst=f"{{__patcherex_{hex(self.addr)}}}"
+            )
             instrs += "\n"
             instrs += self.postfunc if self.postfunc else ""
             p.utils.insert_trampoline_code(

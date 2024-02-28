@@ -5,15 +5,11 @@ from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.clang import Clang
 from ..components.disassemblers.capstone import Capstone, capstone
 from ..components.utils.utils import Utils
+from ..components.archinfo.aarch64 import Aarch64Info
 from .target import Target
 
 
 class ElfAArch64Linux(Target):
-    NOP_BYTES = b"\x1f\x20\x03\xd5"
-    NOP_SIZE = 4
-    JMP_ASM = "b {dst}"
-    JMP_SIZE = 4
-
     @staticmethod
     def detect_target(binary_path):
         with open(binary_path, "rb") as f:
@@ -66,4 +62,10 @@ class ElfAArch64Linux(Target):
         utils = utils or "default"
         if utils == "default":
             return Utils(self.p, self.binary_path)
+        raise NotImplementedError()
+
+    def get_archinfo(self, archinfo):
+        archinfo = archinfo or "default"
+        if archinfo == "default":
+            return Aarch64Info()
         raise NotImplementedError()

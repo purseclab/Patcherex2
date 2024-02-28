@@ -5,16 +5,11 @@ from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.clang_arm import ClangArm
 from ..components.disassemblers.capstone_arm import CapstoneArm
 from ..components.utils.utils import Utils
+from ..components.archinfo.arm import ArmInfo
 from .target import Target
 
 
 class ElfArmLinux(Target):
-    NOP_BYTES = b"\x00\xF0\x20\xE3"  # TODO: thumb
-    NOP_SIZE = 4
-    JMP_ASM = "b {dst}"
-    JMP_SIZE = 4
-    CALL_ASM = "bl {dst}"
-
     @staticmethod
     def detect_target(binary_path):
         with open(binary_path, "rb") as f:
@@ -65,4 +60,10 @@ class ElfArmLinux(Target):
         utils = utils or "default"
         if utils == "default":
             return Utils(self.p, self.binary_path)
+        raise NotImplementedError()
+
+    def get_archinfo(self, archinfo):
+        archinfo = archinfo or "default"
+        if archinfo == "default":
+            return ArmInfo()
         raise NotImplementedError()

@@ -33,6 +33,7 @@ class Patcherex:
             "allocation_manager",
             "binfmt_tool",
             "utils",
+            "archinfo",
         ]
         for component in components:
             setattr(

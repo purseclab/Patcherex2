@@ -5,17 +5,11 @@ from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.clang import Clang
 from ..components.disassemblers.capstone import Capstone, capstone
 from ..components.utils.utils import Utils
+from ..components.archinfo.mips64 import Mips64Info
 from .target import Target
 
 
 class ElfMips64Linux(Target):
-    NOP_BYTES = b"\x00\x00\x00\x00"
-    NOP_SIZE = 4
-    JMP_ASM = "j {dst}"
-    # NOTE: keystone will always add nop for branch delay slot, so include it in size
-    JMP_SIZE = 8
-    CALL_ASM = "jal {dst}"
-
     @staticmethod
     def detect_target(binary_path):
         with open(binary_path, "rb") as f:
@@ -73,4 +67,10 @@ class ElfMips64Linux(Target):
         utils = utils or "default"
         if utils == "default":
             return Utils(self.p, self.binary_path)
+        raise NotImplementedError()
+
+    def get_archinfo(self, archinfo):
+        archinfo = archinfo or "default"
+        if archinfo == "default":
+            return Mips64Info()
         raise NotImplementedError()

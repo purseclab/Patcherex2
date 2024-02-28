@@ -5,23 +5,18 @@ from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.clang import Clang
 from ..components.disassemblers.capstone import Capstone, capstone
 from ..components.utils.utils import Utils
+from ..components.archinfo.amd64 import Amd64Info
 from .target import Target
 
 
-class ElfI386Linux(Target):
-    NOP_BYTES = b"\x90"
-    NOP_SIZE = 1
-    JMP_ASM = "jmp {dst}"
-    JMP_SIZE = 5
-    CALL_ASM = "call {dst}"
-
+class ElfAmd64Linux(Target):
     @staticmethod
     def detect_target(binary_path):
         with open(binary_path, "rb") as f:
             magic = f.read(0x14)
             if magic.startswith(b"\x7fELF") and magic.startswith(
-                b"\x03\x00", 0x12
-            ):  # EM_386
+                b"\x3e\x00", 0x12
+            ):  # EM_X86_64
                 return True
         return False
 
@@ -31,7 +26,7 @@ class ElfI386Linux(Target):
             return Keystone(
                 self.p,
                 keystone.KS_ARCH_X86,
-                keystone.KS_MODE_LITTLE_ENDIAN + keystone.KS_MODE_32,
+                keystone.KS_MODE_LITTLE_ENDIAN + keystone.KS_MODE_64,
             )
         raise NotImplementedError()
 
@@ -44,7 +39,7 @@ class ElfI386Linux(Target):
     def get_compiler(self, compiler):
         compiler = compiler or "clang"
         if compiler == "clang":
-            return Clang(self.p, compiler_flags=["-m32"])
+            return Clang(self.p)
         raise NotImplementedError()
 
     def get_disassembler(self, disassembler):
@@ -52,7 +47,7 @@ class ElfI386Linux(Target):
         if disassembler == "capstone":
             return Capstone(
                 capstone.CS_ARCH_X86,
-                capstone.CS_MODE_LITTLE_ENDIAN + capstone.CS_MODE_32,
+                capstone.CS_MODE_LITTLE_ENDIAN + capstone.CS_MODE_64,
             )
         raise NotImplementedError()
 
@@ -72,4 +67,10 @@ class ElfI386Linux(Target):
         utils = utils or "default"
         if utils == "default":
             return Utils(self.p, self.binary_path)
+        raise NotImplementedError()
+
+    def get_archinfo(self, archinfo):
+        archinfo = archinfo or "default"
+        if archinfo == "default":
+            return Amd64Info()
         raise NotImplementedError()

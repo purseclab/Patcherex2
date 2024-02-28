@@ -5,16 +5,11 @@ from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.clang import Clang
 from ..components.disassemblers.capstone import Capstone, capstone
 from ..components.utils.utils import Utils
+from ..components.archinfo.ppc64 import Ppc64Info
 from .target import Target
 
 
 class ElfPpc64leLinux(Target):
-    NOP_BYTES = b"\x60\x00\x00\x00"
-    NOP_SIZE = 4
-    JMP_ASM = "b {dst}"
-    JMP_SIZE = 4
-    CALL_ASM = "bl {dst}"
-
     @staticmethod
     def detect_target(binary_path):
         with open(binary_path, "rb") as f:
@@ -75,4 +70,10 @@ class ElfPpc64leLinux(Target):
         utils = utils or "default"
         if utils == "default":
             return Utils(self.p, self.binary_path)
+        raise NotImplementedError()
+
+    def get_archinfo(self, archinfo):
+        archinfo = archinfo or "default"
+        if archinfo == "default":
+            return Ppc64Info()
         raise NotImplementedError()

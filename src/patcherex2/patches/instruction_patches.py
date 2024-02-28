@@ -107,10 +107,10 @@ class RemoveInstructionPatch(Patch):
     def apply(self, p):
         if self.num_bytes is None:
             raise NotImplementedError()
-        if self.num_bytes and self.num_bytes % p.target.NOP_SIZE != 0:
+        if self.num_bytes and self.num_bytes % p.archinfo.nop_size != 0:
             raise Exception(
-                f"Cannot remove {self.num_bytes} bytes, must be a multiple of {p.target.NOP_SIZE}"
+                f"Cannot remove {self.num_bytes} bytes, must be a multiple of {p.archinfo.nop_size}"
             )
-        num_nops = self.num_bytes // p.target.NOP_SIZE
+        num_nops = self.num_bytes // p.archinfo.nop_size
         offset = p.binary_analyzer.mem_addr_to_file_offset(self.addr)
-        p.binfmt_tool.update_binary_content(offset, p.target.NOP_BYTES * num_nops)
+        p.binfmt_tool.update_binary_content(offset, p.archinfo.nop_bytes * num_nops)
