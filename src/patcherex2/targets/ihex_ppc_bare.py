@@ -3,13 +3,12 @@ import logging
 import archinfo
 
 from ..components.allocation_managers.allocation_manager import AllocationManager
+from ..components.archinfo.ppc_vle import PpcVleInfo
 from ..components.assemblers.ppc_vle import PpcVle as PpcVleAssembler
 from ..components.binary_analyzers.angr import Angr
 from ..components.binfmt_tools.ihex import IHex
 from ..components.compilers.ppc_vle import PpcVle as PpcVleCompiler
 from ..components.disassemblers.ppc_vle import PpcVle as PpcVleDisassembler
-from ..components.utils.utils import Utils
-from ..components.archinfo.ppc_vle import PpcVleInfo
 from .target import Target
 
 logger = logging.getLogger(__name__)

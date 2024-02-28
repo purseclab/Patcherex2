@@ -5,6 +5,7 @@ from ..components.allocation_managers.allocation_manager import (
     MappedBlock,
     MemoryFlag,
 )
+from ..components.archinfo.sparc import SparcInfo
 from ..components.assemblers.bcc import Bcc as BccAssembler
 from ..components.assemblers.keystone_sparc import KeystoneSparc, keystone
 from ..components.binary_analyzers.angr import Angr
@@ -12,7 +13,6 @@ from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.bcc import Bcc as BccCompiler
 from ..components.disassemblers.capstone import Capstone, capstone
 from ..components.utils.utils import Utils
-from ..components.archinfo.sparc import SparcInfo
 from .target import Target
 
 logger = logging.getLogger(__name__)
