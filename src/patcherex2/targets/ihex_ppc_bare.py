@@ -9,6 +9,7 @@ from ..components.binary_analyzers.angr import Angr
 from ..components.binfmt_tools.ihex import IHex
 from ..components.compilers.ppc_vle import PpcVle as PpcVleCompiler
 from ..components.disassemblers.ppc_vle import PpcVle as PpcVleDisassembler
+from ..components.utils.utils import Utils
 from .target import Target
 
 logger = logging.getLogger(__name__)
@@ -54,10 +55,18 @@ class IHexPPCBare(Target):
         if binary_analyzer == "angr":
             return Angr(
                 self.binary_path,
-                arch=archinfo.ArchPcode("PowerPC:BE:32:MPC8270"),
-                auto_load_libs=False,
-                load_debug_info=True,
+                angr_kwargs={
+                    "arch": archinfo.ArchPcode("PowerPC:BE:32:MPC8270"),
+                    "auto_load_libs": False,
+                    "load_debug_info": True,
+                },
             )
+        raise NotImplementedError()
+
+    def get_utils(self, utils):
+        utils = utils or "default"
+        if utils == "default":
+            return Utils(self.p, self.binary_path)
         raise NotImplementedError()
 
     def get_archinfo(self, archinfo):
