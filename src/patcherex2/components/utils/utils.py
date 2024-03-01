@@ -134,8 +134,5 @@ class Utils:
         tokens = list(filter(None, tokens))
         if list(set(self.p.archinfo.pc_reg_names) & set(tokens)):
             return False
-        asm = self.p.disassembler.to_asm_string(asm)
-        for addr in [0x0, 0x7F00000, 0xFE000000]:
-            if self.p.assembler.assemble(asm, addr, is_thumb=is_thumb) != insn:
-                return False
+        # TODO: is it safe to assume that the instruction is movable if it's not using PC as a base register?
         return True
