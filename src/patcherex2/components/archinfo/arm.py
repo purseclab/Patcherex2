@@ -1,5 +1,5 @@
 class ArmInfo:
-    nop_bytes = b"\x00\xF0\x20\xE3"  # TODO: thumb
+    nop_bytes = b"\x00\xf0\x20\xe3"  # TODO: thumb
     nop_size = 4
     jmp_asm = "b {dst}"
     jmp_size = 4
