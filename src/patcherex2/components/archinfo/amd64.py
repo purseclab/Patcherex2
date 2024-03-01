@@ -4,6 +4,7 @@ class Amd64Info:
     jmp_asm = "jmp {dst}"
     jmp_size = 6
     call_asm = "call {dst}"
+    pc_reg_names = ["rip"]
     save_context_asm = """
     push rax
     push rbx

@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Dict, Optional
 
 from ..allocation_managers.allocation_manager import MemoryFlag
@@ -128,6 +129,11 @@ class Utils:
         is_thumb = self.p.binary_analyzer.is_thumb(addr)
         insn = self.p.binary_analyzer.get_instr_bytes_at(addr)
         asm = self.p.disassembler.disassemble(insn, addr, is_thumb=is_thumb)[0]
+        # if instruction use PC as a base register, it's not movable
+        tokens = re.split(r"\s|,|\[|\]", asm["op_str"])
+        tokens = list(filter(None, tokens))
+        if list(set(self.p.archinfo.pc_reg_names) & set(tokens)):
+            return False
         asm = self.p.disassembler.to_asm_string(asm)
         for addr in [0x0, 0x7F00000, 0xFE000000]:
             if self.p.assembler.assemble(asm, addr, is_thumb=is_thumb) != insn:
