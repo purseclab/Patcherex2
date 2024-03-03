@@ -1,0 +1,41 @@
+start: (memoryblock | sectionblock | OHTERBLOCK)*
+
+memoryblock: "MEMORY" "{" memory_def* "}"
+memory_def: memory_name ["(" memory_attr ")"] ":" "ORIGIN" "=" memory_origin "," "LENGTH" "=" memory_length
+memory_attr: CNAME
+memory_name: CNAME
+memory_origin: HEX | INT
+memory_length: HEX | INT | SIZE
+
+sectionblock: "SECTIONS" "{" section_stmt* "}"
+section_stmt: section_def | IGNORE_ASSN
+section_def: section_name section_addr? ":" IGNORE_BRACE section_region? section_lma_region?
+section_addr: HEX | INT
+section_name: SECTION_NAME
+section_region: ">" CNAME
+section_lma_region: "AT>" CNAME
+
+OHTERBLOCK: IGNORE_STMT
+
+IGNORE_PAREN: "(" /[^\(\)]+/s ")"
+IGNORE_BRACE: "{" /[^\{\}]+/s "}"
+IGNORE_ASSN: /[^=;]+/s "=" /[^=;]+/s ";"
+IGNORE_STMT: ("_"|UCASE_LETTER) ("_"|UCASE_LETTER|DIGIT)* (IGNORE_BRACE | IGNORE_PAREN)
+
+SECTION_NAME: "." ("."|CNAME)* "*"?
+SIZE: INT ["K" | "M" | "G"]
+HEX: "0x" HEXDIGIT+
+
+%import common.LETTER
+%import common.UCASE_LETTER
+%import common.CNAME
+%import common.HEXDIGIT
+%import common.DIGIT
+%import common.WS
+%import common.INT
+%import common.CPP_COMMENT
+%import common.C_COMMENT
+
+%ignore CPP_COMMENT
+%ignore C_COMMENT
+%ignore WS
