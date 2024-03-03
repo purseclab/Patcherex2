@@ -103,6 +103,10 @@ class CustomElf(ELF):
 
 
 class ElfArmMimxrt1052(ElfArmLinux):
+    @staticmethod
+    def detect_target(binary_path):
+        return False
+
     def get_binfmt_tool(self, binfmt_tool):
         binfmt_tool = binfmt_tool or "default"
         if binfmt_tool == "default":
