@@ -10,6 +10,7 @@ readme = "README.md"
 dependencies = [
     "angr",
     "pyelftools",
+    "pypcode",
     "lief",
     "keystone-engine",
     "intelhex",
