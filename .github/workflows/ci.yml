@@ -7,6 +7,7 @@ on:
 jobs:
   ci:
     strategy:
+      fail-fast: false
       matrix:
         task: [test, lint, format, private-test]
     runs-on: ubuntu-22.04
