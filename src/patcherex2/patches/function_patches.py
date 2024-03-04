@@ -117,12 +117,18 @@ class InsertFunctionPatch(Patch):
                     self.postfunc = self.postfunc.replace(
                         "RESTORE_CONTEXT", f"\n{p.archinfo.restore_context_asm}\n"
                     )
-            ifp = InsertFunctionPatch(f"__patcherex_{hex(self.addr)}", self.code)
+            ifp = InsertFunctionPatch(
+                f"__patcherex_{hex(self.addr)}",
+                self.code,
+                is_thumb=p.binary_analyzer.is_thumb(self.addr),
+                symbols=self.symbols,
+            )
             ifp.apply(p)
             instrs = ""
             instrs += p.archinfo.save_context_asm if self.save_context else ""
             instrs += self.prefunc if self.prefunc else ""
             instrs += "\n"
+            # NOTE: ↓ this is hardcoded to bl, not blx, but it should be fine for this use case
             instrs += p.archinfo.call_asm.format(
                 dst=f"{{__patcherex_{hex(self.addr)}}}"
             )
