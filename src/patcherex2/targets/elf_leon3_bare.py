@@ -31,11 +31,6 @@ class CustomElf(ELF):
         )
         self.p.allocation_manager.add_block(block)
 
-        unused_funcs = self.p.binary_analyzer.get_unused_funcs()
-
-        for func in unused_funcs:
-            self.p.allocation_manager.add_free_space(func["addr"], func["size"], "RX")
-
 
 class ElfLeon3Bare(Target):
     @staticmethod
