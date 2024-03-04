@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     virtualenvwrapper python3-dev python3-pip python-is-python3 python3-venv \
     clang-15 lld-15 \
     qemu-user \
+    gcc-multilib \
     libc6-armhf-cross libc6-arm64-cross \
     libc6-mips-cross libc6-mips64-cross \
     libc6-powerpc-cross libc6-powerpc-ppc64-cross \
