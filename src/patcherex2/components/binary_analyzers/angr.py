@@ -14,6 +14,7 @@ class Angr(BinaryAnalyzer):
         self.binary_path = binary_path
         # self.use_pickle = kwargs.pop("use_pickle", False) # TODO: implement this
         self.angr_kwargs = kwargs.pop("angr_kwargs", {})
+        self.angr_cfg_kwargs = kwargs.pop("angr_cfg_kwargs", {})
         self._p = None
         self._cfg = None
         self._load_base = None
@@ -48,9 +49,9 @@ class Angr(BinaryAnalyzer):
     def cfg(self) -> angr.analyses.cfg.cfg_fast.CFGFast:
         if self._cfg is None:
             logger.info("Generating CFG with angr")
-            self._cfg = self.p.analyses.CFGFast(
-                normalize=True, data_references=True, force_complete_scan=False
-            )
+            if "normalize" not in self.angr_cfg_kwargs:
+                self.angr_cfg_kwargs["normalize"] = True
+            self._cfg = self.p.analyses.CFGFast(**self.angr_cfg_kwargs)
             logger.info("Generated CFG with angr")
         return self._cfg
 

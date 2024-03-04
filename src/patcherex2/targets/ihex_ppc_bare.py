@@ -60,6 +60,12 @@ class IHexPPCBare(Target):
                     "auto_load_libs": False,
                     "load_debug_info": True,
                 },
+                angr_cfg_kwargs={
+                    "normalize": True,
+                    "data_references": True,
+                    "force_smart_scan": False,
+                    "force_complete_scan": False,
+                },
             )
         raise NotImplementedError()
 
