@@ -127,12 +127,25 @@ class Utils:
 
     def is_movable_instruction(self, addr: int) -> bool:
         is_thumb = self.p.binary_analyzer.is_thumb(addr)
-        insn = self.p.binary_analyzer.get_instr_bytes_at(addr)
-        asm = self.p.disassembler.disassemble(insn, addr, is_thumb=is_thumb)[0]
+        insn_bytes = self.p.binary_analyzer.get_instr_bytes_at(addr)
+        disassembled = self.p.disassembler.disassemble(
+            insn_bytes, addr, is_thumb=is_thumb
+        )[0]
         # if instruction use PC as a base register, it's not movable
-        tokens = re.split(r"\s|,|\[|\]", asm["op_str"])
+        tokens = re.split(r"\s|,|\[|\]", disassembled["op_str"])
         tokens = list(filter(None, tokens))
         if list(set(self.p.archinfo.pc_reg_names) & set(tokens)):
             return False
-        # TODO: is it safe to assume that the instruction is movable if it's not using PC as a base register?
+        # TODO: this assumes that keystone always gives abs addr when disassembling, but it might not be true
+        disassembled = self.p.disassembler.to_asm_string(disassembled)
+        for test_addr in [addr - 0x10000, addr + 0x10000]:
+            re_assembled = self.p.assembler.assemble(
+                disassembled, test_addr, is_thumb=is_thumb
+            )
+            re_disassembled = self.p.disassembler.disassemble(
+                re_assembled, test_addr, is_thumb=is_thumb
+            )[0]
+            re_disassembled = self.p.disassembler.to_asm_string(re_disassembled)
+            if re_disassembled != disassembled:
+                return False
         return True
