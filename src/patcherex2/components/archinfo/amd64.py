@@ -3,6 +3,7 @@ class Amd64Info:
     nop_size = 1
     jmp_asm = "jmp {dst}"
     jmp_size = 6
+    alignment = 4
     call_asm = "call {dst}"
     pc_reg_names = ["rip"]
     save_context_asm = """

@@ -3,6 +3,7 @@ class SparcInfo:
     nop_size = 4
     jmp_asm = "b {dst}\nnop"  # nop due to delay slot
     jmp_size = 8
+    alignment = 4
     call_asm = "call {dst}"
     pc_reg_names = ["pc"]
     save_context_asm = ""  # TODO

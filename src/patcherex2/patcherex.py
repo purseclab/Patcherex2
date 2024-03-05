@@ -1,6 +1,8 @@
+# ruff: noqa: F403, F405
 import logging
 
-from .patches import InsertDataPatch, ModifyDataPatch, RemoveDataPatch
+from .patches import *
+from .patches import __all__
 from .targets import Target
 
 logger = logging.getLogger(__name__)
@@ -45,14 +47,28 @@ class Patcherex:
                     components_opts.get(component),
                 ),
             )
+        
+        # Chosen patch order, making sure all are accounted for
+        self.patch_order = (
+            ModifyRawBytesPatch,
+            RemoveDataPatch,
+            InsertDataPatch,
+            ModifyDataPatch,
+            RemoveLabelPatch,
+            ModifyLabelPatch,
+            InsertLabelPatch,
+            RemoveInstructionPatch,
+            InsertInstructionPatch,
+            ModifyInstructionPatch,
+            RemoveFunctionPatch,
+            InsertFunctionPatch,
+            ModifyFunctionPatch,
+        )
+        assert len(self.patch_order) == len(__all__)
+
 
     def apply_patches(self):
-        # TODO: sort patches properly
-        self.patches.sort(
-            key=lambda x: not isinstance(
-                x, (ModifyDataPatch, InsertDataPatch, RemoveDataPatch)
-            )
-        )
+        self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
         logger.debug(f"Applying patches: {self.patches}")
         for patch in self.patches:
             patch.apply(self)
