@@ -80,8 +80,8 @@ class InsertInstructionPatch(Patch):
             )
             if self.detour_pos == -1:
                 block = p.allocation_manager.allocate(
-                    assembled_size, align=0x4, flag=MemoryFlag.RX
-                )  # TODO: get alignment from arch info
+                    assembled_size, align=p.archinfo.alignment, flag=MemoryFlag.RX
+                )
                 p.symbols[self.name] = block.mem_addr
                 p.binfmt_tool.update_binary_content(
                     block.file_addr,

@@ -153,8 +153,8 @@ class InsertFunctionPatch(Patch):
             )
             if self.detour_pos == -1:
                 block = p.allocation_manager.allocate(
-                    compiled_size + 0x20, align=0x4, flag=MemoryFlag.RX
-                )  # TODO: get alignment from arch info, TODO: adjust that 0x20 part
+                    compiled_size + 0x20, align=p.archinfo.alignment, flag=MemoryFlag.RX
+                )  # TODO: adjust that 0x20 part
                 mem_addr = block.mem_addr
                 file_addr = block.file_addr
             else:
