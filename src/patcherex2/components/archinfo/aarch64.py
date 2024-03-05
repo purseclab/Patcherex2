@@ -4,6 +4,7 @@ class Aarch64Info:
     jmp_asm = "b {dst}"
     jmp_size = 4
     alignment = 4
+    is_variable_length_isa = False
     call_asm = "bl {dst}"
     pc_reg_names = ["pc", "ip"]
     save_context_asm = """
