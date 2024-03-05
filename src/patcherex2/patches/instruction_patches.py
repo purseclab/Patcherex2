@@ -27,10 +27,16 @@ class ModifyInstructionPatch(Patch):
             overwritten_size = 0
             num_instrs = 1
             while overwritten_size < asm_size:
-                overwritten_size = len(p.binary_analyzer.get_instr_bytes_at(self.addr, num_instr=num_instrs))
+                overwritten_size = len(
+                    p.binary_analyzer.get_instr_bytes_at(
+                        self.addr, num_instr=num_instrs
+                    )
+                )
                 num_instrs += 1
             remaining_size = overwritten_size - asm_size
-            assert remaining_size % p.archinfo.nop_size == 0, f"Cannot fill in {remaining_size} bytes when modifying instruction, must be a multiple of {p.archinfo.nop_size}"
+            assert (
+                remaining_size % p.archinfo.nop_size == 0
+            ), f"Cannot fill in {remaining_size} bytes when modifying instruction, must be a multiple of {p.archinfo.nop_size}"
             asm_bytes += p.archinfo.nop_bytes * (remaining_size // p.archinfo.nop_size)
         offset = p.binary_analyzer.mem_addr_to_file_offset(self.addr)
         p.binfmt_tool.update_binary_content(offset, asm_bytes)

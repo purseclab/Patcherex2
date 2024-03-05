@@ -75,7 +75,7 @@ class Tests(unittest.TestCase):
             expected_output=b"%s",
             expected_returnCode=0,
         )
-    
+
     def test_modify_instruction_patch2_nopie(self):
         self.run_one(
             "printf_nopie",
@@ -87,7 +87,7 @@ class Tests(unittest.TestCase):
     def test_modify_instruction_patch2_pie(self):
         self.run_one(
             "printf_pie",
-            [ModifyInstructionPatch(0x115d, "mov eax, 0x0")],
+            [ModifyInstructionPatch(0x115D, "mov eax, 0x0")],
             expected_output="",
             expected_returnCode=0,
         )

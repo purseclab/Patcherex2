@@ -47,7 +47,7 @@ class Patcherex:
                     components_opts.get(component),
                 ),
             )
-        
+
         # Chosen patch order, making sure all are accounted for
         self.patch_order = (
             ModifyRawBytesPatch,
@@ -65,7 +65,6 @@ class Patcherex:
             ModifyFunctionPatch,
         )
         assert len(self.patch_order) == len(__all__)
-
 
     def apply_patches(self):
         self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
