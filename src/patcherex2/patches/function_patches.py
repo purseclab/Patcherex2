@@ -160,6 +160,7 @@ class InsertFunctionPatch(Patch):
             else:
                 mem_addr = self.detour_pos
                 file_addr = p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
+            p.sypy_info["patcherex_added_functions"].append(hex(mem_addr))
             p.symbols[self.name] = mem_addr
             p.binfmt_tool.update_binary_content(
                 file_addr,
