@@ -71,8 +71,8 @@ class Patcherex:
         # self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
         self.patches.sort(
             key=lambda x: not isinstance(
-                    x, (ModifyDataPatch, InsertDataPatch, RemoveDataPatch)
-                )
+                x, (ModifyDataPatch, InsertDataPatch, RemoveDataPatch)
+            )
         )
         logger.debug(f"Applying patches: {self.patches}")
         for patch in self.patches:
