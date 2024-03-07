@@ -89,6 +89,8 @@ class Angr(BinaryAnalyzer):
     def get_instr_bytes_at(self, addr: int, num_instr=1) -> angr.Block:
         addr += 1 if self.is_thumb(addr) else 0
         addr = self.denormalize_addr(addr)
+        # TODO: Special handling for delay slot, when there is a call instr with delay slot
+        # angr will return both instrs, even when num_instr is 1
         return self.p.factory.block(addr, num_inst=num_instr).bytes
 
     def get_unused_funcs(self) -> List[Dict[str, int]]:

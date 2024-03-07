@@ -6,6 +6,7 @@ class Mips64Info:
     jmp_size = 8
     alignment = 4
     is_variable_length_isa = False
+    instr_size = 4
     call_asm = "jal {dst}"
     pc_reg_names = ["pc"]
     save_context_asm = """

@@ -5,6 +5,7 @@ class Amd64Info:
     jmp_size = 6
     alignment = 4
     is_variable_length_isa = True
+    instr_size = -1 # variable length
     call_asm = "call {dst}"
     pc_reg_names = ["rip"]
     save_context_asm = """
