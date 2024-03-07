@@ -47,7 +47,7 @@ class LLVMRecomp(Clang):
             linker_script = (
                 "SECTIONS { .text : SUBALIGN(0) { . = "
                 + hex(base)
-                + "; *(.text) *(.rodata) "
+                + "; *(.text) *(.rodata.*)"
             )
             for name, addr in _symbols.items():
                 linker_script += name + " = " + hex(addr) + ";"

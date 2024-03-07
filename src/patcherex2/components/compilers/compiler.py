@@ -41,7 +41,7 @@ class Compiler:
                 # TODO: shouldn't put .rodata in .text, but otherwise switch case jump table won't work
                 # Note that even we don't include .rodata here, cle might still include it if there is
                 # no gap between .text and .rodata
-                + "; *(.text) *(.rodata) "
+                + "; *(.text) *(.rodata) *(.rodata.*)"
             )
             for name, addr in _symbols.items():
                 linker_script += name + " = " + hex(addr) + ";"
