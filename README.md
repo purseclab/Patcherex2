@@ -1,4 +1,4 @@
-# Patcherex 2
+# Patcherex2
 
 [![Latest Release](https://img.shields.io/pypi/v/patcherex2.svg)](https://pypi.python.org/pypi/patcherex2/)
 [![PyPI Statistics](https://img.shields.io/pypi/dm/patcherex2.svg)](https://pypistats.org/packages/patcherex2)
@@ -9,11 +9,11 @@
 > [!WARNING]
 > This project is currently in its initial development stages. Please anticipate potential breaking changes. The first stable release is targeted for early March 2024.
 
-Patcherex 2 is a rewritten adaptation of the original [Patcherex](https://github.com/angr/patcherex) project, aimed at building upon its core ideas and extending its capabilities.
+Patcherex2 is a rewritten adaptation of the original [Patcherex](https://github.com/angr/patcherex) project, aimed at building upon its core ideas and extending its capabilities.
 
 ## Installation
 
-Patcherex 2 is available on PyPI and can be installed using pip. Alternatively, you can use the provided Docker image.
+Patcherex2 is available on PyPI and can be installed using pip. Alternatively, you can use the provided Docker image.
 
 ### pip
 ```bash
@@ -45,7 +45,7 @@ docker run --rm -it -v ${PWD}:/workdir -w /workdir patcherex2
 
 ## Basic Usage
 
-Patcherex 2 is designed to be used as a library, and can be used to manipulate binaries in various ways.
+Patcherex2 is designed to be used as a library, and can be used to manipulate binaries in various ways.
 
 ### Example
 <details>
@@ -72,7 +72,7 @@ $ gcc -o add add.c && ./add
 2 + 3 = 5
 ```
 
-Now, we can use Patcherex 2 to modify the `add` function to multiply the two arguments instead of adding them.
+Now, we can use Patcherex2 to modify the `add` function to multiply the two arguments instead of adding them.
 
 ```python
 from patcherex2 import *
@@ -98,11 +98,11 @@ $ ./add_patched
 2 + 3 = 6
 ```
 
-💥 We've successfully modified the binary with Patcherex 2!
+💥 We've successfully modified the binary with Patcherex2!
 </details>
 
 ### Patch Types
-The core of Patcherex 2 consists of 9 different types of patches, which are used to manipulate the binary in different ways.
+The core of Patcherex2 consists of 9 different types of patches, which are used to manipulate the binary in different ways.
 
 | Patch | Data | Instruction | Function |
 |-|-|-|-|
@@ -112,7 +112,7 @@ The core of Patcherex 2 consists of 9 different types of patches, which are used
 
 These patches are categorized into three tiers:
  - Data Patches: 
-    Operating at the raw bytes level, data patches are ideal for patching the .data section or any other raw data.
+    Operating at the raw bytes level, data patches are ideal for patching the `.data` section or any other raw data.
 
  - Instruction Patches:
     These patches target the instruction level, enabling modifications to the assembly code of the binary.
@@ -132,8 +132,8 @@ Each tier features three patch types:
     ```
     - Arguments
         - `addr_or_name`: The address or name of the {data, instruction, function} to be inserted.
-            - When first argument is an address, patcherex will insert content right before the given address.
-            - When first argument is a name, patcherex will automatically find free spaces in the binary and insert the content there, and the `name` provided can be later used for referencing the inserted content.
+            - When the first argument is an address, patcherex will insert content right before the given address.
+            - When the first argument is a name, patcherex will automatically find free spaces in the binary and insert the content there, and the `name` provided can be later used for referencing the inserted content.
         - `content`: The content to be inserted.
             - Content is different for each patch type:
                 - For `InsertDataPatch`, `content` is a byte string.
@@ -147,8 +147,8 @@ Each tier features three patch types:
     ```
     - Arguments
         - `addr_or_name`: The address or name of the {data, instruction, function} to be modified.
-            - When first argument is an address, patcherex will modify the content at the given address.
-            - When first argument is a name, patcherex will try to first find the address of the given name/symbol and then modify the content at that address.
+            - When the first argument is an address, patcherex will modify the content at the given address.
+            - When the first argument is a name, patcherex will try to first find the address of the given name/symbol and then modify the content at that address.
         - `content`: The new content to replace the existing content.
             - Content is different for each patch type:
                 - For `ModifyDataPatch`, `content` is a byte string.
@@ -162,8 +162,8 @@ Each tier features three patch types:
     ```
     - Arguments
         - `addr_or_name`: The address or name of the {data, instruction, function} to be removed.
-            - When first argument is an address, patcherex will remove the content at the given address.
-            - When first argument is a name, patcherex will try to first find the address of the given name/symbol and then remove the content at that address.
+            - When the first argument is an address, patcherex will remove the content at the given address.
+            - When the first argument is a name, patcherex will try to first find the address of the given name/symbol and then remove the content at that address.
         - `num_bytes`: This is optional for `RemoveInstructionPatch` and `RemoveFunctionPatch`, but required for `RemoveDataPatch`, and specifies the number of bytes to be removed.
 
 #### Referencing previously inserted content.
@@ -182,7 +182,7 @@ Examples:
 
 ## Advanced Usage
 ### Reuse Unreachable Code Spaces
-Patcherex 2 can be used to reuse unreachable code spaces in the binary.
+Patcherex2 can be used to reuse unreachable code spaces in the binary.
 Add following script anywhere before `apply_patches` to reuse the unreachable function space.
 
 ```python
@@ -191,7 +191,7 @@ for func in p.binary_analyzer.get_unused_funcs():
 ```
 
 ### Pre- and Post- Function Hooks
-Patcherex 2 allows you to add pre- and post- function hooks to the function call when using `InsertFunctionPatch` and first argument is a address.
+Patcherex2 allows you to add pre- and post- function hooks to the function call when using `InsertFunctionPatch` and first argument is a address.
 
 ```python
 InsertFunctionPatch(0xdeadbeef, "int foo(int a) { return bar(); }", prefunc="mov rdi, 0x10", postfunc="mov rdi, rax")
