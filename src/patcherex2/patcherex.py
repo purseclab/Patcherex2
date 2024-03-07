@@ -2,7 +2,7 @@
 import logging
 
 from .patches import *
-from .patches import __all__
+from .patches import __all__ as all_patches
 from .targets import Target
 
 logger = logging.getLogger(__name__)
@@ -64,10 +64,16 @@ class Patcherex:
             InsertFunctionPatch,
             ModifyFunctionPatch,
         )
-        assert len(self.patch_order) == len(__all__)
+        assert len(self.patch_order) == len(all_patches)
 
     def apply_patches(self):
-        self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
+        # TODO: sort patches properly
+        # self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
+        self.patches.sort(
+            key=lambda x: not isinstance(
+                    x, (ModifyDataPatch, InsertDataPatch, RemoveDataPatch)
+                )
+        )
         logger.debug(f"Applying patches: {self.patches}")
         for patch in self.patches:
             patch.apply(self)
