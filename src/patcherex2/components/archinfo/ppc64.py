@@ -3,6 +3,8 @@ class Ppc64Info:
     nop_size = 4
     jmp_asm = "b {dst}"
     jmp_size = 4
+    alignment = 4
+    is_variable_length_isa = False
     call_asm = "bl {dst}"
     pc_reg_names = []
     save_context_asm = """

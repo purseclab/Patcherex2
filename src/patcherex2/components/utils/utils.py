@@ -63,8 +63,8 @@ class Utils:
         )
         if detour_pos == -1:
             trampoline_block = self.p.allocation_manager.allocate(
-                trampoline_size, align=0x4, flag=MemoryFlag.RX
-            )  # TODO: get alignment from arch info
+                trampoline_size, align=self.p.archinfo.alignment, flag=MemoryFlag.RX
+            )
             logger.debug(f"Allocated trampoline block: {trampoline_block}")
             mem_addr = trampoline_block.mem_addr
             file_addr = trampoline_block.file_addr

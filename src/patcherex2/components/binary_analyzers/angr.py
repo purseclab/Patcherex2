@@ -86,10 +86,10 @@ class Angr(BinaryAnalyzer):
             ],
         }
 
-    def get_instr_bytes_at(self, addr: int) -> angr.Block:
+    def get_instr_bytes_at(self, addr: int, num_instr=1) -> angr.Block:
         addr += 1 if self.is_thumb(addr) else 0
         addr = self.denormalize_addr(addr)
-        return self.p.factory.block(addr, num_inst=1).bytes
+        return self.p.factory.block(addr, num_inst=num_instr).bytes
 
     def get_unused_funcs(self) -> List[Dict[str, int]]:
         logger.info("Getting unused functions with angr")

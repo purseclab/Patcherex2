@@ -4,6 +4,8 @@ class MipsInfo:
     jmp_asm = "j {dst}"
     # NOTE: keystone will always add nop for branch delay slot, so include it in size
     jmp_size = 8
+    alignment = 4
+    is_variable_length_isa = False
     call_asm = "jal {dst}"
     pc_reg_names = ["pc"]
     save_context_asm = """

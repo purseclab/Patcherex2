@@ -3,6 +3,8 @@ class X86Info:
     nop_size = 1
     jmp_asm = "jmp {dst}"
     jmp_size = 5
+    alignment = 4
+    is_variable_length_isa = True
     call_asm = "call {dst}"
     pc_reg_names = ["eip"]
     save_context_asm = """
