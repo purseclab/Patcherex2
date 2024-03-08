@@ -104,11 +104,13 @@ $ ./add_patched
 ### Patch Types
 The core of Patcherex2 consists of 9 different types of patches, which are used to manipulate the binary in different ways.
 
-| Patch | Data | Instruction | Function |
-|-|-|-|-|
-| Insert | InsertDataPatch | InsertInstructionPatch | InsertFunctionPatch |
-| Remove | RemoveDataPatch | RemoveInstructionPatch | RemoveFunctionPatch |
-| Modify | ModifyDataPatch | ModifyInstructionPatch | ModifyFunctionPatch |
+|          | Data              | Instruction         | Function            |
+|---------:|-------------------|---------------------|---------------------|
+| _**Insert**_ | InsertDataPatch   | InsertInstructionPatch | InsertFunctionPatch |
+| _**Remove**_ | RemoveDataPatch   | RemoveInstructionPatch | RemoveFunctionPatch |
+| _**Modify**_ | ModifyDataPatch   | ModifyInstructionPatch | ModifyFunctionPatch |
+
+In this modification, I've placed the colon on the right side of the dashes in the separator row beneath
 
 These patches are categorized into three tiers:
  - Data Patches: 
@@ -180,10 +182,10 @@ Examples:
     ```
 
 
-## Advanced Usage
-### Reuse Unreachable Code Spaces
-Patcherex2 can be used to reuse unreachable code spaces in the binary.
-Add following script anywhere before `apply_patches` to reuse the unreachable function space.
+### Patcherex2 Advanced Usage
+#### Reuse Unreachable Code Locations
+Patcherex2 can be used to reuse unreachable code locations in the binary.
+Add the following code anywhere before `apply_patches` to reuse unreachable code.
 
 ```python
 for func in p.binary_analyzer.get_unused_funcs():
