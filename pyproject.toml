@@ -18,6 +18,11 @@ dependencies = [
     "requests",
 ]
 
+[project.urls]
+"Homepage" = "https://github.com/purseclab/Patcherex2"
+"Source" = "https://github.com/purseclab/Patcherex2"
+"Tracker" = "https://github.com/purseclab/Patcherex2/issues"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
