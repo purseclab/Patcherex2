@@ -185,7 +185,9 @@ class ELF(BinFmtTool):
         self.p.allocation_manager.add_block(block)
 
         addr = load_segments[-1]["p_vaddr"] + load_segments[-1]["p_memsz"]
-        addr = (addr + 0xFFF) & ~0xFFF  # round up to 0x1000
+        # TODO: should we use the max_align of the segments?
+        max_align = max([segment["p_align"] for segment in self._segments] + [0])
+        addr = (addr + (max_align - 1)) & ~(max_align - 1)  # round up to max_align
         block = MemoryBlock(addr, -1)
         self.p.allocation_manager.add_block(block)
 
@@ -342,6 +344,7 @@ class ELF(BinFmtTool):
             self._segments.append(phdr_load_segment)
 
             # magic
+            # TODO: should we use the max_align of the segments?
             load_segments_rounded = []
             first_load_segment = None
             for segment in self._segments:
@@ -350,24 +353,24 @@ class ELF(BinFmtTool):
                         first_load_segment = segment
                     load_segments_rounded.append(
                         (
-                            # start of the segment, round down to multiple of 0x1000
+                            # start of the segment, round down to multiple of max_align
                             (segment["p_vaddr"] - first_load_segment["p_vaddr"])
                             - (
                                 (segment["p_vaddr"] - first_load_segment["p_vaddr"])
-                                % 0x1000
+                                % max_align
                             ),
-                            # end of the segment, round up to multiple of 0x1000
+                            # end of the segment, round up to multiple of max_align
                             int(
                                 (
                                     segment["p_vaddr"]
                                     + segment["p_memsz"]
                                     - first_load_segment["p_vaddr"]
-                                    + 0x1000
+                                    + max_align
                                     - 1
                                 )
-                                / 0x1000
+                                / max_align
                             )
-                            * 0x1000,
+                            * max_align,
                         )
                     )
             load_segments_rounded = sorted(load_segments_rounded, key=lambda x: x[0])
@@ -402,9 +405,10 @@ class ELF(BinFmtTool):
             for prev_seg, next_seg in zip(
                 load_segments_rounded[:-1], load_segments_rounded[1:]
             ):
+                # TODO: should we use the max_align of the segments?
                 potential_base = (
-                    max(prev_seg[1], self.p.binfmt_tool.file_size) + 0xFFF
-                ) & ~0xFFF  # round up to 0x1000
+                    max(prev_seg[1], self.p.binfmt_tool.file_size) + (max_align - 1)
+                ) & ~(max_align - 1)  # round up to max_align
                 if next_seg[0] - potential_base > self._elf.header["e_phentsize"] * len(
                     self._segments
                 ):  # if there is space between segments, put phdr here
@@ -417,10 +421,11 @@ class ELF(BinFmtTool):
             # this is to workaround a weird issue in the dynamic linker of glibc
             # we want to make sure p_vaddr (phdr_start) == p_offset (len(ncontent))
             if phdr_start <= self.p.binfmt_tool.file_size:
+                # TODO: should we use the max_align of the segments?
                 # p_vaddr <= p_offset: pad the file (p_offset) to page size, and let p_vaddr = p_offset
                 self.p.binfmt_tool.file_size = (
-                    self.p.binfmt_tool.file_size + 0xFFF
-                ) & ~0xFFF  # round up to 0x1000
+                    self.p.binfmt_tool.file_size + (max_align - 1)
+                ) & ~(max_align - 1)  # round up to max_align
                 phdr_start = self.p.binfmt_tool.file_size
 
             # update phdr segment and its corresponding load segment
