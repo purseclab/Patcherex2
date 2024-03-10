@@ -6,9 +6,6 @@
 )](https://github.com/purseclab/Patcherex2/actions/workflows/test.yml)
 [![License](https://img.shields.io/github/license/purseclab/patcherex2.svg)](https://github.com/purseclab/Patcherex2/blob/main/LICENSE)
 
-> [!WARNING]
-> This project is currently in its initial development stages. Please anticipate potential breaking changes. The first stable release is targeted for early March 2024.
-
 Patcherex2 is a rewritten adaptation of the original [Patcherex](https://github.com/angr/patcherex) project, aimed at building upon its core ideas and extending its capabilities.
 
 ## Installation
@@ -110,8 +107,6 @@ The core of Patcherex2 consists of 9 different types of patches, which are used 
 | _**Remove**_ | RemoveDataPatch   | RemoveInstructionPatch | RemoveFunctionPatch |
 | _**Modify**_ | ModifyDataPatch   | ModifyInstructionPatch | ModifyFunctionPatch |
 
-In this modification, I've placed the colon on the right side of the dashes in the separator row beneath
-
 These patches are categorized into three tiers:
  - Data Patches: 
     Operating at the raw bytes level, data patches are ideal for patching the `.data` section or any other raw data.
@@ -171,12 +166,12 @@ Each tier features three patch types:
 #### Referencing previously inserted content.
 Examples:
 - This will load effective address of the data `my_data` into the `rsi` register.
-    ```
+    ```python
     InsertDataPatch("my_data", b"Hello, World!")
     InsertInstructionPatch(0xdeadbeef, "lea rsi, [{my_data}]")
     ```
 - This will replace the content of function `foo` to call function `bar` and return the result.
-    ```
+    ```python
     InsertFunctionPatch("bar", "int bar() { return 42; }")
     ModifyFunctionPatch("foo", "int bar(void); int foo() { return bar(); }")
     ```
