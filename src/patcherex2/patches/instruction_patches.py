@@ -8,14 +8,36 @@ logger = logging.getLogger(__name__)
 
 
 class ModifyInstructionPatch(Patch):
+    """
+    Patch that directly modifies instructions in a binary (overwrites them) starting at address given.
+    If ISA is variable length, then if there are remaining bytes in the last overwritten instruction,
+    it will fill them with nops, but it will fail if remaining bytes are not divisible by nop length.
+    """
+
     def __init__(
         self, addr: int, instr: str, symbols: Optional[Dict[str, int]] = None
     ) -> None:
+        """
+        Constructor.
+
+        :param addr: Memory address of instruction(s) to overwrite.
+        :type addr: int
+        :param instr: Assembly instruction(s) to place in binary.
+        :type instr: str
+        :param symbols: Symbols to include when assembling, in format {symbol name: memory address}, defaults to None
+        :type symbols: Optional[Dict[str, int]], optional
+        """
         self.addr = addr
         self.instr = instr
         self.symbols = symbols if symbols else {}
 
     def apply(self, p) -> None:
+        """
+        Applies the patch to the binary, intended to be called by a Patcherex instance.
+
+        :param p: Patcherex instance.
+        :type p: Patcherex
+        """
         asm_bytes = p.assembler.assemble(
             self.instr,
             self.addr,
@@ -43,6 +65,13 @@ class ModifyInstructionPatch(Patch):
 
 
 class InsertInstructionPatch(Patch):
+    """
+    Patch that allows instructions to be inserted into binary. These instructions are inserted at a free place in the binary.
+    Then, At the address given, an instruction is inserted that jumps to this block (also in the block are the instructions this overwrites).
+    At the end of the block, it jumps back to right after the initial jump. The initial jump must be able to be inserted within the basic block
+    of the given address.
+    """
+
     def __init__(
         self,
         addr_or_name: Union[int, str],
@@ -53,6 +82,23 @@ class InsertInstructionPatch(Patch):
         is_thumb=False,
         **kwargs,
     ) -> None:
+        """
+        Constructor.
+
+        :param addr_or_name: If an integer, the new instructions are placed in a free spot in the binary and the jump to them is inserted at that memory address.
+                             If a string, the new instructions are placed in a free spot in the binary and added as a symbol (with this as its name).
+        :type addr_or_name: Union[int, str]
+        :param instr: Instructions to insert. You can use "SAVE_CONTEXT" and "RESTORE_CONTEXT" wherever you want to save and restore program context.
+        :type instr: str
+        :param force_insert: If Patcherex should ignore whether instructions can be moved, defaults to False
+        :type force_insert: bool, optional
+        :param detour_pos: If given a name, specifies the address to the place the new instructions, defaults to -1
+        :type detour_pos: int, optional
+        :param symbols: Symbols to include when assembling, in format {symbol name: memory address}, defaults to None
+        :type symbols: Optional[Dict[str, int]], optional
+        :param is_thumb: Whether the instructions given are thumb, defaults to False
+        :type is_thumb: bool, optional
+        """
         self.addr = None
         self.name = None
         if isinstance(addr_or_name, int):
@@ -69,6 +115,12 @@ class InsertInstructionPatch(Patch):
         )
 
     def apply(self, p) -> None:
+        """
+        Applies the patch to the binary, intended to be called by a Patcherex instance.
+
+        :param p: Patcherex instance.
+        :type p: Patcherex
+        """
         if self.addr:
             if "SAVE_CONTEXT" in self.instr:
                 self.instr = self.instr.replace(
@@ -121,12 +173,27 @@ class InsertInstructionPatch(Patch):
 
 
 class RemoveInstructionPatch(Patch):
+    """
+    Patch that removes instructions in the binary. Currently only takes in a number of bytes and an starting address.
+    The number of bytes must be divisible by the nop size of the architecture, otherwise it will fail.
+    """
+
     def __init__(
         self,
         addr: int,
         num_instr: Optional[int] = None,
         num_bytes: Optional[int] = None,
     ) -> None:
+        """
+        Constructor.
+
+        :param addr: Memory address to remove instructions at.
+        :type addr: int
+        :param num_instr: Number of instructions to remove, currently not used, defaults to None
+        :type num_instr: Optional[int], optional
+        :param num_bytes: Number of bytes to remove, must be divisible by nop size, defaults to None
+        :type num_bytes: Optional[int], optional
+        """
         self.addr = addr
         self.num_instr = num_instr
         self.num_bytes = num_bytes
@@ -134,6 +201,12 @@ class RemoveInstructionPatch(Patch):
             self.num_instr = 1
 
     def apply(self, p):
+        """
+        Applies the patch to the binary, intended to be called by a Patcherex instance.
+
+        :param p: Patcherex instance.
+        :type p: Patcherex
+        """
         if self.num_bytes is None:
             raise NotImplementedError()
         if self.num_bytes and self.num_bytes % p.archinfo.nop_size != 0:
