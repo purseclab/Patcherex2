@@ -90,9 +90,9 @@ class InsertInstructionPatch(Patch):
         :type addr_or_name: Union[int, str]
         :param instr: Instructions to insert. You can use "SAVE_CONTEXT" and "RESTORE_CONTEXT" wherever you want to save and restore program context.
         :type instr: str
-        :param force_insert: If Patcherex should ignore whether instructions can be moved, defaults to False
+        :param force_insert: If Patcherex should ignore whether instructions can be moved when inserting, defaults to False
         :type force_insert: bool, optional
-        :param detour_pos: If given a name, specifies the address to the place the new instructions, defaults to -1
+        :param detour_pos: If given a name, specifies the file address to place the new instructions, defaults to -1
         :type detour_pos: int, optional
         :param symbols: Symbols to include when assembling, in format {symbol name: memory address}, defaults to None
         :type symbols: Optional[Dict[str, int]], optional
