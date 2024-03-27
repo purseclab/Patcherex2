@@ -1,0 +1,17 @@
+on:
+  push:
+    branches: [ docs ]
+
+jobs:
+  build:
+    name: Deploy docs
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout docs
+        uses: actions/checkout@v4
+
+      - name: Deploy docs
+        uses: mhausenblas/mkdocs-deploy-gh-pages@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUIREMENTS: docs/requirements.txt
