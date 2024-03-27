@@ -14,9 +14,10 @@ logger = logging.getLogger(__name__)
 class ModifyFunctionPatch(Patch):
     """
     Patch that replaces an existing function in the binary with your own. If there is enough room in the existing
-    function, your code is compiled and placed there. If not, your code is placed in a free spot in the binary, and 
+    function, your code is compiled and placed there. If not, your code is placed in a free spot in the binary, and
     the function will jump there instead.
     """
+
     def __init__(
         self,
         addr_or_name: Union[int, str],
@@ -99,6 +100,7 @@ class InsertFunctionPatch(Patch):
     """
     Inserts a function into the binary.
     """
+
     def __init__(
         self,
         addr_or_name: Union[int, str],
@@ -112,7 +114,7 @@ class InsertFunctionPatch(Patch):
         """
         Constructor.
 
-        :param addr_or_name: If an integer, an intermediate function is created in a free spot in the binary, 
+        :param addr_or_name: If an integer, an intermediate function is created in a free spot in the binary,
                              and at that address, a jump to the function is made with necessary context saves.
                              If a string, the function is created in a free spot in the binary with that name.
         :type addr_or_name: Union[int, str]
@@ -120,7 +122,7 @@ class InsertFunctionPatch(Patch):
         :type code: str
         :param force_insert: If Patcherex should ignore whether instructions can be moved when inserting, defaults to False
         :type force_insert: bool, optional
-        :param detour_pos: If address is used, this is the address to place trampoline code for jumping to function. 
+        :param detour_pos: If address is used, this is the address to place trampoline code for jumping to function.
                            If name is used, this is where the new function will be placed, defaults to -1
         :type detour_pos: int, optional
         :param symbols: Symbols to include when compiling/assembling, in format {symbol name: memory address}, defaults to None
@@ -128,7 +130,7 @@ class InsertFunctionPatch(Patch):
         :param is_thumb: Whether the instructions given are thumb, defaults to False
         :type is_thumb: bool, optional
         :param **kwargs: Extra options. Can include "prefunc" and "postfunc", instructions to go before or after your function if you give an address.
-                         Can also have "save_context" for whether context should be saved and "compile_opts" for extra compile options. 
+                         Can also have "save_context" for whether context should be saved and "compile_opts" for extra compile options.
         """
         self.addr = None
         self.name = None
@@ -235,6 +237,7 @@ class RemoveFunctionPatch(Patch):
     """
     Patch that removes a function from the binary. Not implemented.
     """
+
     def __init__(self, parent=None) -> None:
         """
         Constructor.
