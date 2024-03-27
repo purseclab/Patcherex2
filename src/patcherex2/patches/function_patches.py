@@ -1,3 +1,7 @@
+"""
+Contains patches that modify the binary at the function level.
+"""
+
 import logging
 from typing import Dict, Optional, Union
 
@@ -123,7 +127,7 @@ class InsertFunctionPatch(Patch):
         :type symbols: Optional[Dict[str, int]], optional
         :param is_thumb: Whether the instructions given are thumb, defaults to False
         :type is_thumb: bool, optional
-        :param **kwargs: Extra options. Can include "prefunc" and "postfunc", instructions to go before your function if you give an address.
+        :param **kwargs: Extra options. Can include "prefunc" and "postfunc", instructions to go before or after your function if you give an address.
                          Can also have "save_context" for whether context should be saved and "compile_opts" for extra compile options. 
         """
         self.addr = None

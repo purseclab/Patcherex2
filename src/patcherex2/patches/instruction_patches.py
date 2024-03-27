@@ -1,3 +1,7 @@
+"""
+Contains patches that modify the binary at the instruction level.
+"""
+
 import logging
 from typing import Dict, Optional, Union
 
@@ -98,6 +102,7 @@ class InsertInstructionPatch(Patch):
         :type symbols: Optional[Dict[str, int]], optional
         :param is_thumb: Whether the instructions given are thumb, defaults to False
         :type is_thumb: bool, optional
+        :param **kwargs: Extra options. Can have a boolean "save_context" for whether context should be saved.
         """
         self.addr = None
         self.name = None

@@ -1,1 +1,16 @@
-site_name: Patcherex2
+site_name: Patcherex2 Docs
+
+theme:
+  name: "material"
+
+plugins:
+- mkdocstrings:
+    handlers:
+      python:
+        options:
+          docstring_style: sphinx
+
+nav:
+  - index.md
+  - Examples: examples.md
+  - Reference: reference.md

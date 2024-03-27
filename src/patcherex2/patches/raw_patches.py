@@ -1,3 +1,7 @@
+"""
+Contains patches that modify the binary at the byte level.
+"""
+
 import logging
 
 from .patch import Patch

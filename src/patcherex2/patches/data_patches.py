@@ -1,3 +1,7 @@
+"""
+Contains patches that modify the binary at the data level.
+"""
+
 from typing import Union
 
 from ..components.allocation_managers.allocation_manager import MemoryFlag

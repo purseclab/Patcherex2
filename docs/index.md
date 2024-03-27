@@ -1,17 +1,10 @@
-# Welcome to MkDocs
+This site contains the documentation for the Patcherex2 project, a tool for patching binaries.
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+Patcherex2 is a rewritten adaptation of the original Patcherex project, aimed at building upon its core ideas and extending its capabilities. It attempts to be a comprehensive and reliable replacement for other patching tools, allowing for patching at the byte, data, instruction, and function level, as well as allowing others to easily implement additional architectures.
 
-## Commands
+## Table Of Contents
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+The documentation includes two parts: examples and usage reference.
 
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+1. [Examples](examples.md)
+2. [Reference](reference.md)
