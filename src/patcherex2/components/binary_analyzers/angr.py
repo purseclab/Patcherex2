@@ -50,6 +50,7 @@ class Angr(BinaryAnalyzer):
         if self._cfg is None:
             logger.info("Generating CFG with angr")
             if "normalize" not in self.angr_cfg_kwargs:
+                # NOTE: This will split basic blocks if another block jumps to the middle of the block
                 self.angr_cfg_kwargs["normalize"] = True
             self._cfg = self.p.analyses.CFGFast(**self.angr_cfg_kwargs)
             logger.info("Generated CFG with angr")
@@ -66,25 +67,43 @@ class Angr(BinaryAnalyzer):
         return file_addr
 
     def get_basic_block(self, addr: int) -> Dict[str, Union[int, List[int]]]:
+        # NOTE: angr splits basic blocks at call instructions, so we need to handle this
         if self.is_thumb(addr):
             addr += 1
         addr = self.denormalize_addr(addr)
-        bb = None
-        for node in self.cfg.model.nodes():
-            if addr in node.instruction_addrs:
-                bb = node
-                break
-        assert bb is not None
-        return {
-            "start": self.normalize_addr(bb.addr),
-            "end": self.normalize_addr(bb.addr + bb.size),
-            "size": bb.size,
-            "instruction_addrs": [
-                self.normalize_addr(addr)
-                - (1 if self.is_thumb(self.normalize_addr(addr)) else 0)
-                for addr in bb.instruction_addrs
-            ],
-        }
+
+        func = self.p.kb.functions.function(
+            self.cfg.model.get_any_node(addr, anyaddr=True).function_address
+        )
+        ri = self.p.analyses.RegionIdentifier(func)
+        graph = ri._graph.copy()
+        ri._make_supergraph(graph)
+
+        for multinode in graph.nodes():
+            nodes = multinode.nodes if hasattr(multinode, "nodes") else [multinode]
+            start = multinode.addr
+            size = sum(node.size for node in nodes)
+            end = start + size
+
+            instr_addrs = [
+                instr_addr
+                for node in nodes
+                for instr_addr in func.get_block(node.addr).instruction_addrs
+            ]
+
+            if addr in instr_addrs:
+                return {
+                    "start": self.normalize_addr(start),
+                    "end": self.normalize_addr(end),
+                    "size": size,
+                    "instruction_addrs": [
+                        self.normalize_addr(instr_addr)
+                        - (1 if self.is_thumb(self.normalize_addr(instr_addr)) else 0)
+                        for instr_addr in instr_addrs
+                    ],
+                }
+
+        raise Exception(f"Cannot find a block containing address {hex(addr)}")
 
     def get_instr_bytes_at(self, addr: int, num_instr=1) -> angr.Block:
         addr += 1 if self.is_thumb(addr) else 0
