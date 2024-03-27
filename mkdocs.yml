@@ -2,13 +2,17 @@ site_name: Patcherex2 Docs
 
 theme:
   name: "material"
+  features:
+    - search.suggest
 
 plugins:
-- mkdocstrings:
-    handlers:
-      python:
-        options:
-          docstring_style: sphinx
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: sphinx
+  - search
+
 
 nav:
   - index.md
