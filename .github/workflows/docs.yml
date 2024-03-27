@@ -10,6 +10,10 @@ jobs:
       - name: Checkout docs
         uses: actions/checkout@v4
 
+      - name: Install Package
+        run: |
+          pip install -e .
+
       - name: Deploy docs
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         env:
