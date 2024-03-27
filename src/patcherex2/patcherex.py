@@ -1,5 +1,6 @@
 # ruff: noqa: F403, F405
 import logging
+from typing import Dict, Optional, Type
 
 from .patches import *
 from .patches import __all__ as all_patches
@@ -9,9 +10,29 @@ logger = logging.getLogger(__name__)
 
 
 class Patcherex:
+    """
+    The main class of the library. This is how you are intended to interact with patches.
+    """
+
     def __init__(
-        self, binary_path, target_cls=None, target_opts=None, components_opts=None
-    ):
+        self,
+        binary_path: str,
+        target_cls: Optional[Type[Target]] = None,
+        target_opts: Optional[Dict[str, str]] = None,
+        components_opts: Optional[Dict[str, Dict[str, str]]] = None,
+    ) -> None:
+        """
+        Constructor.
+
+        :param binary_path: The path of the binary to patch.
+        :type binary_path: str
+        :param target_cls: Specified architecture class to use, otherwise it is automatically detected, defaults to None
+        :type target_cls: Optional[Type[Target]], optional
+        :param target_opts: Options to specify components for the target, defaults to None
+        :type target_opts: Optional[Dict[str, str]], optional
+        :param components_opts: Options for configuring each component for the target, defaults to None
+        :type components_opts: Optional[Dict[str, Dict[str, str]]], optional
+        """
         if target_opts is None:
             target_opts = {}
         if components_opts is None:
@@ -66,7 +87,10 @@ class Patcherex:
         )
         assert len(self.patch_order) == len(all_patches)
 
-    def apply_patches(self):
+    def apply_patches(self) -> None:
+        """
+        Applies all added patches to the binary. Call this when you have added all the patches you want.
+        """
         # TODO: sort patches properly
         # self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
         self.patches.sort(
@@ -79,7 +103,13 @@ class Patcherex:
             patch.apply(self)
         self.binfmt_tool.finalize()
 
-    def save_binary(self, filename=None):
+    def save_binary(self, filename: str = None) -> None:
+        """
+        Save the patched binary to a file.
+
+        :param filename: Name of file to save to, defaults to None
+        :type filename: str, optional
+        """
         logger.warning(
             "p.save_binary() is deprecated, use p.binfmt_tool.save_binary() instead."
         )

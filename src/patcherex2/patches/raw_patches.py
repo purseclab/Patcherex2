@@ -1,3 +1,7 @@
+"""
+Contains patches that modify the binary at the byte level.
+"""
+
 import logging
 
 from .patch import Patch
@@ -6,12 +10,33 @@ logger = logging.getLogger(__name__)
 
 
 class ModifyRawBytesPatch(Patch):
+    """
+    Patch that modifies bytes of the binary.
+    """
+
     def __init__(self, addr: int, new_bytes: bytes, addr_type="mem") -> None:
+        """
+        Constructor.
+
+        :param addr: Starting address of bytes you want to change.
+        :type addr: int
+        :param new_bytes: New bytes to replace original ones.
+        :type new_bytes: bytes
+        :param addr_type: The type of address given, "mem" (memory address) or "raw" (file address), defaults to "mem"
+        :type addr_type: str, optional
+        """
         self.addr = addr
         self.new_bytes = new_bytes
         self.addr_type = addr_type
 
     def apply(self, p) -> None:
+        """
+        Applies the patch to the binary, intended to be called by a Patcherex instance.
+
+        :param p: Patcherex instance.
+        :type p: Patcherex
+        :raises NotImplementedError: Raised if an address type other than "raw" or "mem" is specified.
+        """
         if self.addr_type == "raw":
             offset = self.addr
         elif self.addr_type == "mem":
