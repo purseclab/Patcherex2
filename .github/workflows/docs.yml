@@ -1,13 +1,13 @@
 on:
   push:
-    branches: [ docs ]
+    branches: [ main ]
 
 jobs:
   build:
     name: Deploy docs
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout docs
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python 3
