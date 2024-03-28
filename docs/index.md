@@ -4,7 +4,6 @@ Patcherex2 is a rewritten adaptation of the original Patcherex project, aimed at
 
 ## Table Of Contents
 
-The documentation includes two parts: examples and usage reference.
-
 1. [Examples](examples.md)
-2. [Reference](reference.md)
+2. [Patch Types](patch_types.md)
+3. [API Reference](api_reference.md)
