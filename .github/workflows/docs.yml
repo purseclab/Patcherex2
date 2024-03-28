@@ -23,7 +23,7 @@ jobs:
       - name: Build Docs
         run: |
           python3 -m pip install mkdocs mkdocstrings[python] mkdocs-material
-          python3 -m mkdocs build -d mkdocs_build
+          python3 -m mkdocs build -d mkdocs_build -s
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
