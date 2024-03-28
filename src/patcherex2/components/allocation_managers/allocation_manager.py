@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import enum
 import logging
-from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -17,13 +18,13 @@ class Block:
         self.size = size
         self.is_free = is_free
 
-    def __lt__(self, other: "Block") -> bool:
+    def __lt__(self, other: Block) -> bool:
         return self.addr < other.addr
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} addr={hex(self.addr)} size={hex(self.size)} is_free={self.is_free}>"
 
-    def coalesce(self, other: "Block") -> bool:
+    def coalesce(self, other: Block) -> bool:
         if self.is_free == other.is_free and self.addr + self.size == other.addr:
             self.size += other.size
             return True
@@ -61,13 +62,13 @@ class MappedBlock(Block):
         self.mem_addr = mem_addr
         self.flag = flag
 
-    def __lt__(self, other: "MappedBlock") -> bool:
+    def __lt__(self, other: MappedBlock) -> bool:
         return self.mem_addr < other.mem_addr
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} file_addr={hex(self.file_addr)} mem_addr={hex(self.mem_addr)} size={hex(self.size)} is_free={self.is_free} flag={str(self.flag)}>"
 
-    def coalesce(self, other: "MappedBlock") -> bool:
+    def coalesce(self, other: MappedBlock) -> bool:
         if (
             self.flag == other.flag
             and self.is_free == other.is_free
@@ -206,7 +207,7 @@ class AllocationManager:
         block.is_free = True
         self.coalesce(self.blocks[type(block)])
 
-    def coalesce(self, blocks: List[Block]) -> None:
+    def coalesce(self, blocks: list[Block]) -> None:
         for curr, next in zip(blocks, blocks[1:]):
             if curr.coalesce(next):
                 blocks.remove(next)

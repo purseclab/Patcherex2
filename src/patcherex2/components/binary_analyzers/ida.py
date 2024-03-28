@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from __future__ import annotations
 
 from headless_ida import HeadlessIdaRemote
 
@@ -44,7 +44,7 @@ class Ida(BinaryAnalyzer):
     def mem_addr_to_file_offset(self, addr: int) -> int:
         return self.ida_loader.get_fileregion_offset(addr)
 
-    def get_basic_block(self, addr: int) -> Dict[str, Union[int, List[int]]]:
+    def get_basic_block(self, addr: int) -> dict[str, int | list[int]]:
         func = self.ida_funcs.get_func(addr)
         instr_addrs = list(func.code_items())
         assert addr in instr_addrs, "Invalid address"

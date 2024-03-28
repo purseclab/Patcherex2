@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import Dict, List, Optional
 
 from .llvm_recomp import LLVMRecomp
 
@@ -11,8 +12,8 @@ class LLVMRecompArm(LLVMRecomp):
         self,
         code: str,
         base=0,
-        symbols: Optional[Dict[str, int]] = None,
-        extra_compiler_flags: Optional[List[str]] = None,
+        symbols: dict[str, int] | None = None,
+        extra_compiler_flags: list[str] | None = None,
         is_thumb=False,
         **kwargs,
     ) -> bytes:

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 import os
-from typing import Optional
 
 from elftools.construct.lib import Container
 from elftools.elf.constants import P_FLAGS, SH_FLAGS
@@ -457,7 +458,7 @@ class ELF(BinFmtTool):
             new_ehdr = self._elf.structs.Elf_Ehdr.build(ehdr)
             self.p.binfmt_tool.update_binary_content(0, new_ehdr)
 
-    def save_binary(self, filename: Optional[str] = None) -> None:
+    def save_binary(self, filename: str | None = None) -> None:
         self.updated_binary_content = self.updated_binary_content.ljust(
             self.file_size, b"\x00"
         )

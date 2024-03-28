@@ -1,6 +1,7 @@
 # ruff: noqa: F403, F405
+from __future__ import annotations
+
 import logging
-from typing import Dict, Optional, Type
 
 from .patches import *
 from .patches import __all__ as all_patches
@@ -17,9 +18,9 @@ class Patcherex:
     def __init__(
         self,
         binary_path: str,
-        target_cls: Optional[Type[Target]] = None,
-        target_opts: Optional[Dict[str, str]] = None,
-        components_opts: Optional[Dict[str, Dict[str, str]]] = None,
+        target_cls: type[Target] | None = None,
+        target_opts: dict[str, str] | None = None,
+        components_opts: dict[str, dict[str, str]] | None = None,
     ) -> None:
         """
         Constructor.

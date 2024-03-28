@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
 import subprocess
 import tempfile
-from typing import Dict, List, Optional
 
 import cle
 
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class LLVMRecomp(Clang):
     def __init__(
-        self, p, clang_version=15, compiler_flags: Optional[List[str]] = None
+        self, p, clang_version=15, compiler_flags: list[str] | None = None
     ) -> None:
         super().__init__(p, clang_version, compiler_flags)
         self._clang_version = clang_version
@@ -25,8 +26,8 @@ class LLVMRecomp(Clang):
         self,
         code: str,
         base=0,
-        symbols: Optional[Dict[str, int]] = None,
-        extra_compiler_flags: Optional[List[str]] = None,
+        symbols: dict[str, int] | None = None,
+        extra_compiler_flags: list[str] | None = None,
         is_thumb=False,
         **kwargs,
     ) -> bytes:

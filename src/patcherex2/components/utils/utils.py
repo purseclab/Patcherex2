@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 import re
-from typing import Dict, Optional
 
 from ..allocation_managers.allocation_manager import MemoryFlag
 
@@ -18,7 +19,7 @@ class Utils:
         instrs: str,
         force_insert=False,
         detour_pos=-1,
-        symbols: Dict[str, int] = None,
+        symbols: dict[str, int] = None,
     ) -> None:
         logger.debug(f"Inserting trampoline code at {hex(addr)}: {instrs}")
         symbols = symbols if symbols else {}
@@ -93,9 +94,7 @@ class Utils:
             self.p.binary_analyzer.mem_addr_to_file_offset(addr), jmp_to_trampoline
         )
 
-    def get_instrs_to_be_moved(
-        self, addr: int, ignore_unmovable=False
-    ) -> Optional[str]:
+    def get_instrs_to_be_moved(self, addr: int, ignore_unmovable=False) -> str | None:
         basic_block = self.p.binary_analyzer.get_basic_block(addr)
         idx = basic_block["instruction_addrs"].index(addr)
         end = addr + self.p.archinfo.jmp_size

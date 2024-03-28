@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import Dict, List, Optional, Union
 
 import angr
 from archinfo import ArchARM
@@ -66,7 +67,7 @@ class Angr(BinaryAnalyzer):
             return addr
         return file_addr
 
-    def get_basic_block(self, addr: int) -> Dict[str, Union[int, List[int]]]:
+    def get_basic_block(self, addr: int) -> dict[str, int | list[int]]:
         # NOTE: angr splits basic blocks at call instructions, so we need to handle this
         if self.is_thumb(addr):
             addr += 1
@@ -112,7 +113,7 @@ class Angr(BinaryAnalyzer):
         # angr will return both instrs, even when num_instr is 1
         return self.p.factory.block(addr, num_inst=num_instr).bytes
 
-    def get_unused_funcs(self) -> List[Dict[str, int]]:
+    def get_unused_funcs(self) -> list[dict[str, int]]:
         logger.info("Getting unused functions with angr")
         unused_funcs = []
         assert self.cfg is not None
@@ -132,7 +133,7 @@ class Angr(BinaryAnalyzer):
                 )
         return unused_funcs
 
-    def get_all_symbols(self) -> Dict[str, int]:
+    def get_all_symbols(self) -> dict[str, int]:
         assert self.cfg is not None
         logger.info("Getting all symbols with angr")
         symbols = {}
@@ -146,7 +147,7 @@ class Angr(BinaryAnalyzer):
             symbols[func.name] = self.normalize_addr(func.addr)
         return symbols
 
-    def get_function(self, name_or_addr: Union[int, str]) -> Optional[Dict[str, int]]:
+    def get_function(self, name_or_addr: int | str) -> dict[str, int] | None:
         assert self.cfg is not None
         if isinstance(name_or_addr, (str, int)):
             if isinstance(name_or_addr, int):

@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from patcherex2.patches import Patch
 
@@ -12,7 +12,7 @@ class PatchManager:
         self.analyzed = False
         self.patches.append(patch)
 
-    def add_patches(self, patches: List[Patch]) -> None:
+    def add_patches(self, patches: list[Patch]) -> None:
         for patch in patches:
             self.add_patch(patch)
 

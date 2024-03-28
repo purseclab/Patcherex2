@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import Dict, List, Optional
 
 from .compiler import Compiler
 
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class ClangArm(Compiler):
     def __init__(
-        self, p, clang_version=15, compiler_flags: Optional[List[str]] = None
+        self, p, clang_version=15, compiler_flags: list[str] | None = None
     ) -> None:
         super().__init__(p)
         if compiler_flags is None:
@@ -21,8 +22,8 @@ class ClangArm(Compiler):
         self,
         code: str,
         base=0,
-        symbols: Optional[Dict[str, int]] = None,
-        extra_compiler_flags: Optional[List[str]] = None,
+        symbols: dict[str, int] | None = None,
+        extra_compiler_flags: list[str] | None = None,
         is_thumb=False,
         **kwargs,
     ) -> bytes:

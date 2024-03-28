@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import io
 import logging
-from typing import Optional
 
 import intelhex
 
@@ -26,7 +27,7 @@ class IHex(BinFmtTool):
     def finalize(self) -> None:
         pass
 
-    def save_binary(self, filename: Optional[str] = None) -> None:
+    def save_binary(self, filename: str | None = None) -> None:
         for update in self.file_updates:
             self._ihex.puts(update["offset"], update["content"])
         if filename is None:

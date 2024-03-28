@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from __future__ import annotations
 
 import capstone
 
@@ -18,7 +18,7 @@ class CapstoneArm(Disassembler):
 
     def disassemble(
         self, input: bytes, base=0, is_thumb=False, **kwargs
-    ) -> List[Dict[str, Union[int, str]]]:
+    ) -> list[dict[str, int | str]]:
         cs = self.cs_thumb if is_thumb else self.cs_arm
         cs_insns = cs.disasm(input, base)
         result = []

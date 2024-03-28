@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from __future__ import annotations
 
 
 class Disassembler:
@@ -8,5 +8,5 @@ class Disassembler:
     def disassemble(self, input: bytes, base=0, **kwargs) -> None:
         raise NotImplementedError()
 
-    def to_asm_string(self, insn: Dict[str, Union[int, str]]) -> str:
+    def to_asm_string(self, insn: dict[str, int | str]) -> str:
         return "{} {}".format(insn["mnemonic"], insn["op_str"])
