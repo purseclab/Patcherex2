@@ -1,9 +1,18 @@
-site_name: Patcherex2 Docs
+site_name: Patcherex2 Documentation
+repo_url: https://github.com/purseclab/patcherex2
+repo_name: purseclab/patcherex2
+edit_uri: edit/main/docs/
 
 theme:
   name: "material"
   features:
     - search.suggest
+    - content.code.copy
+    - toc.follow
+    - toc.integrate
+    - content.action.edit
+  palette:
+    - scheme: pursec
 
 plugins:
   - mkdocstrings:
@@ -11,10 +20,15 @@ plugins:
         python:
           options:
             docstring_style: sphinx
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
   - search
 
+extra_css:
+  - css/extra.css
 
-nav:
-  - index.md
-  - Examples: examples.md
-  - Reference: reference.md
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences

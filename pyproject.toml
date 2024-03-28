@@ -26,5 +26,8 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.ruff]
+exclude = ["examples"]
+
 [tool.ruff.lint]
 extend-select = ["I", "N", "UP", "B"]
