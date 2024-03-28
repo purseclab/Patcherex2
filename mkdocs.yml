@@ -9,8 +9,11 @@ theme:
     - search.suggest
     - content.code.copy
     - toc.follow
-    - toc.integrate
     - content.action.edit
+    - navigation.tabs
+    - navigation.tracking
+    - navigation.path
+    - navigation.top
   palette:
     - scheme: pursec
 
@@ -23,9 +26,10 @@ plugins:
             show_symbol_type_heading: true
             show_symbol_type_toc: true
   - search
+  - awesome-pages
 
 extra_css:
-  - css/extra.css
+  - _css/extra.css
 
 markdown_extensions:
   - pymdownx.highlight

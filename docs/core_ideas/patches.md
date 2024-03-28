@@ -9,6 +9,7 @@ The core of Patcherex2 consists of 9 different types of patches, which are used 
 | _**Modify**_ | ModifyDataPatch   | ModifyInstructionPatch | ModifyFunctionPatch |
 
 These patches are categorized into three tiers:
+
  - Data Patches: 
     Operating at the raw bytes level, data patches are ideal for patching the `.data` section or any other raw data.
 
@@ -19,6 +20,7 @@ These patches are categorized into three tiers:
     At the highest level, function patches manipulate the binary through C code, this level deals with modifications at the function level.
 
 Each tier features three patch types:
+
  - Insert Patch: Adds new data, instructions, or functions to the binary.
  - Remove Patch: Deletes existing data, instructions, or functions from the binary.
  - Modify Patch: Replaces the content of data, instructions, or functions within the binary.

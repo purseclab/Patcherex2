@@ -1,0 +1,8 @@
+nav:
+    - Home: index.md
+    - Examples: examples
+    - Core Ideas: core_ideas
+    - Advanced Usages: advanced_usages
+    - API References: api_references
+    - ...
+
