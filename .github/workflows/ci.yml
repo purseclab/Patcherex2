@@ -14,38 +14,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Python 3
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            qemu-user \
-            clang-15 lld-15 \
-            libc6-armhf-cross libc6-arm64-cross \
-            libc6-mips-cross libc6-mips64-cross \
-            libc6-powerpc-cross libc6-powerpc-ppc64-cross \
-            libc6-mipsel-cross libc6-mips64el-cross \
-            libc6-ppc64el-cross
-      - name: Install Package
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade pytest ruff
-          python3 -m pip install -e .
+      - name: Install Patcherex2
+        uses: ./.github/actions/install-patcherex2
+      - name: Install Packages
+        run:  python3 -m pip install --upgrade pytest ruff
       - name: Run pytest
         if: matrix.task == 'test'
-        run: |
-          python3 -m pytest
+        run: python3 -m pytest
       - name: Run formatter
         if: matrix.task == 'format'
-        run: |
-          python3 -m ruff format . --check
+        run: python3 -m ruff format . --check
       - name: Run linter
         if: matrix.task == 'lint'
-        run: |
-          python3 -m ruff check .
+        run: python3 -m ruff check .
       - name: Checkout Private Tests
         if: matrix.task == 'private-test' && github.event_name != 'pull_request'
         uses: actions/checkout@v4
@@ -56,5 +37,4 @@ jobs:
       - name: Run pytest for Private Tests
         if: matrix.task == 'private-test' && github.event_name != 'pull_request'
         working-directory: ./private
-        run: |
-          python3 -m pytest -q --no-summary
+        run: python3 -m pytest -q --no-summary
