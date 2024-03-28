@@ -19,11 +19,8 @@ class ModifyRawBytesPatch(Patch):
         Constructor.
 
         :param addr: Starting address of bytes you want to change.
-        :type addr: int
         :param new_bytes: New bytes to replace original ones.
-        :type new_bytes: bytes
         :param addr_type: The type of address given, "mem" (memory address) or "raw" (file address), defaults to "mem"
-        :type addr_type: str, optional
         """
         self.addr = addr
         self.new_bytes = new_bytes
@@ -34,7 +31,6 @@ class ModifyRawBytesPatch(Patch):
         Applies the patch to the binary, intended to be called by a Patcherex instance.
 
         :param p: Patcherex instance.
-        :type p: Patcherex
         :raises NotImplementedError: Raised if an address type other than "raw" or "mem" is specified.
         """
         if self.addr_type == "raw":

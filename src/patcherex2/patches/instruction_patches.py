@@ -2,13 +2,19 @@
 Contains patches that modify the binary at the instruction level.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Dict, Optional, Union
+from typing import TYPE_CHECKING
 
 from ..components.allocation_managers.allocation_manager import MemoryFlag
 from .patch import Patch
 
 logger = logging.getLogger(__name__)
+
+
+if TYPE_CHECKING:
+    from ..patcherex import Patcherex
 
 
 class ModifyInstructionPatch(Patch):
@@ -19,17 +25,14 @@ class ModifyInstructionPatch(Patch):
     """
 
     def __init__(
-        self, addr: int, instr: str, symbols: Optional[Dict[str, int]] = None
+        self, addr: int, instr: str, symbols: dict[str, int] | None = None
     ) -> None:
         """
         Constructor.
 
         :param addr: Memory address of instruction(s) to overwrite.
-        :type addr: int
         :param instr: Assembly instruction(s) to place in binary.
-        :type instr: str
         :param symbols: Symbols to include when assembling, in format {symbol name: memory address}, defaults to None
-        :type symbols: Optional[Dict[str, int]], optional
         """
         self.addr = addr
         self.instr = instr
@@ -78,11 +81,11 @@ class InsertInstructionPatch(Patch):
 
     def __init__(
         self,
-        addr_or_name: Union[int, str],
+        addr_or_name: int | str,
         instr: str,
         force_insert=False,
         detour_pos=-1,
-        symbols: Optional[Dict[str, int]] = None,
+        symbols: dict[str, int] | None = None,
         is_thumb=False,
         **kwargs,
     ) -> None:
@@ -91,17 +94,11 @@ class InsertInstructionPatch(Patch):
 
         :param addr_or_name: If an integer, the new instructions are placed in a free spot in the binary and the jump to them is inserted at that memory address.
                              If a string, the new instructions are placed in a free spot in the binary and added as a symbol (with this as its name).
-        :type addr_or_name: Union[int, str]
         :param instr: Instructions to insert. You can use "SAVE_CONTEXT" and "RESTORE_CONTEXT" wherever you want to save and restore program context.
-        :type instr: str
         :param force_insert: If Patcherex should ignore whether instructions can be moved when inserting, defaults to False
-        :type force_insert: bool, optional
         :param detour_pos: If given a name, specifies the file address to place the new instructions, defaults to -1
-        :type detour_pos: int, optional
         :param symbols: Symbols to include when assembling, in format {symbol name: memory address}, defaults to None
-        :type symbols: Optional[Dict[str, int]], optional
         :param is_thumb: Whether the instructions given are thumb, defaults to False
-        :type is_thumb: bool, optional
         :param **kwargs: Extra options. Can have a boolean "save_context" for whether context should be saved.
         """
         self.addr = None
@@ -186,18 +183,15 @@ class RemoveInstructionPatch(Patch):
     def __init__(
         self,
         addr: int,
-        num_instr: Optional[int] = None,
-        num_bytes: Optional[int] = None,
+        num_instr: int | None = None,
+        num_bytes: int | None = None,
     ) -> None:
         """
         Constructor.
 
         :param addr: Memory address to remove instructions at.
-        :type addr: int
         :param num_instr: Number of instructions to remove, currently not used, defaults to None
-        :type num_instr: Optional[int], optional
         :param num_bytes: Number of bytes to remove, must be divisible by nop size, defaults to None
-        :type num_bytes: Optional[int], optional
         """
         self.addr = addr
         self.num_instr = num_instr
@@ -205,12 +199,11 @@ class RemoveInstructionPatch(Patch):
         if self.num_instr is None and self.num_bytes is None:
             self.num_instr = 1
 
-    def apply(self, p):
+    def apply(self, p: Patcherex) -> None:
         """
         Applies the patch to the binary, intended to be called by a Patcherex instance.
 
         :param p: Patcherex instance.
-        :type p: Patcherex
         """
         if self.num_bytes is None:
             raise NotImplementedError()

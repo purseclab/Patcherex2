@@ -2,11 +2,16 @@
 Contains patches that modify the binary at the function level.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Dict, Optional, Union
+from typing import TYPE_CHECKING
 
 from ..components.allocation_managers.allocation_manager import MemoryFlag
 from .patch import Patch
+
+if TYPE_CHECKING:
+    from ..patcherex import Patcherex
 
 logger = logging.getLogger(__name__)
 
@@ -20,23 +25,19 @@ class ModifyFunctionPatch(Patch):
 
     def __init__(
         self,
-        addr_or_name: Union[int, str],
+        addr_or_name: int | str,
         code: str,
         detour_pos=-1,
-        symbols: Optional[Dict[str, int]] = None,
+        symbols: dict[str, int] | None = None,
         **kwargs,
     ) -> None:
         """
         Constructor.
 
         :param addr_or_name: The name or file address of the function.
-        :type addr_or_name: Union[int, str]
         :param code: C code to replace the function.
-        :type code: str
         :param detour_pos: If original function is not big enough, file address to place the given code, defaults to -1
-        :type detour_pos: int, optional
         :param symbols: Symbols to include when compiling, in format {symbol name: memory address}, defaults to None
-        :type symbols: Optional[Dict[str, int]], optional
         """
         self.code = code
         self.detour_pos = detour_pos
@@ -44,12 +45,11 @@ class ModifyFunctionPatch(Patch):
         self.symbols = symbols if symbols else {}
         self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
 
-    def apply(self, p) -> None:
+    def apply(self, p: Patcherex) -> None:
         """
         Applies the patch to the binary, intended to be called by a Patcherex instance.
 
         :param p: Patcherex instance.
-        :type p: Patcherex
         """
         func = p.binary_analyzer.get_function(self.addr_or_name)
         compiled_size = len(
@@ -103,11 +103,11 @@ class InsertFunctionPatch(Patch):
 
     def __init__(
         self,
-        addr_or_name: Union[int, str],
+        addr_or_name: int | str,
         code: str,
         force_insert=False,
         detour_pos=-1,
-        symbols: Optional[Dict[str, int]] = None,
+        symbols: dict[str, int] | None = None,
         is_thumb=False,
         **kwargs,
     ) -> None:
@@ -117,19 +117,13 @@ class InsertFunctionPatch(Patch):
         :param addr_or_name: If an integer, an intermediate function is created in a free spot in the binary,
                              and at that address, a jump to the function is made with necessary context saves.
                              If a string, the function is created in a free spot in the binary with that name.
-        :type addr_or_name: Union[int, str]
         :param code: C code for the new function. "SAVE_CONTEXT" and "RESTORE_CONTEXT" can be used to save and restore context.
-        :type code: str
         :param force_insert: If Patcherex should ignore whether instructions can be moved when inserting, defaults to False
-        :type force_insert: bool, optional
         :param detour_pos: If address is used, this is the address to place trampoline code for jumping to function.
                            If name is used, this is where the new function will be placed, defaults to -1
-        :type detour_pos: int, optional
         :param symbols: Symbols to include when compiling/assembling, in format {symbol name: memory address}, defaults to None
-        :type symbols: Optional[Dict[str, int]], optional
         :param is_thumb: Whether the instructions given are thumb, defaults to False
-        :type is_thumb: bool, optional
-        :param **kwargs: Extra options. Can include "prefunc" and "postfunc", instructions to go before or after your function if you give an address.
+        :param kwargs: Extra options. Can include "prefunc" and "postfunc", instructions to go before or after your function if you give an address.
                          Can also have "save_context" for whether context should be saved and "compile_opts" for extra compile options.
         """
         self.addr = None
@@ -150,12 +144,11 @@ class InsertFunctionPatch(Patch):
             kwargs["save_context"] if "save_context" in kwargs else False
         )
 
-    def apply(self, p) -> None:
+    def apply(self, p: Patcherex) -> None:
         """
         Applies the patch to the binary, intended to be called by a Patcherex instance.
 
         :param p: Patcherex instance.
-        :type p: Patcherex
         """
         if self.addr:
             if self.prefunc:

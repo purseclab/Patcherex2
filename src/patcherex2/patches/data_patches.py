@@ -2,11 +2,16 @@
 Contains patches that modify the binary at the data level.
 """
 
-from typing import Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from ..components.allocation_managers.allocation_manager import MemoryFlag
 from .patch import Patch
 from .raw_patches import ModifyRawBytesPatch
+
+if TYPE_CHECKING:
+    from ..patcherex import Patcherex
 
 
 class ModifyDataPatch(ModifyRawBytesPatch):
@@ -26,15 +31,13 @@ class InsertDataPatch(Patch):
     Patch that inserts data into the binary.
     """
 
-    def __init__(self, addr_or_name: Union[int, str], data: bytes) -> None:
+    def __init__(self, addr_or_name: int | str, data: bytes) -> None:
         """
         Constructor.
 
         :param addr_or_name: If an integer, data is inserted at the address.
                              If a string, it is placed in a free spot in the binary and added as a symbol (with this as its name).
-        :type addr_or_name: Union[int, str]
         :param data: New data to place in binary.
-        :type data: bytes
         """
         self.addr = None
         self.name = None
@@ -44,12 +47,11 @@ class InsertDataPatch(Patch):
             self.name = addr_or_name
         self.data = data
 
-    def apply(self, p) -> None:
+    def apply(self, p: Patcherex) -> None:
         """
         Applies the patch to the binary, intended to be called by a Patcherex instance.
 
         :param p: Patcherex instance.
-        :type p: Patcherex
         """
         if self.addr:
             p.binfmt_tool.update_binary_content(self.addr, self.data)
@@ -72,6 +74,5 @@ class RemoveDataPatch(ModifyRawBytesPatch):
         Same as ModifyRawBytes Patch constructor, but adds size parameter and assumes memory address.
 
         :param size: The number of bytes to remove.
-        :type size: int
         """
         super().__init__(addr, b"\x00" * size, addr_type="mem")

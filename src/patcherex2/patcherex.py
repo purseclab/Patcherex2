@@ -25,13 +25,9 @@ class Patcherex:
         Constructor.
 
         :param binary_path: The path of the binary to patch.
-        :type binary_path: str
         :param target_cls: Specified architecture class to use, otherwise it is automatically detected, defaults to None
-        :type target_cls: Optional[Type[Target]], optional
         :param target_opts: Options to specify components for the target, defaults to None
-        :type target_opts: Optional[Dict[str, str]], optional
         :param components_opts: Options for configuring each component for the target, defaults to None
-        :type components_opts: Optional[Dict[str, Dict[str, str]]], optional
         """
         if target_opts is None:
             target_opts = {}
@@ -108,7 +104,6 @@ class Patcherex:
         Save the patched binary to a file.
 
         :param filename: Name of file to save to, defaults to None
-        :type filename: str, optional
         """
         logger.warning(
             "p.save_binary() is deprecated, use p.binfmt_tool.save_binary() instead."
