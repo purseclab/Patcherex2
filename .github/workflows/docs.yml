@@ -3,26 +3,37 @@ on:
     tags:
       - '*'
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  build:
-    name: Deploy docs
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Python 3
         uses: actions/setup-python@v3
         with:
           python-version: "3.10"
-      
-      - name: Install Package
+      - name: Install mkdocs
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -e .
-
-      - name: Deploy docs
-        uses: afritzler/mkdocs-gh-pages-action@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REQUIREMENTS: docs/requirements.txt
+          python3 -m pip install mkdocs mkdocstrings[python] mkdocs-material
+      - name: Build
+        run: mkdocs build -d mkdocs_build
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: mkdocs_build
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
