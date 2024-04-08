@@ -20,3 +20,6 @@ class Target:
         if component_opts is None:
             component_opts = {}
         return getattr(self, f"get_{component_type}")(component_name, **component_opts)
+
+    def get_cc(self, archinfo, preserve_none=False):
+        raise NotImplementedError("The calling convention for this target is unknown")

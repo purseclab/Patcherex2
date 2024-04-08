@@ -20,6 +20,7 @@ class Utils:
         force_insert=False,
         detour_pos=-1,
         symbols: dict[str, int] = None,
+        language="ASM"
     ) -> None:
         logger.debug(f"Inserting trampoline code at {hex(addr)}: {instrs}")
         symbols = symbols if symbols else {}
@@ -45,13 +46,28 @@ class Utils:
                 )
             )
         trampoline_instrs_with_jump_back = (
-            instrs
-            + "\n"
+            ("" if language == "C" else (instrs + "\n"))
             + moved_instrs
             + "\n"
             + self.p.archinfo.jmp_asm.format(dst=hex(addr + moved_instrs_len))
         )
+
+        if language == "C":
+            compiled_length = len(
+                self.p.compiler.compile(
+                    instrs,
+                    symbols=symbols,
+                    is_thumb=self.p.binary_analyzer.is_thumb(addr),
+                    # Some optimization needs to be used to squash down all this parameter trickery
+                    # we are doing. -Os optimizes for space
+                    extra_compiler_flags=["-Os"]
+                )
+            )
+        else:
+            compiled_length = 0
+
         trampoline_size = (
+            compiled_length +
             len(
                 self.p.assembler.assemble(
                     trampoline_instrs_with_jump_back,
@@ -77,8 +93,23 @@ class Utils:
                     break
             else:
                 file_addr = self.p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
+
+        if language == "C":
+            symbols_copy = dict(symbols)
+            symbols_copy['_CALLBACK'] = mem_addr + compiled_length
+            compiled_code = self.p.compiler.compile(
+                instrs,
+                symbols=symbols_copy,
+                is_thumb=self.p.binary_analyzer.is_thumb(addr),
+                # Some optimization needs to be used to squash down all this parameter trickery
+                # we are doing. -Os optimizes for space
+                extra_compiler_flags=["-Os"]
+            )
+        else:
+            compiled_code = bytes()
+
         self.p.sypy_info["patcherex_added_functions"].append(hex(mem_addr))
-        trampoline_bytes = self.p.assembler.assemble(
+        trampoline_bytes = compiled_code + self.p.assembler.assemble(
             trampoline_instrs_with_jump_back,
             mem_addr,
             symbols=symbols,

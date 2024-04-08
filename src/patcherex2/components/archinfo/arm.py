@@ -4,6 +4,7 @@ class ArmInfo:
     jmp_asm = "b {dst}"
     jmp_size = 4
     alignment = 4
+    bits = 32
     is_variable_length_isa = False
     instr_size = 4  # TODO: thumb 2
     call_asm = "bl {dst}"

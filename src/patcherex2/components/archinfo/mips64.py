@@ -5,6 +5,7 @@ class Mips64Info:
     # NOTE: keystone will aldays add nop for branch delay slot, so include it in size
     jmp_size = 8
     alignment = 4
+    bits = 64
     is_variable_length_isa = False
     instr_size = 4
     call_asm = "jal {dst}"

@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from ..patcherex import Patcherex
 
-
 class ModifyInstructionPatch(Patch):
     """
     Patch that directly modifies instructions in a binary (overwrites them) starting at address given.
@@ -87,6 +86,10 @@ class InsertInstructionPatch(Patch):
         detour_pos=-1,
         symbols: dict[str, int] | None = None,
         is_thumb=False,
+        language: str="ASM",
+        c_forward_header: str="",
+        c_in_regs=None,
+        c_out_regs=None,
         **kwargs,
     ) -> None:
         """
@@ -99,6 +102,8 @@ class InsertInstructionPatch(Patch):
         :param detour_pos: If given a name, specifies the file address to place the new instructions, defaults to -1
         :param symbols: Symbols to include when assembling, in format {symbol name: memory address}, defaults to None
         :param is_thumb: Whether the instructions given are thumb, defaults to False
+        :param language: The language of the patch, can be either "ASM" or "C"
+        :param c_forward_header: If the language is "C", then this field contains the code that should be inserted before the instr code. This string will typically contain the #includes necessary to bring in function prototypes and any required type declarations.
         :param **kwargs: Extra options. Can have a boolean "save_context" for whether context should be saved.
         """
         self.addr = None
@@ -112,17 +117,72 @@ class InsertInstructionPatch(Patch):
         self.detour_pos = detour_pos
         self.symbols = symbols if symbols else {}
         self.is_thumb = is_thumb
+        self.language = language
+        self.c_forward_header = c_forward_header
+        self.c_in_regs = c_in_regs
+        self.c_out_regs = c_out_regs
         self.save_context = (
             kwargs["save_context"] if "save_context" in kwargs else False
         )
+        self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
 
-    def apply(self, p) -> None:
+    def apply(self, p):
         """
         Applies the patch to the binary, intended to be called by a Patcherex instance.
 
         :param p: Patcherex instance.
         :type p: Patcherex
         """
+        if self.language == "ASM":
+            self._apply_asm(p)
+        elif self.language == "C":
+            self._apply_c(p)
+
+    def _apply_c(self, p) -> None:
+        if self.addr is None:
+            raise ValueError("An address must be provided for a C instruction patch")
+
+        register_type = 'uint{}_t'.format(p.archinfo.bits)
+        calling_convention = p.target.get_cc(preserve_none=p.compiler.preserve_none)
+
+        attribute = "__attribute__((preserve_none))" if p.compiler.preserve_none else ""
+
+        # Check to ensure that the user given output registers are all part of the calling convention
+        unknown_registers = frozenset(self.c_out_regs) - frozenset(calling_convention)
+        if len(unknown_registers) > 0:
+            raise ValueError("The following C output registers are invalid: {}\nHere is a list of all the registers you are allowed to use: {}\n".format(', '.join(unknown_registers), ', '.join(calling_convention)))
+
+        args = ', '.join([(register_type + ' ' + reg_name) for reg_name in calling_convention])
+        callback_forward_decl = 'extern void {} _CALLBACK({});'.format(attribute, args)
+        # Stupid macro tricks to make coding the patch a little bit nicer. This allows the user
+        # to write 'return;' instead of having to understand how to call the callback
+        return_macro = '#define return return _CALLBACK({})'.format(', '.join([reg_name if (self.c_out_regs is None or reg_name in self.c_out_regs) else '_dummy' for reg_name in calling_convention]))
+        micropatch_fun_start = 'void {} _MICROPATCH({}) {{'.format(attribute, args)
+        lines = [
+            '#include <stdint.h>',
+            callback_forward_decl,
+            self.c_forward_header,
+            return_macro,
+            micropatch_fun_start,
+            register_type + ' _dummy;',
+            self.instr,
+            # Make sure we actually do the callback in case the user forgets to put in a return
+            'return;',
+            '}',
+            '#undef return'
+        ]
+        code = '\n'.join(lines)
+
+        p.utils.insert_trampoline_code(
+            self.addr,
+            code,
+            force_insert=self.force_insert,
+            detour_pos=self.detour_pos,
+            symbols=self.symbols,
+            language="C"
+        )
+
+    def _apply_asm(self, p) -> None:
         if self.addr:
             if "SAVE_CONTEXT" in self.instr:
                 self.instr = self.instr.replace(

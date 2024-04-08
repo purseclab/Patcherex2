@@ -47,6 +47,10 @@ class Angr(BinaryAnalyzer):
         return self._p
 
     @property
+    def platform(self) -> str:
+        return self.p.simos.name
+
+    @property
     def cfg(self) -> angr.analyses.cfg.cfg_fast.CFGFast:
         if self._cfg is None:
             logger.info("Generating CFG with angr")

@@ -4,6 +4,7 @@ class Aarch64Info:
     jmp_asm = "b {dst}"
     jmp_size = 4
     alignment = 4
+    bits = 64
     is_variable_length_isa = False
     instr_size = 4
     call_asm = "bl {dst}"
