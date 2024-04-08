@@ -2,13 +2,13 @@
 
 Here is a simple example of a vulnerable C program which we will use to show how different patches can be used together:
 
-```c title = "examples/multiple_patches/getline.c"
+```c title="examples/multiple_patches/getline.c"
 --8<-- "examples/multiple_patches/getline.c"
 ```
 
 And here is the disassembly of the relevant functions:
 
-```asm title = "examples/multiple_patches/getline"
+```asm title="examples/multiple_patches/getline"
 0000000000001189 <my_getline>:
     1189:	f3 0f 1e fa          	endbr64
     118d:	55                   	push   %rbp
@@ -83,7 +83,7 @@ aaaaaaaaaaaaaaaaaaa
 
 We will patch this program to fix the vulnerability, by adding a second argument to the `my_getline` function, and printing a message when the buffer would have overflowed. Here is the script:
 
-```python title = "examples/multiple_patches/patch.py"
+```python title="examples/multiple_patches/patch.py"
 --8<-- "examples/multiple_patches/patch.py"
 ```
 
