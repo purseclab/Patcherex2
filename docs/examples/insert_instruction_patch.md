@@ -1,4 +1,4 @@
-# InsertInstructionPath
+# InsertInstructionPatch
 
 We have a simple C program:
 
