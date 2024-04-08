@@ -7,7 +7,7 @@ class ArmInfo:
     is_variable_length_isa = False
     instr_size = 4  # TODO: thumb 2
     call_asm = "bl {dst}"
-    pc_reg_names = ["pc", "r15", "ip"]
+    pc_reg_names = ["pc", "r15"]
     save_context_asm = """
         push {r0-r11}
     """

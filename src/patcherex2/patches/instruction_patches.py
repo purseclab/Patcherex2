@@ -31,7 +31,7 @@ class ModifyInstructionPatch(Patch):
         Constructor.
 
         :param addr: Memory address of instruction(s) to overwrite.
-        :param instr: Assembly instruction(s) to place in binary.
+        :param instr: Assembly instruction(s) to place in binary. If you want to use any symbols from the program or from previous patches, you must surround them with curly braces.
         :param symbols: Symbols to include when assembling, in format {symbol name: memory address}, defaults to None
         """
         self.addr = addr
@@ -94,7 +94,7 @@ class InsertInstructionPatch(Patch):
 
         :param addr_or_name: If an integer, the new instructions are placed in a free spot in the binary and the jump to them is inserted at that memory address.
                              If a string, the new instructions are placed in a free spot in the binary and added as a symbol (with this as its name).
-        :param instr: Instructions to insert. You can use "SAVE_CONTEXT" and "RESTORE_CONTEXT" wherever you want to save and restore program context.
+        :param instr: Instructions to insert. You can use "SAVE_CONTEXT" and "RESTORE_CONTEXT" wherever you want to save and restore program context. If you want to use any symbols from the program or from previous patches, you must surround them with curly braces.
         :param force_insert: If Patcherex should ignore whether instructions can be moved when inserting, defaults to False
         :param detour_pos: If given a name, specifies the file address to place the new instructions, defaults to -1
         :param symbols: Symbols to include when assembling, in format {symbol name: memory address}, defaults to None
