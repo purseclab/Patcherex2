@@ -78,6 +78,7 @@ class Utils:
             )
             + 4  # TODO: some time actual size is larger, but we need a better way to calculate it
         )
+        #print("trampoline_size", trampoline_size)
         if detour_pos == -1:
             trampoline_block = self.p.allocation_manager.allocate(
                 trampoline_size, align=self.p.archinfo.alignment, flag=MemoryFlag.RX
@@ -96,7 +97,10 @@ class Utils:
 
         if language == "C":
             symbols_copy = dict(symbols)
-            symbols_copy['_CALLBACK'] = mem_addr + compiled_length
+            # The linker seems to want a relative address, which is quite confusing but seems to work
+            # We want to jump to the instruction directly after the compiled code. Hypothetically we could
+            # just nop out the jump to callback to achieve the same effect, but it's easier to just do the jump
+            symbols_copy['_CALLBACK'] = compiled_length
             compiled_code = self.p.compiler.compile(
                 instrs,
                 symbols=symbols_copy,
@@ -111,7 +115,7 @@ class Utils:
         self.p.sypy_info["patcherex_added_functions"].append(hex(mem_addr))
         trampoline_bytes = compiled_code + self.p.assembler.assemble(
             trampoline_instrs_with_jump_back,
-            mem_addr,
+            mem_addr + compiled_length,
             symbols=symbols,
             is_thumb=self.p.binary_analyzer.is_thumb(addr),
         )
