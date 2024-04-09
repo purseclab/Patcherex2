@@ -53,10 +53,12 @@ class Utils:
         )
 
         if language == "C":
+            symbols_copy = dict(symbols)
+            symbols_copy['_CALLBACK'] = 0
             compiled_length = len(
                 self.p.compiler.compile(
                     instrs,
-                    symbols=symbols,
+                    symbols=symbols_copy,
                     is_thumb=self.p.binary_analyzer.is_thumb(addr),
                     # Some optimization needs to be used to squash down all this parameter trickery
                     # we are doing. -Os optimizes for space

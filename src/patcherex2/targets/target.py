@@ -21,5 +21,12 @@ class Target:
             component_opts = {}
         return getattr(self, f"get_{component_type}")(component_name, **component_opts)
 
-    def get_cc(self, archinfo, preserve_none=False):
+    def get_cc(self, archinfo=None, preserve_none=False):
         raise NotImplementedError("The calling convention for this target is unknown")
+
+    def get_archinfo(self, archinfo):
+        raise NotImplementedError("get_archinfo not implemented")
+
+    def get_subregisters(self, archinfo=None):
+        archinfo = self.get_archinfo(archinfo)
+        return archinfo.subregisters

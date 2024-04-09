@@ -55,25 +55,29 @@ class Amd64Info:
             64: ['rax'],
             32: ['eax'],
             16: ['ax'],
-            8: ['ah', 'al']
+            # Note that the order of the children registers is important. Only the 0th
+            # element of this list (al) is used when determining the calling convention.
+            # That is, if we can only use the following argument 'uint8_t al' in the
+            # calling convention at the rax position. 'uint8_t ah' is NOT allowed.
+            8: ['al', 'ah']
         },
         'rbx': {
             64: ['rbx'],
             32: ['ebx'],
             16: ['bx'],
-            8: ['bh', 'bl']
+            8: ['bl', 'bh']
         },
         'rcx': {
             64: ['rcx'],
             32: ['ecx'],
             16: ['cx'],
-            8: ['ch', 'cl']
+            8: ['cl', 'ch']
         },
         'rdx': {
             64: ['rdx'],
             32: ['edx'],
             16: ['dx'],
-            8: ['dh', 'dl']
+            8: ['dl', 'dh']
         },
         'rsi': {
             64: ['rsi'],

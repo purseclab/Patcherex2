@@ -69,6 +69,38 @@ class ModifyInstructionPatch(Patch):
         offset = p.binary_analyzer.mem_addr_to_file_offset(self.addr)
         p.binfmt_tool.update_binary_content(offset, asm_bytes)
 
+def convert_calling_convention(cc: list[str], subregisters: dict[str, dict[int, list[str]]], regs: frozenset[str]) -> list[tuple[int, str]]:
+    # parent_regs maps all children registers to their largest parent register and their bit size
+    # For example in x64, we will have
+    # parent_regs = {'rax': (64, 'rax'), 'eax': (32, 'rax'), 'ax': (16, 'rax'), 'ah': (8, 'rax'), 'al': (8, 'rax'), ...}
+    parent_regs: dict[str, tuple[int, str]] = dict()
+    for (parent, subregister_info) in subregisters.items():
+        for (child_bits, children) in subregister_info.items():
+            for (i, child) in enumerate(children):
+                if i > 0 and child in regs:
+                    # Only allow the 0th subregister to actually be used.
+                    raise ValueError("Unable to create the calling convention when the {} register is present. The {} subregister is the only {} bit subregister that can be used.".format(child, children[0], child_bits))
+                parent_regs[child] = (child_bits, parent)
+
+    # The rewrites that should be applied to the cc to compute the transformed cc output
+    rewrites: dict[str, tuple[int, str]] = dict()
+    for r in regs:
+        if r not in parent_regs:
+            raise ValueError("Unknown register {}".format(r))
+        (r_bits, parent) = parent_regs[r]
+        if parent not in cc:
+            if parent != r:
+                raise ValueError("The calling convention does not allow for register {} or its parent {}. The calling convention is: {}".format(r, parent, ', '.join(cc)))
+            else:
+                raise ValueError("The calling convention does not allow for register {}. The calling convention is: {}".format(r, ', '.join(cc)))
+        if parent != r:
+            if parent in rewrites:
+                raise ValueError("The following two input registers overlapped while computing the calling convention: " + r + " and " + rewrites[parent][1])
+            rewrites[parent] = (r_bits, r)
+
+    def convert_cc_reg(cc_reg):
+        return rewrites.get(cc_reg, parent_regs[cc_reg])
+    return list(map(convert_cc_reg, cc))
 
 class InsertInstructionPatch(Patch):
     """
@@ -88,8 +120,8 @@ class InsertInstructionPatch(Patch):
         is_thumb=False,
         language: str="ASM",
         c_forward_header: str="",
-        c_in_regs=None,
-        c_out_regs=None,
+        c_in_regs: frozenset[str] | None=None,
+        c_out_regs: frozenset[str] | None=None,
         **kwargs,
     ) -> None:
         """
@@ -141,23 +173,27 @@ class InsertInstructionPatch(Patch):
     def _apply_c(self, p) -> None:
         if self.addr is None:
             raise ValueError("An address must be provided for a C instruction patch")
+        if self.c_in_regs is None:
+            raise ValueError("c_in_regs must be specified")
+        if self.c_out_regs is None:
+            raise ValueError("c_out_regs must be specified")
 
         register_type = 'uint{}_t'.format(p.archinfo.bits)
         calling_convention = p.target.get_cc(preserve_none=p.compiler.preserve_none)
+        subregisters = p.target.get_subregisters()
 
         attribute = "__attribute__((preserve_none))" if p.compiler.preserve_none else ""
 
-        # Check to ensure that the user given output registers are all part of the calling convention
-        unknown_registers = frozenset(self.c_out_regs) - frozenset(calling_convention)
-        if len(unknown_registers) > 0:
-            raise ValueError("The following C output registers are invalid: {}\nHere is a list of all the registers you are allowed to use: {}\n".format(', '.join(unknown_registers), ', '.join(calling_convention)))
+        def get_args(regs: frozenset[str]) -> str:
+            micropatch_cc = convert_calling_convention(calling_convention, subregisters, regs)
+            return ', '.join(['uint{}_t {}'.format(bits, name) for (bits, name) in micropatch_cc])
 
-        args = ', '.join([(register_type + ' ' + reg_name) for reg_name in calling_convention])
-        callback_forward_decl = 'extern void {} _CALLBACK({});'.format(attribute, args)
+        callback_forward_decl = 'extern void {} _CALLBACK({});'.format(attribute, get_args(self.c_out_regs))
         # Stupid macro tricks to make coding the patch a little bit nicer. This allows the user
         # to write 'return;' instead of having to understand how to call the callback
         return_macro = '#define return return _CALLBACK({})'.format(', '.join([reg_name if (self.c_out_regs is None or reg_name in self.c_out_regs) else '_dummy' for reg_name in calling_convention]))
-        micropatch_fun_start = 'void {} _MICROPATCH({}) {{'.format(attribute, args)
+
+        micropatch_fun_start = 'void {} _MICROPATCH({}) {{'.format(attribute, get_args(self.c_in_regs))
         lines = [
             '#include <stdint.h>',
             callback_forward_decl,
