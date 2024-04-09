@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
+from collections.abc import Iterable
 
 from ..components.allocation_managers.allocation_manager import MemoryFlag
 from .patch import Patch
@@ -120,8 +121,8 @@ class InsertInstructionPatch(Patch):
         is_thumb=False,
         language: str="ASM",
         c_forward_header: str="",
-        c_in_regs: frozenset[str] | None=None,
-        c_out_regs: frozenset[str] | None=None,
+        c_in_regs: Iterable[str] | None=None,
+        c_out_regs: Iterable[str] | None=None,
         c_in_float_types: dict[str, str]=None,
         c_out_float_types: dict[str, str]=None,
         **kwargs,
@@ -153,8 +154,8 @@ class InsertInstructionPatch(Patch):
         self.is_thumb = is_thumb
         self.language = language
         self.c_forward_header = c_forward_header
-        self.c_in_regs = c_in_regs
-        self.c_out_regs = c_out_regs
+        self.c_in_regs = frozenset() if c_in_regs is None else frozenset(c_in_regs)
+        self.c_out_regs = frozenset() if c_out_regs is None else frozenset(c_out_regs)
         self.c_in_float_types = dict() if c_in_float_types is None else c_in_float_types
         self.c_out_float_types = dict() if c_out_float_types is None else c_out_float_types
         self.save_context = (
@@ -213,7 +214,7 @@ class InsertInstructionPatch(Patch):
             '#undef return'
         ]
         code = '\n'.join(lines)
-        
+
         p.utils.insert_trampoline_code(
             self.addr,
             code,
