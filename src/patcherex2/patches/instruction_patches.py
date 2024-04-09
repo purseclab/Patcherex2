@@ -122,6 +122,8 @@ class InsertInstructionPatch(Patch):
         c_forward_header: str="",
         c_in_regs: frozenset[str] | None=None,
         c_out_regs: frozenset[str] | None=None,
+        c_in_float_types: dict[str, str]=None,
+        c_out_float_types: dict[str, str]=None,
         **kwargs,
     ) -> None:
         """
@@ -153,6 +155,8 @@ class InsertInstructionPatch(Patch):
         self.c_forward_header = c_forward_header
         self.c_in_regs = c_in_regs
         self.c_out_regs = c_out_regs
+        self.c_in_float_types = dict() if c_in_float_types is None else c_in_float_types
+        self.c_out_float_types = dict() if c_out_float_types is None else c_out_float_types
         self.save_context = (
             kwargs["save_context"] if "save_context" in kwargs else False
         )
@@ -178,7 +182,6 @@ class InsertInstructionPatch(Patch):
         if self.c_out_regs is None:
             raise ValueError("c_out_regs must be specified")
 
-        register_type = 'uint{}_t'.format(p.archinfo.bits)
         calling_convention = p.target.get_cc(preserve_none=p.compiler.preserve_none)
         subregisters = p.target.get_subregisters()
 
@@ -189,9 +192,11 @@ class InsertInstructionPatch(Patch):
             return ', '.join(['uint{}_t {}'.format(bits, name) for (bits, name) in micropatch_cc])
 
         callback_forward_decl = 'extern void {} _CALLBACK({});'.format(attribute, get_args(self.c_out_regs))
+
         # Stupid macro tricks to make coding the patch a little bit nicer. This allows the user
         # to write 'return;' instead of having to understand how to call the callback
-        return_macro = '#define return return _CALLBACK({})'.format(', '.join([reg_name if (self.c_out_regs is None or reg_name in self.c_out_regs) else '_dummy' for reg_name in calling_convention]))
+        output_cc = convert_calling_convention(calling_convention, subregisters, self.c_out_regs)
+        return_macro = '#define return return _CALLBACK({})'.format(', '.join([reg_name if reg_name in self.c_out_regs else '_dummy' for (bits, reg_name) in output_cc]))
 
         micropatch_fun_start = 'void {} _MICROPATCH({}) {{'.format(attribute, get_args(self.c_in_regs))
         lines = [
@@ -200,7 +205,7 @@ class InsertInstructionPatch(Patch):
             self.c_forward_header,
             return_macro,
             micropatch_fun_start,
-            register_type + ' _dummy;',
+            'uint{}_t _dummy;'.format(p.archinfo.bits),
             self.instr,
             # Make sure we actually do the callback in case the user forgets to put in a return
             'return;',
@@ -208,7 +213,7 @@ class InsertInstructionPatch(Patch):
             '#undef return'
         ]
         code = '\n'.join(lines)
-
+        
         p.utils.insert_trampoline_code(
             self.addr,
             code,
