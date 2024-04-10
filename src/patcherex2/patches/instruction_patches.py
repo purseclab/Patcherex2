@@ -70,7 +70,7 @@ class ModifyInstructionPatch(Patch):
         offset = p.binary_analyzer.mem_addr_to_file_offset(self.addr)
         p.binfmt_tool.update_binary_content(offset, asm_bytes)
 
-def convert_calling_convention(cc: list[str], subregisters: dict[str, dict[int, list[str]]], regs: frozenset[str]) -> list[tuple[int, str]]:
+def convert_to_subregisters(cc: list[str], subregisters: dict[str, dict[int, list[str]]], regs: frozenset[str]) -> list[tuple[int, str]]:
     # parent_regs maps all children registers to their largest parent register and their bit size
     # For example in x64, we will have
     # parent_regs = {'rax': (64, 'rax'), 'eax': (32, 'rax'), 'ax': (16, 'rax'), 'ah': (8, 'rax'), 'al': (8, 'rax'), ...}
@@ -89,11 +89,6 @@ def convert_calling_convention(cc: list[str], subregisters: dict[str, dict[int, 
         if r not in parent_regs:
             raise ValueError("Unknown register {}".format(r))
         (r_bits, parent) = parent_regs[r]
-        if parent not in cc:
-            if parent != r:
-                raise ValueError("The calling convention does not allow for register {} or its parent {}. The calling convention is: {}".format(r, parent, ', '.join(cc)))
-            else:
-                raise ValueError("The calling convention does not allow for register {}. The calling convention is: {}".format(r, ', '.join(cc)))
         if parent != r:
             if parent in rewrites:
                 raise ValueError("The following two input registers overlapped while computing the calling convention: " + r + " and " + rewrites[parent][1])
@@ -187,13 +182,18 @@ class InsertInstructionPatch(Patch):
         # registers r10 and rbx.
         extra_saved = set(p.archinfo.regs)
         extra_saved = extra_saved - set(calling_convention)
-        extra_saved = extra_saved - self.c_scratch_regs
         extra_saved.discard(p.archinfo.sp_reg)
         extra_saved.discard(p.archinfo.bp_reg)
+        extra_saved_in = list(extra_saved)
+        # We don't want to necessarily output registers that have been marked as scratch
+        # However we always want to make them available as input
+        extra_saved_out = list(extra_saved - self.c_scratch_regs)
+        extra_saved_in_converted = convert_to_subregisters(extra_saved_in, subregister_table, self.c_sub_regs)
+        extra_saved_out_converted = convert_to_subregisters(extra_saved_out, subregister_table, self.c_sub_regs)
 
         attribute = "__attribute__((preserve_none))" if p.compiler.preserve_none else ""
 
-        args = convert_calling_convention(calling_convention, subregister_table, self.c_sub_regs)
+        args = convert_to_subregisters(calling_convention, subregister_table, self.c_sub_regs)
         args_str = ', '.join(['uint{}_t {}'.format(bits, name) for (bits, name) in args])
 
         callback_forward_decl = 'extern void {} _CALLBACK({});'.format(attribute, args_str)
@@ -204,9 +204,10 @@ class InsertInstructionPatch(Patch):
         return_macro_lines = [
             '#define return do {',
         ]
-        for reg in extra_saved:
-            mov_instr = p.archinfo.move_to_reg_asm.format(reg)
-            return_macro_lines.append('    asm ("{}" : : "r"({}) :);'.format(mov_instr, reg))
+
+        for (bits, reg) in extra_saved_out_converted:
+            return_macro_lines.append('    asm ("" : : "r"({}) :);'.format(reg))
+
         return_macro_lines += [
             '    return _CALLBACK({});'.format(', '.join(['_dummy' if reg_name in self.c_scratch_regs else reg_name for (bits, reg_name) in args])),
             '} while(0)'
@@ -216,17 +217,22 @@ class InsertInstructionPatch(Patch):
 
         lines = [
             '#include <stdint.h>',
+            '',
             callback_forward_decl,
+            '',
             self.c_forward_header,
+            '',
             return_macro,
+            '',
             'void {} _MICROPATCH({}) {{'.format(attribute, args_str),
             '    uint{}_t _dummy;'.format(p.archinfo.bits)
         ]
-        for reg in extra_saved:
-            lines.append('    uint{}_t {};'.format(p.archinfo.bits, reg))
-        for reg in extra_saved:
-            mov_instr = p.archinfo.move_from_reg_asm.format(reg)
-            lines.append('    asm ("{}" : "=r"({}) : : );'.format(mov_instr, reg))
+        for (bits, reg) in extra_saved_in_converted:
+            # Force the variables to live in a specific register using the register C extension
+            lines.append('    register uint{0}_t {1} asm("{1}");'.format(bits, reg))
+        for (bits, reg) in extra_saved_in_converted:
+            # Trick the C compiler into thinking that the variables we just defined are actually live
+            lines.append('    asm ("" : "=r"({}) : : );'.format(reg))
         lines += [
             self.instr,
             # Make sure we actually do the callback in case the user forgets to put in a return
@@ -235,7 +241,7 @@ class InsertInstructionPatch(Patch):
             '#undef return'
         ]
         code = '\n'.join(lines)
-        print(code)
+        logger.info("InsertInstructionPatch generated C code:\n" + code)
         p.utils.insert_trampoline_code(
             self.addr,
             code,

@@ -1,4 +1,8 @@
 from patcherex2 import *
+import logging
+
+logger = logging.getLogger("patcherex2.patches.instruction_patches")
+logger.setLevel(logging.INFO)
 
 p = Patcherex("add", target_opts={"compiler": "clang19"})
 

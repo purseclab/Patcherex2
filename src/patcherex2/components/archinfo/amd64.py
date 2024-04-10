@@ -46,8 +46,6 @@ class Amd64Info:
     pop rax
     """
 
-    move_from_reg_asm = "mov %%{}, %0;"
-    move_to_reg_asm = "mov %0, %%{};"
     cc = {
         'Linux': ['rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9'],
         'LinuxPreserveNone': ['rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9', 'r11', 'r12', 'r13', 'r14', 'r15', 'rax'],
@@ -70,7 +68,7 @@ class Amd64Info:
             16: ['ax'],
             # Note that the order of the children registers is important. Only the 0th
             # element of this list (al) is used when determining the calling convention.
-            # That is, if we can only use the following argument 'uint8_t al' in the
+            # That is, we can only use the following argument 'uint8_t al' in the
             # calling convention at the rax position. 'uint8_t ah' is NOT allowed.
             8: ['al', 'ah']
         },
