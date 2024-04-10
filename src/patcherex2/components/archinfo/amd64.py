@@ -44,12 +44,25 @@ class Amd64Info:
     pop rcx
     pop rbx
     pop rax
-    """,
+    """
+
+    move_from_reg_asm = "mov %%{}, %0;"
+    move_to_reg_asm = "mov %0, %%{};"
     cc = {
         'Linux': ['rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9'],
         'LinuxPreserveNone': ['rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9', 'r11', 'r12', 'r13', 'r14', 'r15', 'rax'],
         'Windows': ['rcx', 'rdx', 'r8', 'r9']
     }
+    cc_float = {
+        'Linux': ['xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7']
+    }
+    sp_reg = 'rsp'
+    bp_reg = 'rbp'
+
+    @property
+    def regs(self):
+        return list(self.subregisters.keys())
+
     subregisters = {
         'rax': {
             64: ['rax'],
