@@ -7,7 +7,7 @@ rdi += rdi;
 rdi += 5;
 """
 
-p.patches.append(InsertInstructionPatch(0x114d, c_str, language="C", c_in_regs=["rdi"], c_out_regs=["rdi"]))
+p.patches.append(InsertInstructionPatch(0x114d, c_str, language="C"))
 p.apply_patches()
 
 p.binfmt_tool.save_binary()

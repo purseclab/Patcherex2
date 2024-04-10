@@ -83,3 +83,7 @@ class ElfAmd64Linux(Target):
             return archinfo.cc['LinuxPreserveNone']
         else:
             return archinfo.cc['Linux']
+
+    def get_cc_float(self, archinfo=None):
+        archinfo = self.get_archinfo(archinfo)
+        return archinfo.cc_float['Linux']

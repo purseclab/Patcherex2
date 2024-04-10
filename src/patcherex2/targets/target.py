@@ -24,9 +24,8 @@ class Target:
     def get_cc(self, archinfo=None, preserve_none=False):
         raise NotImplementedError("The calling convention for this target is unknown")
 
+    def get_cc_float(self, archinfo=None):
+        raise NotImplementedError("The floating point calling convention for this target is unknown")
+
     def get_archinfo(self, archinfo):
         raise NotImplementedError("get_archinfo not implemented")
-
-    def get_subregisters(self, archinfo=None):
-        archinfo = self.get_archinfo(archinfo)
-        return archinfo.subregisters

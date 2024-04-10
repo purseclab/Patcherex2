@@ -121,8 +121,8 @@ class InsertInstructionPatch(Patch):
         is_thumb=False,
         language: str="ASM",
         c_forward_header: str="",
-        c_in_regs: Iterable[str] | None=None,
-        c_out_regs: Iterable[str] | None=None,
+        c_scratch_regs: Iterable[str]=None,
+        c_sub_regs: Iterable[str]=None,
         c_in_float_types: dict[str, str]=None,
         c_out_float_types: dict[str, str]=None,
         **kwargs,
@@ -154,8 +154,8 @@ class InsertInstructionPatch(Patch):
         self.is_thumb = is_thumb
         self.language = language
         self.c_forward_header = c_forward_header
-        self.c_in_regs = frozenset() if c_in_regs is None else frozenset(c_in_regs)
-        self.c_out_regs = frozenset() if c_out_regs is None else frozenset(c_out_regs)
+        self.c_scratch_regs = frozenset() if c_scratch_regs is None else frozenset(c_scratch_regs)
+        self.c_sub_regs = frozenset() if c_sub_regs is None else frozenset(c_sub_regs)
         self.c_in_float_types = dict() if c_in_float_types is None else c_in_float_types
         self.c_out_float_types = dict() if c_out_float_types is None else c_out_float_types
         self.save_context = (
@@ -178,43 +178,64 @@ class InsertInstructionPatch(Patch):
     def _apply_c(self, p) -> None:
         if self.addr is None:
             raise ValueError("An address must be provided for a C instruction patch")
-        if self.c_in_regs is None:
-            raise ValueError("c_in_regs must be specified")
-        if self.c_out_regs is None:
-            raise ValueError("c_out_regs must be specified")
 
         calling_convention = p.target.get_cc(preserve_none=p.compiler.preserve_none)
-        subregisters = p.target.get_subregisters()
+        subregister_table = p.archinfo.subregisters
+
+        # Figure out if there are any extra registers that we need to expose to the user
+        # that aren't part of the calling convention. For x64 preserve_none, this will be
+        # registers r10 and rbx.
+        extra_saved = set(p.archinfo.regs)
+        extra_saved = extra_saved - set(calling_convention)
+        extra_saved = extra_saved - self.c_scratch_regs
+        extra_saved.discard(p.archinfo.sp_reg)
+        extra_saved.discard(p.archinfo.bp_reg)
 
         attribute = "__attribute__((preserve_none))" if p.compiler.preserve_none else ""
 
-        def get_args(regs: frozenset[str]) -> str:
-            micropatch_cc = convert_calling_convention(calling_convention, subregisters, regs)
-            return ', '.join(['uint{}_t {}'.format(bits, name) for (bits, name) in micropatch_cc])
+        args = convert_calling_convention(calling_convention, subregister_table, self.c_sub_regs)
+        args_str = ', '.join(['uint{}_t {}'.format(bits, name) for (bits, name) in args])
 
-        callback_forward_decl = 'extern void {} _CALLBACK({});'.format(attribute, get_args(self.c_out_regs))
+        callback_forward_decl = 'extern void {} _CALLBACK({});'.format(attribute, args_str)
 
         # Stupid macro tricks to make coding the patch a little bit nicer. This allows the user
         # to write 'return;' instead of having to understand how to call the callback
-        output_cc = convert_calling_convention(calling_convention, subregisters, self.c_out_regs)
-        return_macro = '#define return return _CALLBACK({})'.format(', '.join([reg_name if reg_name in self.c_out_regs else '_dummy' for (bits, reg_name) in output_cc]))
+        # reg_name if reg_name in self.c_out_regs else '_dummy'
+        return_macro_lines = [
+            '#define return do {',
+        ]
+        for reg in extra_saved:
+            mov_instr = p.archinfo.move_to_reg_asm.format(reg)
+            return_macro_lines.append('    asm ("{}" : : "r"({}) :);'.format(mov_instr, reg))
+        return_macro_lines += [
+            '    return _CALLBACK({});'.format(', '.join(['_dummy' if reg_name in self.c_scratch_regs else reg_name for (bits, reg_name) in args])),
+            '} while(0)'
+        ]
 
-        micropatch_fun_start = 'void {} _MICROPATCH({}) {{'.format(attribute, get_args(self.c_in_regs))
+        return_macro = '\\\n'.join(return_macro_lines)
+
         lines = [
             '#include <stdint.h>',
             callback_forward_decl,
             self.c_forward_header,
             return_macro,
-            micropatch_fun_start,
-            'uint{}_t _dummy;'.format(p.archinfo.bits),
+            'void {} _MICROPATCH({}) {{'.format(attribute, args_str),
+            '    uint{}_t _dummy;'.format(p.archinfo.bits)
+        ]
+        for reg in extra_saved:
+            lines.append('    uint{}_t {};'.format(p.archinfo.bits, reg))
+        for reg in extra_saved:
+            mov_instr = p.archinfo.move_from_reg_asm.format(reg)
+            lines.append('    asm ("{}" : "=r"({}) : : );'.format(mov_instr, reg))
+        lines += [
             self.instr,
             # Make sure we actually do the callback in case the user forgets to put in a return
-            'return;',
+            '    return;',
             '}',
             '#undef return'
         ]
         code = '\n'.join(lines)
-
+        print(code)
         p.utils.insert_trampoline_code(
             self.addr,
             code,
