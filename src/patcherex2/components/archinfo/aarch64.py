@@ -62,7 +62,7 @@ class Aarch64Info:
         'default': ['v8', 'v9', 'v10', 'v11', 'v12', 'v13', 'v14', 'v15']
     }
 
-    regs = ['x{}'.format(i) for i in range(0, 30)]
+    regs = ['x{}'.format(i) for i in range(0, 30 + 1)]
     regs_float = ['v{}'.format(i) for i in range(0, 30 + 1)]
 
     subregisters = {

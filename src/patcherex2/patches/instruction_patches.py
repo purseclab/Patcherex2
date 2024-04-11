@@ -118,8 +118,7 @@ class InsertInstructionPatch(Patch):
         c_forward_header: str="",
         c_scratch_regs: Iterable[str]=None,
         c_sub_regs: Iterable[str]=None,
-        c_in_float_types: dict[str, str]=None,
-        c_out_float_types: dict[str, str]=None,
+        c_float_types: dict[str, str]=None,
         **kwargs,
     ) -> None:
         """
@@ -151,8 +150,7 @@ class InsertInstructionPatch(Patch):
         self.c_forward_header = c_forward_header
         self.c_scratch_regs = frozenset() if c_scratch_regs is None else frozenset(c_scratch_regs)
         self.c_sub_regs = frozenset() if c_sub_regs is None else frozenset(c_sub_regs)
-        self.c_in_float_types = dict() if c_in_float_types is None else c_in_float_types
-        self.c_out_float_types = dict() if c_out_float_types is None else c_out_float_types
+        self.c_float_types = dict() if c_float_types is None else c_float_types
         self.save_context = (
             kwargs["save_context"] if "save_context" in kwargs else False
         )
@@ -192,10 +190,24 @@ class InsertInstructionPatch(Patch):
         extra_saved_in_converted = convert_to_subregisters(extra_saved_in, subregister_table, self.c_sub_regs)
         extra_saved_out_converted = convert_to_subregisters(extra_saved_out, subregister_table, self.c_sub_regs)
 
+        def type_float(regs) -> list[tuple[str, str]]:
+            return [(self.c_float_types.get(fp_reg, 'float'), fp_reg) for fp_reg in regs]
+
+        calling_convention_float: list[str] = p.target.get_cc_float()
+        extra_saved_float = set(p.archinfo.regs_float)
+        extra_saved_float = extra_saved_float - set(calling_convention_float) - set(p.target.get_callee_saved_float())
+        extra_saved_float_in = list(extra_saved_float)
+        extra_saved_float_out = list(extra_saved_float - self.c_scratch_regs)
+        extra_saved_float_in_converted = type_float(extra_saved_float_in)
+        extra_saved_float_out_converted = type_float(extra_saved_float_out)
+
         attribute = "__attribute__((preserve_none))" if p.compiler.preserve_none else ""
 
-        args = convert_to_subregisters(calling_convention, subregister_table, self.c_sub_regs)
-        args_str = ', '.join(['uint{}_t {}'.format(bits, name) for (bits, name) in args])
+        int_args = convert_to_subregisters(calling_convention, subregister_table, self.c_sub_regs)
+        int_args_str = ['uint{}_t {}'.format(bits, name) for (bits, name) in int_args]
+        float_args: list[tuple[str, str]] = type_float(calling_convention_float)
+        float_args_str = ['{} {}'.format(ftype, name) for (ftype, name) in float_args]
+        args_str = ', '.join(int_args_str + float_args_str)
 
         callback_forward_decl = 'extern void {} _CALLBACK({});'.format(attribute, args_str)
 
@@ -209,9 +221,14 @@ class InsertInstructionPatch(Patch):
         for (bits, reg) in extra_saved_out_converted:
             # Make sure the variables are live just before the return statement
             return_macro_lines.append('    asm ("" : : "r"({}) :);'.format(reg))
+        for (ftype, reg) in extra_saved_float_out_converted:
+            # Make sure the variables are live just before the return statement
+            return_macro_lines.append('    asm ("" : : "r"({}) :);'.format(reg))
 
+        callback_args = ['_dummy' if reg_name in self.c_scratch_regs else reg_name for (bits, reg_name) in int_args]
+        callback_args += ['_dummyFloat' if reg_name in self.c_scratch_regs else reg_name for (ftype, reg_name) in float_args]
         return_macro_lines += [
-            '    __attribute__((musttail)) return _CALLBACK({});'.format(', '.join(['_dummy' if reg_name in self.c_scratch_regs else reg_name for (bits, reg_name) in args])),
+            '    __attribute__((musttail)) return _CALLBACK({});'.format(', '.join(callback_args)),
             '} while(0)'
         ]
 
@@ -227,13 +244,18 @@ class InsertInstructionPatch(Patch):
             return_macro,
             '',
             'void {} _MICROPATCH({}) {{'.format(attribute, args_str),
-            '    uint{}_t _dummy;'.format(p.archinfo.bits)
+            '    uint{}_t _dummy;'.format(p.archinfo.bits),
+            '    float _dummyFloat;'
         ]
         for (bits, reg) in extra_saved_in_converted:
             # Force the variables to live in a specific register using the register C extension
             lines.append('    register uint{0}_t {1} asm("{1}");'.format(bits, reg))
+        for (ftype, reg) in extra_saved_float_in_converted:
+            lines.append('    register {0} {1} asm("{1}");'.format(ftype, reg))
         for (bits, reg) in extra_saved_in_converted:
             # Trick the C compiler into thinking that the variables we just defined are actually live
+            lines.append('    asm ("" : "=r"({}) : : );'.format(reg))
+        for (ftype, reg) in extra_saved_float_in_converted:
             lines.append('    asm ("" : "=r"({}) : : );'.format(reg))
         lines += [
             self.instr,

@@ -65,7 +65,7 @@ class Amd64Info:
     def regs(self):
         return list(self.subregisters.keys())
 
-    regs_float = ['xmm{}'.format(i) for i in range(0, 31 + 1)]
+    regs_float = ['xmm{}'.format(i) for i in range(0, 15 + 1)]
 
     subregisters = {
         'rax': {
