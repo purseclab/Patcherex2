@@ -51,16 +51,21 @@ class Amd64Info:
         'LinuxPreserveNone': ['rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9', 'r11', 'r12', 'r13', 'r14', 'r15', 'rax'],
         'Windows': ['rcx', 'rdx', 'r8', 'r9']
     }
+    callee_saved = {
+        'Linux': ['r12', 'r13', 'r14', 'r15', 'rbx', 'rsp', 'rbp']
+    }
     cc_float = {
         'Linux': ['xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7']
     }
-    callee_preserved = {
-        'Linux': ['r12', 'r13', 'r14', 'r15', 'rbx', 'rsp', 'rbp']
+    callee_saved_float = {
+        'Linux': []
     }
 
     @property
     def regs(self):
         return list(self.subregisters.keys())
+
+    regs_float = ['xmm{}'.format(i) for i in range(0, 31 + 1)]
 
     subregisters = {
         'rax': {

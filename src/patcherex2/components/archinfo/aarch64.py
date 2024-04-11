@@ -47,3 +47,29 @@ class Aarch64Info:
         ldr x30, [sp, #0xf0]
         add sp, sp, #0x1f0
     """
+
+    cc = {
+        'default': ['x0', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7'],
+        'defaultPreserveNone': None # TODO once aarch64 support lands in LLVM for preserve_none
+    }
+    callee_saved = {
+        'default': ['x19', 'x20', 'x21', 'x22', 'x23', 'x24', 'x25', 'x26', 'x27', 'x28', 'x29', 'x30']
+    }
+    cc_float = {
+        'default': ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7']
+    }
+    callee_saved_float = {
+        'default': ['v8', 'v9', 'v10', 'v11', 'v12', 'v13', 'v14', 'v15']
+    }
+
+    regs = ['x{}'.format(i) for i in range(0, 30)]
+    regs_float = ['v{}'.format(i) for i in range(0, 30 + 1)]
+
+    subregisters = {
+        'x{}'.format(i):
+            {
+                64: ['x{}'.format(i)],
+                32: ['w{}'.format(i)]
+            }
+        for i in range(0, 30 + 1)
+    }

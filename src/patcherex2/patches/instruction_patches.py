@@ -184,7 +184,7 @@ class InsertInstructionPatch(Patch):
         # Note that we cannot control callee saved registers. If we attempt to define
         # some registers via 'register uint64_t rbx asm("rbx");', the compiler will insert
         # push and pop instructions to save these registers.
-        extra_saved = extra_saved - set(calling_convention) - set(p.target.get_callee_preserved())
+        extra_saved = extra_saved - set(calling_convention) - set(p.target.get_callee_saved())
         extra_saved_in = list(extra_saved)
         # We don't want to necessarily output registers that have been marked as scratch
         # However we always want to make them available as input
