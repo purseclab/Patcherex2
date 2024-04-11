@@ -181,9 +181,10 @@ class InsertInstructionPatch(Patch):
         # that aren't part of the calling convention. For x64 preserve_none, this will be
         # registers r10 and rbx.
         extra_saved = set(p.archinfo.regs)
-        extra_saved = extra_saved - set(calling_convention)
-        extra_saved.discard(p.archinfo.sp_reg)
-        extra_saved.discard(p.archinfo.bp_reg)
+        # Note that we cannot control callee saved registers. If we attempt to define
+        # some registers via 'register uint64_t rbx asm("rbx");', the compiler will insert
+        # push and pop instructions to save these registers.
+        extra_saved = extra_saved - set(calling_convention) - set(p.target.get_callee_preserved())
         extra_saved_in = list(extra_saved)
         # We don't want to necessarily output registers that have been marked as scratch
         # However we always want to make them available as input
@@ -206,10 +207,11 @@ class InsertInstructionPatch(Patch):
         ]
 
         for (bits, reg) in extra_saved_out_converted:
+            # Make sure the variables are live just before the return statement
             return_macro_lines.append('    asm ("" : : "r"({}) :);'.format(reg))
 
         return_macro_lines += [
-            '    return _CALLBACK({});'.format(', '.join(['_dummy' if reg_name in self.c_scratch_regs else reg_name for (bits, reg_name) in args])),
+            '    __attribute__((musttail)) return _CALLBACK({});'.format(', '.join(['_dummy' if reg_name in self.c_scratch_regs else reg_name for (bits, reg_name) in args])),
             '} while(0)'
         ]
 

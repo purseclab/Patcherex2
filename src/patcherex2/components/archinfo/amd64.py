@@ -54,8 +54,9 @@ class Amd64Info:
     cc_float = {
         'Linux': ['xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7']
     }
-    sp_reg = 'rsp'
-    bp_reg = 'rbp'
+    callee_preserved = {
+        'Linux': ['r12', 'r13', 'r14', 'r15', 'rbx', 'rsp', 'rbp']
+    }
 
     @property
     def regs(self):
