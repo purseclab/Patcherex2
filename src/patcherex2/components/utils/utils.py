@@ -20,7 +20,9 @@ class Utils:
         force_insert=False,
         detour_pos=-1,
         symbols: dict[str, int] = None,
-        language="ASM"
+        language="ASM",
+        asm_header="",
+        asm_footer=""
     ) -> None:
         logger.debug(f"Inserting trampoline code at {hex(addr)}: {instrs}")
         symbols = symbols if symbols else {}
@@ -46,7 +48,8 @@ class Utils:
                 )
             )
         trampoline_instrs_with_jump_back = (
-            ("" if language == "C" else (instrs + "\n"))
+            # Insert the asm footer here
+            (asm_footer if language == "C" else instrs) + "\n"
             + moved_instrs
             + "\n"
             + self.p.archinfo.jmp_asm.format(dst=hex(addr + moved_instrs_len))
@@ -55,6 +58,14 @@ class Utils:
         if language == "C":
             symbols_copy = dict(symbols)
             symbols_copy['_CALLBACK'] = 0
+            asm_header_length = len(
+                self.p.assembler.assemble(
+                    asm_header,
+                    addr,
+                    # TODO: we don't really need this addr, but better than 0x0 because 0x0 is too far away from the code
+                    is_thumb=self.p.binary_analyzer.is_thumb(addr),
+                )
+            )
             compiled_length = len(
                 self.p.compiler.compile(
                     instrs,
@@ -66,10 +77,11 @@ class Utils:
                 )
             )
         else:
+            asm_header_length = 0
             compiled_length = 0
 
         trampoline_size = (
-            compiled_length +
+            asm_header_length + compiled_length +
             len(
                 self.p.assembler.assemble(
                     trampoline_instrs_with_jump_back,
@@ -97,27 +109,40 @@ class Utils:
             else:
                 file_addr = self.p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
 
+        #symbols['printf'] = self.p.binary_analyzer.get_all_symbols()['printf'] - mem_addr - asm_header_length
+
         if language == "C":
+            # Compile asm header
+            compiled_asm_header = self.p.assembler.assemble(
+                asm_header,
+                mem_addr,
+                symbols=symbols,
+                is_thumb=self.p.binary_analyzer.is_thumb(addr),
+            )
+
+            # Compile C code
             symbols_copy = dict(symbols)
-            # The linker seems to want a relative address, which is quite confusing but seems to work
-            # We want to jump to the instruction directly after the compiled code. Hypothetically we could
-            # just nop out the jump to callback to achieve the same effect, but it's easier to just do the jump
-            symbols_copy['_CALLBACK'] = compiled_length
+            symbols_copy['_CALLBACK'] = mem_addr + asm_header_length + compiled_length
             compiled_code = self.p.compiler.compile(
                 instrs,
+                base=mem_addr + asm_header_length,
                 symbols=symbols_copy,
                 is_thumb=self.p.binary_analyzer.is_thumb(addr),
                 # Some optimization needs to be used to squash down all this parameter trickery
                 # we are doing. -Os optimizes for space
                 extra_compiler_flags=["-Os"]
             )
+            if len(compiled_code) != compiled_length:
+                logger.warning("Compiled patch differs from allocated length. Truncating compiled code. This typically occurs because the base address of the compiled code is unaligned.")
+                compiled_code = compiled_code[:compiled_length]
         else:
+            compiled_asm_header = bytes()
             compiled_code = bytes()
 
         self.p.sypy_info["patcherex_added_functions"].append(hex(mem_addr))
-        trampoline_bytes = compiled_code + self.p.assembler.assemble(
+        trampoline_bytes = compiled_asm_header + compiled_code + self.p.assembler.assemble(
             trampoline_instrs_with_jump_back,
-            mem_addr + compiled_length,
+            mem_addr + asm_header_length + compiled_length,
             symbols=symbols,
             is_thumb=self.p.binary_analyzer.is_thumb(addr),
         )

@@ -99,6 +99,46 @@ def convert_to_subregisters(cc: list[str], subregisters: dict[str, dict[int, lis
     return list(map(convert_cc_reg, cc))
 
 class InsertInstructionPatch(Patch):
+    class CConfig:
+        def __init__(self,
+                     c_forward_header: str = "",
+                     scratch_regs: Iterable[str] = None,
+                     sub_regs: Iterable[str] = None,
+                     float_types: dict[str, str] = None,
+                     asm_header: str = "",
+                     asm_footer: str = ""):
+            """
+            Used to configure an InsertInstructionPatch when language == "C"
+
+            :param c_forward_header: C code that will be inserted before the micropatch code. This is useful when you want\
+            to use C types, C headers, and C function forward declarations.
+            :param scratch_regs: It is generally a good idea to mark some registers as scratch to give the compiler\
+            breathing room for allocating registers to use for intermediate variables in your micropatch.\
+            All of the registers that we mark as scratch can be freely clobbered by the compiler\
+            Note that you can still read from scratch registers stored in the variables. What the scratch\
+            register denotation will indicate however is that the register can be re-used after the variable\
+            is no longer live.
+            :param sub_regs: Some architectures have subregisters which allow access to a portion of a register, such\
+            as the lower 32 bits of a 64 bit register. If you want to use a subregister instead of the full register\
+            you can request this by passing in a list of subregisters here. Note that if you specify a subregister here,\
+            the full parent register is not available in the C patch.
+            :param float_types: This dictionary maps floating point register names to the type you want that register\
+            to hold. By default, floating point registers are mapped to the C float type. You can use this to map certain\
+            registers to double instead.
+            :param asm_header: The asm_header is inserted in the main body of the patch before the C code. This header is\
+            primarily useful for gaining access to the stack pointer, which is a register that is typically unavailable in\
+            our C patch code.
+            :param asm_footer: The asm_footer is the same as the asm_header, except that it runs after the C code executes.\
+            This is typically less useful than asm_header, but is still available here if you need to do any cleanup in\
+            assembly.
+            """
+            self.c_forward_header = c_forward_header
+            self.scratch_regs = scratch_regs
+            self.sub_regs = sub_regs
+            self.float_types = float_types
+            self.asm_header = asm_header
+            self.asm_footer = asm_footer
+
     """
     Patch that allows instructions to be inserted into binary. These instructions are inserted at a free place in the binary.
     Then, At the address given, an instruction is inserted that jumps to this block (also in the block are the instructions this overwrites).
@@ -115,10 +155,7 @@ class InsertInstructionPatch(Patch):
         symbols: dict[str, int] | None = None,
         is_thumb=False,
         language: str="ASM",
-        c_forward_header: str="",
-        c_scratch_regs: Iterable[str]=None,
-        c_sub_regs: Iterable[str]=None,
-        c_float_types: dict[str, str]=None,
+        c_config: CConfig | None=None,
         **kwargs,
     ) -> None:
         """
@@ -132,7 +169,7 @@ class InsertInstructionPatch(Patch):
         :param symbols: Symbols to include when assembling, in format {symbol name: memory address}, defaults to None
         :param is_thumb: Whether the instructions given are thumb, defaults to False
         :param language: The language of the patch, can be either "ASM" or "C"
-        :param c_forward_header: If the language is "C", then this field contains the code that should be inserted before the instr code. This string will typically contain the #includes necessary to bring in function prototypes and any required type declarations.
+        :param c_config: Configuration options for when language == "C"
         :param **kwargs: Extra options. Can have a boolean "save_context" for whether context should be saved.
         """
         self.addr = None
@@ -147,10 +184,7 @@ class InsertInstructionPatch(Patch):
         self.symbols = symbols if symbols else {}
         self.is_thumb = is_thumb
         self.language = language
-        self.c_forward_header = c_forward_header
-        self.c_scratch_regs = frozenset() if c_scratch_regs is None else frozenset(c_scratch_regs)
-        self.c_sub_regs = frozenset() if c_sub_regs is None else frozenset(c_sub_regs)
-        self.c_float_types = dict() if c_float_types is None else c_float_types
+        self.c_config = self.CConfig() if c_config is None else c_config
         self.save_context = (
             kwargs["save_context"] if "save_context" in kwargs else False
         )
@@ -172,6 +206,11 @@ class InsertInstructionPatch(Patch):
         if self.addr is None:
             raise ValueError("An address must be provided for a C instruction patch")
 
+        c_forward_header = self.c_config.c_forward_header
+        c_scratch_regs = frozenset() if self.c_config.scratch_regs is None else frozenset(self.c_config.scratch_regs)
+        c_sub_regs = frozenset() if self.c_config.sub_regs is None else frozenset(self.c_config.sub_regs)
+        c_float_types = dict() if self.c_config.float_types is None else self.c_config.float_types
+
         calling_convention = p.target.get_cc(preserve_none=p.compiler.preserve_none)
         subregister_table = p.archinfo.subregisters
 
@@ -186,24 +225,24 @@ class InsertInstructionPatch(Patch):
         extra_saved_in = list(extra_saved)
         # We don't want to necessarily output registers that have been marked as scratch
         # However we always want to make them available as input
-        extra_saved_out = list(extra_saved - self.c_scratch_regs)
-        extra_saved_in_converted = convert_to_subregisters(extra_saved_in, subregister_table, self.c_sub_regs)
-        extra_saved_out_converted = convert_to_subregisters(extra_saved_out, subregister_table, self.c_sub_regs)
+        extra_saved_out = list(extra_saved - c_scratch_regs)
+        extra_saved_in_converted = convert_to_subregisters(extra_saved_in, subregister_table, c_sub_regs)
+        extra_saved_out_converted = convert_to_subregisters(extra_saved_out, subregister_table, c_sub_regs)
 
         def type_float(regs) -> list[tuple[str, str]]:
-            return [(self.c_float_types.get(fp_reg, 'float'), fp_reg) for fp_reg in regs]
+            return [(c_float_types.get(fp_reg, 'float'), fp_reg) for fp_reg in regs]
 
         calling_convention_float: list[str] = p.target.get_cc_float()
         extra_saved_float = set(p.archinfo.regs_float)
         extra_saved_float = extra_saved_float - set(calling_convention_float) - set(p.target.get_callee_saved_float())
         extra_saved_float_in = list(extra_saved_float)
-        extra_saved_float_out = list(extra_saved_float - self.c_scratch_regs)
+        extra_saved_float_out = list(extra_saved_float - c_scratch_regs)
         extra_saved_float_in_converted = type_float(extra_saved_float_in)
         extra_saved_float_out_converted = type_float(extra_saved_float_out)
 
         attribute = "__attribute__((preserve_none))" if p.compiler.preserve_none else ""
 
-        int_args = convert_to_subregisters(calling_convention, subregister_table, self.c_sub_regs)
+        int_args = convert_to_subregisters(calling_convention, subregister_table, c_sub_regs)
         int_args_str = ['uint{}_t {}'.format(bits, name) for (bits, name) in int_args]
         float_args: list[tuple[str, str]] = type_float(calling_convention_float)
         float_args_str = ['{} {}'.format(ftype, name) for (ftype, name) in float_args]
@@ -225,8 +264,8 @@ class InsertInstructionPatch(Patch):
             # Make sure the variables are live just before the return statement
             return_macro_lines.append('    asm ("" : : "r"({}) :);'.format(reg))
 
-        callback_args = ['_dummy' if reg_name in self.c_scratch_regs else reg_name for (bits, reg_name) in int_args]
-        callback_args += ['_dummyFloat' if reg_name in self.c_scratch_regs else reg_name for (ftype, reg_name) in float_args]
+        callback_args = ['_dummy' if reg_name in c_scratch_regs else reg_name for (bits, reg_name) in int_args]
+        callback_args += ['_dummyFloat' if reg_name in c_scratch_regs else reg_name for (ftype, reg_name) in float_args]
         return_macro_lines += [
             '    __attribute__((musttail)) return _CALLBACK({});'.format(', '.join(callback_args)),
             '} while(0)'
@@ -239,7 +278,7 @@ class InsertInstructionPatch(Patch):
             '',
             callback_forward_decl,
             '',
-            self.c_forward_header,
+            c_forward_header,
             '',
             return_macro,
             '',
@@ -272,7 +311,9 @@ class InsertInstructionPatch(Patch):
             force_insert=self.force_insert,
             detour_pos=self.detour_pos,
             symbols=self.symbols,
-            language="C"
+            language="C",
+            asm_header=self.c_config.asm_header,
+            asm_footer=self.c_config.asm_footer
         )
 
     def _apply_asm(self, p) -> None:
