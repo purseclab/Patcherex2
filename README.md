@@ -38,8 +38,14 @@ docker run --rm -it -v ${PWD}:/workdir -w /workdir patcherex2
 ```
 </details>
 
+
+## Usage
+You can find usage examples [here](https://purseclab.github.io/Patcherex2/examples/insert_instruction_patch/).
+
+
 ## Documentation
 General documentation and API reference for Patcherex2 can be found at [purseclab.github.io/Patcherex2](https://purseclab.github.io/Patcherex2/).
+
 
 ## Supported Targets
 
@@ -55,3 +61,8 @@ InsertFunctionPatch     | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 | 🟩 
 ModifyFunctionPatch     | 🟨 | 🟩 | 🟩 | 🟩 | 🟨 | 🟨 | 🟨 | 🟨 | 🟨 | 🟨 | 🟨 | ⬜ | ⬜ |
 
 🟩 Fully Functional, 🟨 Limited Functionality, 🟥 Not Working, ⬜ Not Tested, 🟪 Work in Progress
+
+
+## Acknowledgements
+This project was developed as part of the [DARPA AMP](https://www.darpa.mil/program/assured-micropatching) program, under contract N6600120C4031.
+
