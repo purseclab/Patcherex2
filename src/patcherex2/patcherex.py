@@ -88,13 +88,9 @@ class Patcherex:
         """
         Applies all added patches to the binary. Call this when you have added all the patches you want.
         """
-        # TODO: sort patches properly
-        # self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
-        self.patches.sort(
-            key=lambda x: not isinstance(
-                x, (ModifyDataPatch, InsertDataPatch, RemoveDataPatch)
-            )
-        )
+        
+        self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
+        
         logger.debug(f"Applying patches: {self.patches}")
         for patch in self.patches:
             patch.apply(self)
@@ -106,7 +102,4 @@ class Patcherex:
 
         :param filename: Name of file to save to, defaults to None
         """
-        logger.warning(
-            "p.save_binary() is deprecated, use p.binfmt_tool.save_binary() instead."
-        )
         self.binfmt_tool.save_binary(filename)
