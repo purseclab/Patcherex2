@@ -26,4 +26,4 @@ p.patches.append(InsertInstructionPatch(0x11c1,asm_string))
 
 p.apply_patches()
 
-p.binfmt_tool.save_binary()
+p.save_binary()

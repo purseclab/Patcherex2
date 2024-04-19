@@ -11,4 +11,4 @@ int add(int a, int b) {
 p.patches.append(ModifyFunctionPatch("add", new_add_func))
 
 p.apply_patches()
-p.binfmt_tool.save_binary("add_patched")
+p.save_binary("add_patched")

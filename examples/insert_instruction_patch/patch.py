@@ -11,4 +11,4 @@ asm_str = """
 p.patches.append(InsertInstructionPatch(0x114d,asm_str))
 p.apply_patches()
 
-p.binfmt_tool.save_binary()
+p.save_binary()
