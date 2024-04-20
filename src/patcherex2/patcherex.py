@@ -88,9 +88,13 @@ class Patcherex:
         """
         Applies all added patches to the binary. Call this when you have added all the patches you want.
         """
-
-        self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
-
+        # TODO: sort patches properly
+        # self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
+        self.patches.sort(
+            key=lambda x: not isinstance(
+                x, (ModifyDataPatch, InsertDataPatch, RemoveDataPatch)
+            )
+        )
         logger.debug(f"Applying patches: {self.patches}")
         for patch in self.patches:
             patch.apply(self)
