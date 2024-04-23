@@ -92,7 +92,7 @@ class Utils:
             )
             + 4  # TODO: some time actual size is larger, but we need a better way to calculate it
         )
-        #print("trampoline_size", trampoline_size)
+
         if detour_pos == -1:
             trampoline_block = self.p.allocation_manager.allocate(
                 trampoline_size, align=self.p.archinfo.alignment, flag=MemoryFlag.RX
@@ -108,8 +108,6 @@ class Utils:
                     break
             else:
                 file_addr = self.p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
-
-        #symbols['printf'] = self.p.binary_analyzer.get_all_symbols()['printf'] - mem_addr - asm_header_length
 
         if language == "C":
             # Compile asm header
@@ -133,7 +131,7 @@ class Utils:
                 extra_compiler_flags=["-Os"]
             )
             if len(compiled_code) != compiled_length:
-                logger.warning("Compiled patch differs from allocated length. Truncating compiled code. This typically occurs because the base address of the compiled code is unaligned.")
+                logger.warning("When the compiled patch was compiled with base address {}, the length of the patch was {} bytes. This differs from the length of {} bytes computed when the base address was 0.".format(hex(mem_addr + asm_header_length), len(compiled_code), compiled_length))
                 compiled_code = compiled_code[:compiled_length]
         else:
             compiled_asm_header = bytes()
