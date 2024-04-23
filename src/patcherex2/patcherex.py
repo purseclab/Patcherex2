@@ -104,9 +104,6 @@ class Patcherex:
         """
         Save the patched binary to a file.
 
-        :param filename: Name of file to save to, defaults to None
+        :param filename: Name of file to save to, defaults to '<filename>.patched'
         """
-        logger.warning(
-            "p.save_binary() is deprecated, use p.binfmt_tool.save_binary() instead."
-        )
         self.binfmt_tool.save_binary(filename)

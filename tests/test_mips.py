@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+
 import pytest
 
 from patcherex2 import *
@@ -303,7 +304,7 @@ class Tests(unittest.TestCase):
             for patch in patches:
                 p.patches.append(patch)
             p.apply_patches()
-            p.binfmt_tool.save_binary(tmp_file)
+            p.save_binary(tmp_file)
             # os.system(f"readelf -hlS {tmp_file}")
 
             p = subprocess.Popen(
