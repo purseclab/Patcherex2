@@ -356,6 +356,42 @@ class Tests(unittest.TestCase):
             expected_returnCode=0
         )
 
+    def test_insert_instruction_patch_c_asm_header(self):
+        asm_header = "mov r12, rbp"
+
+        # Original computation computed the area as pi * radius
+        # Here our micropatch loops over the areas array and multiplies by another radius to fix the bug
+        instrs = """
+        int num_radii = *((int *) (r12 - 0x3c));
+        float *areas = *((float **) (r12 - 0x20));
+        float *radii = *((float **) (r12 - 0x38));
+        for (int i = 0; i < num_radii; i++) {
+            areas[i] *= radii[i];
+        }
+        """
+
+        config = InsertInstructionPatch.CConfig(
+            asm_header=asm_header,
+            scratch_regs=[
+                'r8', 'r9', 'r10', 'r11', 'r13', 'r14', 'r15'
+                'xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7', 'xmm9', 'xmm10', 'xmm11', 'xmm12', 'xmm13', 'xmm14', 'xmm15'
+            ]
+        )
+
+        expected_output = b''.join([
+            b"The area of the circle with radius 1.500000 is 7.065000\n",
+            b"The area of the circle with radius 2.000000 is 12.560000\n",
+            b"The area of the circle with radius 4.300000 is 58.058605\n"
+        ])
+
+        self.run_one(
+            "iip_c_asm_header",
+            [InsertInstructionPatch(0x130d, instrs, language="C", c_config=config)],
+            expected_output=expected_output,
+            expected_returnCode=0,
+            target_opts={"compiler": "clang19"}
+        )
+
     def run_one(
         self,
         filename,
