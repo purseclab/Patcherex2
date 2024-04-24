@@ -73,10 +73,7 @@ class Utils:
                     is_thumb=self.p.binary_analyzer.is_thumb(addr),
                     # Some optimization needs to be used to squash down all this parameter trickery
                     # we are doing. -Os optimizes for space
-                    # -fno-asynchronous-unwind-tables will force the compiler to leave out the .eh_frame section,
-                    # which is some scenarios was getting tagged onto the end of the compiled code. For our purposes
-                    # this section is completely useless.
-                    extra_compiler_flags=["-Os", "-fno-asynchronous-unwind-tables"]
+                    extra_compiler_flags=["-Os"]
                 )
             )
         else:
@@ -131,10 +128,7 @@ class Utils:
                 is_thumb=self.p.binary_analyzer.is_thumb(addr),
                 # Some optimization needs to be used to squash down all this parameter trickery
                 # we are doing. -Os optimizes for space
-                # -fno-asynchronous-unwind-tables will force the compiler to leave out the .eh_frame section,
-                # which is some scenarios was getting tagged onto the end of the compiled code. For our purposes
-                # this section is completely useless.
-                extra_compiler_flags=["-Os", "-fno-asynchronous-unwind-tables"]
+                extra_compiler_flags=["-Os"]
             )
             if len(compiled_code) != compiled_length:
                 raise RuntimeError("When the compiled patch was compiled with base address {}, the length of the patch was {} bytes. This differs from the length of {} bytes computed when the base address was 0.".format(hex(mem_addr + asm_header_length), len(compiled_code), compiled_length))
