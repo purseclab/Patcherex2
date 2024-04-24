@@ -71,7 +71,7 @@ class Compiler:
                 f"{name} = {hex(addr)};" for name, addr in _symbols.items()
             )
 
-            linker_script = f"SECTIONS {{ .text : SUBALIGN(0) {{ . = {hex(base)}; *(.text) {linker_script_rodata_sections} {linker_script_symbols} }} }}"
+            linker_script = f"SECTIONS {{ .patcherex2 : SUBALIGN(0) {{ . = {hex(base)}; *(.text) {linker_script_rodata_sections} {linker_script_symbols} }} }}"
             with open(os.path.join(td, "linker.ld"), "w") as f:
                 f.write(linker_script)
 
@@ -96,7 +96,7 @@ class Compiler:
             )
 
             text_section = next(
-                (s for s in ld.main_object.sections if s.name == ".text"), None
+                (s for s in ld.main_object.sections if s.name == ".patcherex2"), None
             )
             compiled_start = ld.all_objects[0].entry + base
 
