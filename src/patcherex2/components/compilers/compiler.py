@@ -74,7 +74,7 @@ class Compiler:
                 f"{name} = {hex(addr)};" for name, addr in _symbols.items()
             )
 
-            linker_script = f"SECTIONS {{ .text : SUBALIGN(0) {{ . = {hex(base)}; *(.text) {linker_script_rodata_sections} {linker_script_symbols} }} }}"
+            linker_script = f"SECTIONS {{ .patcherex2 : SUBALIGN(0) {{ . = {hex(base)}; *(.text) {linker_script_rodata_sections} {linker_script_symbols} }} }}"
             with open(os.path.join(td, "linker.ld"), "w") as f:
                 f.write(linker_script)
 
@@ -97,17 +97,14 @@ class Compiler:
             ld = cle.Loader(
                 os.path.join(td, "obj_linked.o"), main_opts={"base_addr": 0x0}
             )
-            # TODO: cle will stop at the beginning of the first unallocated region
-            # found, or when `ld.memory.max_addr` bytes have been read.
-            # So if there is no gap between .text and the next section, cle will
-            # include the next section in the compiled code as well.
 
-            # text_section = next(
-            #     (s for s in ld.main_object.sections if s.name == ".text"), None
-            # )
+            text_section = next(
+                (s for s in ld.main_object.sections if s.name == ".patcherex2"), None
+            )
+            compiled_start = ld.all_objects[0].entry + base
+
             compiled = ld.memory.load(
-                ld.all_objects[0].entry + base,
-                ld.memory.max_addr,
-                # (text_section.vaddr + text_section.memsize),
+                compiled_start,
+                text_section.memsize - compiled_start,
             )
         return compiled
