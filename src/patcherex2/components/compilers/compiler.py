@@ -94,17 +94,14 @@ class Compiler:
             ld = cle.Loader(
                 os.path.join(td, "obj_linked.o"), main_opts={"base_addr": 0x0}
             )
-            # TODO: cle will stop at the beginning of the first unallocated region
-            # found, or when `ld.memory.max_addr` bytes have been read.
-            # So if there is no gap between .text and the next section, cle will
-            # include the next section in the compiled code as well.
 
-            # text_section = next(
-            #     (s for s in ld.main_object.sections if s.name == ".text"), None
-            # )
+            text_section = next(
+                (s for s in ld.main_object.sections if s.name == ".text"), None
+            )
+            compiled_start = ld.all_objects[0].entry + base
+
             compiled = ld.memory.load(
-                ld.all_objects[0].entry + base,
-                ld.memory.max_addr,
-                # (text_section.vaddr + text_section.memsize),
+                compiled_start,
+                text_section.memsize - compiled_start,
             )
         return compiled
