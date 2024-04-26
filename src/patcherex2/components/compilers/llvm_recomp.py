@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 
 import cle
+from elftools.elf.elffile import ELFFile
 
 from ..assets.assets import Assets
 from .clang import Clang
@@ -39,22 +40,6 @@ class LLVMRecomp(Clang):
             # source file
             with open(os.path.join(td, "code.c"), "w") as f:
                 f.write(code)
-
-            # linker script
-            _symbols = {}
-            _symbols.update(self.p.symbols)
-            _symbols.update(self.p.binary_analyzer.get_all_symbols())
-            _symbols.update(symbols)
-            linker_script = (
-                "SECTIONS { .text : SUBALIGN(0) { . = "
-                + hex(base)
-                + "; *(.text) *(.rodata.*)"
-            )
-            for name, addr in _symbols.items():
-                linker_script += name + " = " + hex(addr) + ";"
-            linker_script += "} /DISCARD/ : { *(.eh_frame) } }"
-            with open(os.path.join(td, "linker.ld"), "w") as f:
-                f.write(linker_script)
 
             librecomp_path = os.path.join(self._assets_path, "libRecompiler.so")
 
@@ -159,6 +144,28 @@ class LLVMRecomp(Clang):
                 except subprocess.CalledProcessError as e:
                     logger.error(e.stderr.decode("utf-8"))
                     raise e
+
+            # linker script
+            _symbols = {}
+            _symbols.update(self.p.symbols)
+            _symbols.update(self.p.binary_analyzer.get_all_symbols())
+            _symbols.update(symbols)
+
+            with open(os.path.join(td, "obj.o"), "rb") as f:
+                linker_script_rodata_sections = " ".join(
+                    [
+                        f". = ALIGN({section['sh_addralign']}); *({section.name})"
+                        for section in ELFFile(f).iter_sections()
+                        if section.name.startswith(".rodata")
+                    ]
+                )
+            linker_script_symbols = "".join(
+                f"{name} = {hex(addr)};" for name, addr in _symbols.items()
+            )
+
+            linker_script = f"SECTIONS {{ .patcherex2 : SUBALIGN(0) {{ . = {hex(base)}; *(.text) {linker_script_rodata_sections} {linker_script_symbols} }} }}"
+            with open(os.path.join(td, "linker.ld"), "w") as f:
+                f.write(linker_script)
 
             # link object file
             try:
