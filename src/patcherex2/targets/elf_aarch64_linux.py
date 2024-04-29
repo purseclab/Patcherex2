@@ -38,6 +38,8 @@ class ElfAArch64Linux(Target):
         compiler = compiler or "clang"
         if compiler == "clang":
             return Clang(self.p, compiler_flags=["-target", "aarch64-linux-gnu"])
+        elif compiler == "clang19":
+            return Clang(self.p, compiler_flags=["-target", "aarch64-linux-gnu"], clang_version=19)
         raise NotImplementedError()
 
     def get_disassembler(self, disassembler):

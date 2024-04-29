@@ -65,7 +65,9 @@ class Amd64Info:
     def regs(self):
         return list(self.subregisters.keys())
 
-    regs_float = ['xmm{}'.format(i) for i in range(0, 15 + 1)]
+    @property
+    def regs_float(self):
+        return list(self.subregisters_float.keys())
 
     subregisters = {
         'rax': {
@@ -168,4 +170,11 @@ class Amd64Info:
             16: ['r15w'],
             8: ['r15b']
         }
+    }
+
+    subregisters_float = {
+        'xmm{}'.format(i): {
+            128: ['xmm{}'.format(i)]
+        }
+        for i in range(0, 15 + 1)
     }

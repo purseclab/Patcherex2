@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
-from collections.abc import Iterable
+from collections.abc import Iterable, Callable
 
 from ..components.allocation_managers.allocation_manager import MemoryFlag
 from .patch import Patch
@@ -70,32 +70,53 @@ class ModifyInstructionPatch(Patch):
         offset = p.binary_analyzer.mem_addr_to_file_offset(self.addr)
         p.binfmt_tool.update_binary_content(offset, asm_bytes)
 
-def convert_to_subregisters(cc: list[str], subregisters: dict[str, dict[int, list[str]]], regs: frozenset[str]) -> list[tuple[int, str]]:
-    # parent_regs maps all children registers to their largest parent register and their bit size
-    # For example in x64, we will have
-    # parent_regs = {'rax': (64, 'rax'), 'eax': (32, 'rax'), 'ax': (16, 'rax'), 'ah': (8, 'rax'), 'al': (8, 'rax'), ...}
-    parent_regs: dict[str, tuple[int, str]] = dict()
+def convert_to_subregisters(cc: list[str], subregisters: dict[str, dict[int, list[str]]], regs_sort: list[str | tuple[str, int] | tuple[str, str]],
+                            type_converter: Callable[[int], str]) -> list[tuple[str, str]]:
+    regs = [r if isinstance(r, str) else r[0] for r in regs_sort]
+
+    # reg_sizes maps registers to their size
+    reg_sizes: dict[str, int] = dict()
+    # parent_regs maps all children registers to their largest parent register
+    parent_regs: dict[str, str] = dict()
     for (parent, subregister_info) in subregisters.items():
         for (child_bits, children) in subregister_info.items():
             for (i, child) in enumerate(children):
                 if i > 0 and child in regs:
                     # Only allow the 0th subregister to actually be used.
                     raise ValueError("Unable to create the calling convention when the {} register is present. The {} subregister is the only {} bit subregister that can be used.".format(child, children[0], child_bits))
-                parent_regs[child] = (child_bits, parent)
+                reg_sizes[child] = child_bits
+                parent_regs[child] = parent
 
     # The rewrites that should be applied to the cc to compute the transformed cc output
-    rewrites: dict[str, tuple[int, str]] = dict()
-    for r in regs:
-        if r not in parent_regs:
-            raise ValueError("Unknown register {}".format(r))
-        (r_bits, parent) = parent_regs[r]
-        if parent != r:
+    rewrites: dict[str, tuple[str, str]] = dict()
+    for r in regs_sort:
+        if isinstance(r, str):
+            reg_name = r
+        else:
+            reg_name = r[0]
+        if reg_name in parent_regs:
+            if isinstance(r, str):
+                reg_bits = reg_sizes[reg_name]
+                reg_type = type_converter(reg_bits)
+            elif isinstance(r[1], int):
+                (_, reg_bits) = r
+                reg_type = type_converter(reg_bits)
+            else:
+                (_, reg_type) = r
+            parent = parent_regs[reg_name]
             if parent in rewrites:
                 raise ValueError("The following two input registers overlapped while computing the calling convention: " + r + " and " + rewrites[parent][1])
-            rewrites[parent] = (r_bits, r)
+            rewrites[parent] = (reg_name, reg_type)
 
     def convert_cc_reg(cc_reg):
-        return rewrites.get(cc_reg, parent_regs[cc_reg])
+        if cc_reg in rewrites:
+            return rewrites[cc_reg]
+        else:
+            parent_reg = parent_regs[cc_reg]
+            parent_bits = reg_sizes[parent_reg]
+            parent_type = type_converter(parent_bits)
+            return (parent_reg, parent_type)
+
     return list(map(convert_cc_reg, cc))
 
 class InsertInstructionPatch(Patch):
@@ -103,8 +124,7 @@ class InsertInstructionPatch(Patch):
         def __init__(self,
                      c_forward_header: str = "",
                      scratch_regs: Iterable[str] = None,
-                     sub_regs: Iterable[str] = None,
-                     float_types: dict[str, str] = None,
+                     regs_sort: Iterable[str | tuple[str, int] | tuple[str, str]] | None = None,
                      asm_header: str = "",
                      asm_footer: str = ""):
             """
@@ -118,13 +138,15 @@ class InsertInstructionPatch(Patch):
             Note that you can still read from scratch registers stored in the variables. What the scratch\
             register denotation will indicate however is that the register can be re-used after the variable\
             is no longer live.
-            :param sub_regs: Some architectures have subregisters which allow access to a portion of a register, such\
-            as the lower 32 bits of a 64 bit register. If you want to use a subregister instead of the full register\
-            you can request this by passing in a list of subregisters here. Note that if you specify a subregister here,\
-            the full parent register is not available in the C patch.
-            :param float_types: This dictionary maps floating point register names to the type you want that register\
-            to hold. By default, floating point registers are mapped to the C float type. You can use this to map certain\
-            registers to double instead.
+            :param Iterable[str | tuple[str, int] | tuple[str, str]] regs_sort: Some architectures have subregisters\
+            which allow access to a portion of a register, such as the lower 32 bits of a 64 bit register. If you want\
+            to use a subregister instead of the full register you can request this by passing in a list of subregisters\
+            here. Note that if you specify a subregister here, the full parent register is not available in the C\
+            patch. Some registers allow values of smaller types to be stored in larger registers. For example, you can\
+            store float values in xmm0 on x64, but there is no 32 bit subregister. To indicate that a register\
+            should be treated as a specific size, you may specify register size in bits in the second element of the\
+            tuple. Alternatively, you may specify the type as a string. An example of a valid list for x64 is\
+            ['eax', ('xmm0', 32), ('xmm1', 'double')].
             :param asm_header: The asm_header is inserted in the main body of the patch before the C code. This header is\
             primarily useful for gaining access to the stack pointer, which is a register that is typically unavailable in\
             our C patch code.
@@ -134,8 +156,7 @@ class InsertInstructionPatch(Patch):
             """
             self.c_forward_header = c_forward_header
             self.scratch_regs = scratch_regs
-            self.sub_regs = sub_regs
-            self.float_types = float_types
+            self.regs_sort = regs_sort
             self.asm_header = asm_header
             self.asm_footer = asm_footer
 
@@ -208,11 +229,11 @@ class InsertInstructionPatch(Patch):
 
         c_forward_header = self.c_config.c_forward_header
         c_scratch_regs = frozenset() if self.c_config.scratch_regs is None else frozenset(self.c_config.scratch_regs)
-        c_sub_regs = frozenset() if self.c_config.sub_regs is None else frozenset(self.c_config.sub_regs)
-        c_float_types = dict() if self.c_config.float_types is None else self.c_config.float_types
+        c_regs_sort = [] if self.c_config.regs_sort is None else list(self.c_config.regs_sort)
 
         calling_convention = p.target.get_cc(preserve_none=p.compiler.preserve_none)
         subregister_table = p.archinfo.subregisters
+        subregister_float_table = p.archinfo.subregisters_float
 
         # Figure out if there are any extra registers that we need to expose to the user
         # that aren't part of the calling convention. For x64 preserve_none, this will be
@@ -226,26 +247,36 @@ class InsertInstructionPatch(Patch):
         # We don't want to necessarily output registers that have been marked as scratch
         # However we always want to make them available as input
         extra_saved_out = list(extra_saved - c_scratch_regs)
-        extra_saved_in_converted = convert_to_subregisters(extra_saved_in, subregister_table, c_sub_regs)
-        extra_saved_out_converted = convert_to_subregisters(extra_saved_out, subregister_table, c_sub_regs)
 
-        def type_float(regs) -> list[tuple[str, str]]:
-            return [(c_float_types.get(fp_reg, 'float'), fp_reg) for fp_reg in regs]
+        def uint_converter(size: int):
+            return "uint{}_t".format(size)
+        extra_saved_in_converted = convert_to_subregisters(extra_saved_in, subregister_table, c_regs_sort, uint_converter)
+        extra_saved_out_converted = convert_to_subregisters(extra_saved_out, subregister_table, c_regs_sort, uint_converter)
 
         calling_convention_float: list[str] = p.target.get_cc_float()
         extra_saved_float = set(p.archinfo.regs_float)
         extra_saved_float = extra_saved_float - set(calling_convention_float) - set(p.target.get_callee_saved_float())
         extra_saved_float_in = list(extra_saved_float)
         extra_saved_float_out = list(extra_saved_float - c_scratch_regs)
-        extra_saved_float_in_converted = type_float(extra_saved_float_in)
-        extra_saved_float_out_converted = type_float(extra_saved_float_out)
+
+        def float_converter(size: int):
+            if size == 32:
+                return "float"
+            elif size == 64:
+                return "double"
+            elif size == 128:
+                return "long double"
+            else:
+                raise ValueError("Unable to determine type of float with size of {} bits".format(size))
+        extra_saved_float_in_converted = convert_to_subregisters(extra_saved_float_in, subregister_float_table, c_regs_sort, float_converter)
+        extra_saved_float_out_converted = convert_to_subregisters(extra_saved_float_out, subregister_float_table, c_regs_sort, float_converter)
 
         attribute = "__attribute__((preserve_none))" if p.compiler.preserve_none else ""
 
-        int_args = convert_to_subregisters(calling_convention, subregister_table, c_sub_regs)
-        int_args_str = ['uint{}_t {}'.format(bits, name) for (bits, name) in int_args]
-        float_args: list[tuple[str, str]] = type_float(calling_convention_float)
-        float_args_str = ['{} {}'.format(ftype, name) for (ftype, name) in float_args]
+        int_args = convert_to_subregisters(calling_convention, subregister_table, c_regs_sort, uint_converter)
+        int_args_str = ['{} {}'.format(itype, name) for (name, itype) in int_args]
+        float_args: list[tuple[str, str]] = convert_to_subregisters(calling_convention_float, subregister_float_table, c_regs_sort, float_converter)
+        float_args_str = ['{} {}'.format(ftype, name) for (name, ftype) in float_args]
         args_str = ', '.join(int_args_str + float_args_str)
 
         callback_forward_decl = 'extern void {} _CALLBACK({});'.format(attribute, args_str)
@@ -257,15 +288,15 @@ class InsertInstructionPatch(Patch):
             '#define return do {',
         ]
 
-        for (bits, reg) in extra_saved_out_converted:
+        for (reg, bits) in extra_saved_out_converted:
             # Make sure the variables are live just before the return statement
             return_macro_lines.append('    asm ("" : : "r"({}) :);'.format(reg))
-        for (ftype, reg) in extra_saved_float_out_converted:
+        for (reg, ftype) in extra_saved_float_out_converted:
             # Make sure the variables are live just before the return statement
             return_macro_lines.append('    asm ("" : : "r"({}) :);'.format(reg))
 
-        callback_args = ['_dummy' if reg_name in c_scratch_regs else reg_name for (bits, reg_name) in int_args]
-        callback_args += ['_dummyFloat' if reg_name in c_scratch_regs else reg_name for (ftype, reg_name) in float_args]
+        callback_args = ['_dummy' if reg_name in c_scratch_regs else reg_name for (reg_name, bits) in int_args]
+        callback_args += ['_dummyFloat' if reg_name in c_scratch_regs else reg_name for (reg_name, ftype) in float_args]
         return_macro_lines += [
             '    __attribute__((musttail)) return _CALLBACK({});'.format(', '.join(callback_args)),
             '} while(0)'
@@ -286,15 +317,15 @@ class InsertInstructionPatch(Patch):
             '    uint{}_t _dummy;'.format(p.archinfo.bits),
             '    float _dummyFloat;'
         ]
-        for (bits, reg) in extra_saved_in_converted:
+        for (reg, reg_type) in extra_saved_in_converted:
             # Force the variables to live in a specific register using the register C extension
-            lines.append('    register uint{0}_t {1} asm("{1}");'.format(bits, reg))
-        for (ftype, reg) in extra_saved_float_in_converted:
+            lines.append('    register {0} {1} asm("{1}");'.format(reg_type, reg))
+        for (reg, ftype) in extra_saved_float_in_converted:
             lines.append('    register {0} {1} asm("{1}");'.format(ftype, reg))
-        for (bits, reg) in extra_saved_in_converted:
+        for (reg, reg_type) in extra_saved_in_converted:
             # Trick the C compiler into thinking that the variables we just defined are actually live
             lines.append('    asm ("" : "=r"({}) : : );'.format(reg))
-        for (ftype, reg) in extra_saved_float_in_converted:
+        for (reg, ftype) in extra_saved_float_in_converted:
             lines.append('    asm ("" : "=r"({}) : : );'.format(reg))
         lines += [
             self.instr,

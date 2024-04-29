@@ -346,7 +346,7 @@ class Tests(unittest.TestCase):
                 'r8', 'r9', 'r10', 'r11', 'r13', 'r14', 'r15'
                 'xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7', 'xmm9', 'xmm10', 'xmm11', 'xmm12', 'xmm13', 'xmm14', 'xmm15'
             ],
-            sub_regs=['eax']
+            regs_sort=['eax']
         )
 
         self.run_one(
@@ -439,7 +439,8 @@ class Tests(unittest.TestCase):
             scratch_regs=[
                 'r8', 'r9', 'r10', 'r11', 'r13', 'r14', 'r15'
                 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7', 'xmm9', 'xmm10', 'xmm11', 'xmm12', 'xmm13', 'xmm14', 'xmm15'
-            ]
+            ],
+            regs_sort=[('xmm0', 'float'), ('xmm2', 'float')]
         )
 
         expected_output = b''.join([

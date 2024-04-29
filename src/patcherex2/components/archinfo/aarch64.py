@@ -62,8 +62,13 @@ class Aarch64Info:
         'default': ['v8', 'v9', 'v10', 'v11', 'v12', 'v13', 'v14', 'v15']
     }
 
-    regs = ['x{}'.format(i) for i in range(0, 30 + 1)]
-    regs_float = ['v{}'.format(i) for i in range(0, 30 + 1)]
+    @property
+    def regs(self):
+        return list(self.subregisters.keys())
+
+    @property
+    def regs_float(self):
+        return list(self.subregisters_float.keys())
 
     subregisters = {
         'x{}'.format(i):
@@ -71,5 +76,16 @@ class Aarch64Info:
                 64: ['x{}'.format(i)],
                 32: ['w{}'.format(i)]
             }
+        for i in range(0, 30 + 1)
+    }
+
+    subregisters_float = {
+        'v{}'.format(i): {
+            128: ['v{}'.format(i)],
+            64: ['d{}'.format(i)],
+            32: ['s{}'.format(i)],
+            16: ['h{}'.format(i)],
+            8: ['b{}'.format(i)]
+        }
         for i in range(0, 30 + 1)
     }
