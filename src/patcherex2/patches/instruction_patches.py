@@ -260,12 +260,8 @@ class InsertInstructionPatch(Patch):
         extra_saved_float_out = list(extra_saved_float - c_scratch_regs)
 
         def float_converter(size: int):
-            if size == 32:
-                return "float"
-            elif size == 64:
-                return "double"
-            elif size == 128:
-                return "long double"
+            if size in p.archinfo.float_types:
+                return p.archinfo.float_types[size]
             else:
                 raise ValueError("Unable to determine type of float with size of {} bits".format(size))
         extra_saved_float_in_converted = convert_to_subregisters(extra_saved_float_in, subregister_float_table, c_regs_sort, float_converter)

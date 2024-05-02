@@ -1,3 +1,5 @@
+import logging
+
 from ..components.allocation_managers.allocation_manager import AllocationManager
 from ..components.archinfo.aarch64 import Aarch64Info
 from ..components.assemblers.keystone import Keystone, keystone
@@ -8,6 +10,7 @@ from ..components.disassemblers.capstone import Capstone, capstone
 from ..components.utils.utils import Utils
 from .target import Target
 
+logger = logging.getLogger(__name__)
 
 class ElfAArch64Linux(Target):
     @staticmethod
@@ -75,8 +78,12 @@ class ElfAArch64Linux(Target):
     def get_cc(self, preserve_none=False, archinfo=None):
         archinfo = self.get_archinfo(archinfo)
         if preserve_none:
-            raise NotImplementedError('preserve_none for ARM64 is not implemented yet!')
-            return archinfo.cc['defaultPreserveNone']
+            cc = archinfo.cc['defaultPreserveNone']
+            if cc is None:
+                logger.warning('preserve_none for ARM64 is not implemented yet!')
+                return archinfo.cc['default']
+            else:
+                return cc
         else:
             return archinfo.cc['default']
 

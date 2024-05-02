@@ -61,6 +61,12 @@ class Amd64Info:
         'Linux': []
     }
 
+    float_types = {
+        32: 'float',
+        64: 'double',
+        128: '__float128'
+    }
+
     @property
     def regs(self):
         return list(self.subregisters.keys())

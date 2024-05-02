@@ -62,6 +62,12 @@ class Aarch64Info:
         'default': ['v8', 'v9', 'v10', 'v11', 'v12', 'v13', 'v14', 'v15']
     }
 
+    float_types = {
+        32: 'float',
+        64: 'double',
+        128: 'long double'
+    }
+
     @property
     def regs(self):
         return list(self.subregisters.keys())
