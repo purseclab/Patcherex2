@@ -202,7 +202,14 @@ class LLVMRecomp(Clang):
             ld = cle.Loader(
                 os.path.join(td, "obj_linked.o"), main_opts={"base_addr": 0x0}
             )
+
+            patcherex2_section = next(
+                (s for s in ld.main_object.sections if s.name == ".patcherex2"), None
+            )
+            compiled_start = ld.all_objects[0].entry + base
+
             compiled = ld.memory.load(
-                ld.all_objects[0].entry + base, ld.memory.max_addr
+                compiled_start,
+                patcherex2_section.memsize - compiled_start,
             )
         return compiled
