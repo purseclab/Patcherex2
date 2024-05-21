@@ -48,7 +48,7 @@ class Amd64Info:
 
     cc = {
         'Linux': ['rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9'],
-        'LinuxPreserveNone': ['rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9', 'r11', 'r12', 'r13', 'r14', 'r15', 'rax'],
+        'LinuxPreserveNone': ['r12', 'r13', 'r14', 'r15', 'rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9', 'r11', 'rax'],
         'Windows': ['rcx', 'rdx', 'r8', 'r9']
     }
     callee_saved = {
