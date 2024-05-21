@@ -20,3 +20,18 @@ class Target:
         if component_opts is None:
             component_opts = {}
         return getattr(self, f"get_{component_type}")(component_name, **component_opts)
+
+    def get_cc(self, archinfo=None, preserve_none=False):
+        raise NotImplementedError("The calling convention for this target is unknown")
+
+    def get_cc_float(self, archinfo=None):
+        raise NotImplementedError("The floating point calling convention for this target is unknown")
+
+    def get_archinfo(self, archinfo):
+        raise NotImplementedError("get_archinfo not implemented")
+
+    def get_callee_saved(self, archinfo=None):
+        raise NotImplementedError("get_callee_saved not implemented")
+
+    def get_callee_saved_float(self, archinfo=None):
+        raise NotImplementedError("get_callee_saved_float not implemented")

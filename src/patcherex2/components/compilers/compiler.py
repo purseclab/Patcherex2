@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 class Compiler:
     def __init__(self, p) -> None:
         self.p = p
+        # preserve_none is a special attribute flag to allow us to control more registers as input to a C function
+        # This feature is used for a C instruction patch
+        self.preserve_none = False
 
     def compile(
         self,

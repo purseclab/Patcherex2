@@ -1,3 +1,5 @@
+import logging
+
 from ..components.allocation_managers.allocation_manager import AllocationManager
 from ..components.archinfo.aarch64 import Aarch64Info
 from ..components.assemblers.keystone import Keystone, keystone
@@ -8,6 +10,7 @@ from ..components.disassemblers.capstone import Capstone, capstone
 from ..components.utils.utils import Utils
 from .target import Target
 
+logger = logging.getLogger(__name__)
 
 class ElfAArch64Linux(Target):
     @staticmethod
@@ -38,6 +41,8 @@ class ElfAArch64Linux(Target):
         compiler = compiler or "clang"
         if compiler == "clang":
             return Clang(self.p, compiler_flags=["-target", "aarch64-linux-gnu"])
+        elif compiler == "clang19":
+            return Clang(self.p, compiler_flags=["-target", "aarch64-linux-gnu"], clang_version=19)
         raise NotImplementedError()
 
     def get_disassembler(self, disassembler):
@@ -69,3 +74,27 @@ class ElfAArch64Linux(Target):
         if archinfo == "default":
             return Aarch64Info()
         raise NotImplementedError()
+
+    def get_cc(self, preserve_none=False, archinfo=None):
+        archinfo = self.get_archinfo(archinfo)
+        if preserve_none:
+            cc = archinfo.cc['defaultPreserveNone']
+            if cc is None:
+                logger.warning('preserve_none for ARM64 is not implemented yet!')
+                return archinfo.cc['default']
+            else:
+                return cc
+        else:
+            return archinfo.cc['default']
+
+    def get_cc_float(self, archinfo=None):
+        archinfo = self.get_archinfo(archinfo)
+        return archinfo.cc_float['default']
+
+    def get_callee_saved(self, archinfo=None):
+        archinfo = self.get_archinfo(archinfo)
+        return archinfo.callee_saved['default']
+
+    def get_callee_saved_float(self, archinfo=None):
+        archinfo = self.get_archinfo(archinfo)
+        return archinfo.callee_saved_float['default']

@@ -4,6 +4,7 @@ class Aarch64Info:
     jmp_asm = "b {dst}"
     jmp_size = 4
     alignment = 4
+    bits = 64
     is_variable_length_isa = False
     instr_size = 4
     call_asm = "bl {dst}"
@@ -46,3 +47,51 @@ class Aarch64Info:
         ldr x30, [sp, #0xf0]
         add sp, sp, #0x1f0
     """
+
+    cc = {
+        'default': ['x0', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7'],
+        'defaultPreserveNone': None # TODO once aarch64 support lands in LLVM for preserve_none
+    }
+    callee_saved = {
+        'default': ['x19', 'x20', 'x21', 'x22', 'x23', 'x24', 'x25', 'x26', 'x27', 'x28', 'x29', 'x30']
+    }
+    cc_float = {
+        'default': ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7']
+    }
+    callee_saved_float = {
+        'default': ['v8', 'v9', 'v10', 'v11', 'v12', 'v13', 'v14', 'v15']
+    }
+
+    float_types = {
+        32: 'float',
+        64: 'double',
+        128: 'long double'
+    }
+
+    @property
+    def regs(self):
+        return list(self.subregisters.keys())
+
+    @property
+    def regs_float(self):
+        return list(self.subregisters_float.keys())
+
+    subregisters = {
+        'x{}'.format(i):
+            {
+                64: ['x{}'.format(i)],
+                32: ['w{}'.format(i)]
+            }
+        for i in range(0, 30 + 1)
+    }
+
+    subregisters_float = {
+        'v{}'.format(i): {
+            128: ['v{}'.format(i)],
+            64: ['d{}'.format(i)],
+            32: ['s{}'.format(i)],
+            16: ['h{}'.format(i)],
+            8: ['b{}'.format(i)]
+        }
+        for i in range(0, 30 + 1)
+    }

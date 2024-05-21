@@ -305,6 +305,159 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    def test_insert_instruction_patch_c(self):
+        # Original computation was (n + 2) * 2 where n = 4
+        # New computation inserts a factorial step at the beginning
+        # The new computation is (n! + 2) * 2 where n=4
+        instrs = """
+        uint32_t n = rax;
+        for (uint32_t i = 1; i < n; i++) {
+            rax *= i;
+        }
+        """
+
+        config = InsertInstructionPatch.CConfig(
+            scratch_regs=[
+                'r8', 'r9', 'r10', 'r11', 'r13', 'r14', 'r15'
+                'xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7', 'xmm9', 'xmm10', 'xmm11', 'xmm12', 'xmm13', 'xmm14', 'xmm15'
+            ]
+        )
+
+        self.run_one(
+            "iip_c",
+            [InsertInstructionPatch(0x1157, instrs, language="C", c_config=config)],
+            expected_output=b"52",
+            expected_returnCode=0
+        )
+
+    def test_insert_instruction_patch_c_subreg(self):
+        # Original computation was (n + 2) * 2 where n = 4
+        # New computation inserts a factorial step at the beginning
+        # The new computation is (n! + 2) * 2 where n=4
+        instrs = """
+        uint32_t n = eax;
+        for (uint32_t i = 1; i < n; i++) {
+            eax *= i;
+        }
+        """
+
+        config = InsertInstructionPatch.CConfig(
+            scratch_regs=[
+                'r8', 'r9', 'r10', 'r11', 'r13', 'r14', 'r15'
+                'xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7', 'xmm9', 'xmm10', 'xmm11', 'xmm12', 'xmm13', 'xmm14', 'xmm15'
+            ],
+            regs_sort=['eax']
+        )
+
+        self.run_one(
+            "iip_c",
+            [InsertInstructionPatch(0x1157, instrs, language="C", c_config=config)],
+            expected_output=b"52",
+            expected_returnCode=0
+        )
+
+    def test_insert_instruction_patch_c_asm_header(self):
+        asm_header = "mov r12, rbp"
+
+        # Original computation computed the area as pi * radius
+        # Here our micropatch loops over the areas array and multiplies by another radius to fix the bug
+        instrs = """
+        int num_radii = *((int *) (r12 - 0x3c));
+        float *areas = *((float **) (r12 - 0x20));
+        float *radii = *((float **) (r12 - 0x38));
+        for (int i = 0; i < num_radii; i++) {
+            areas[i] *= radii[i];
+        }
+        """
+
+        config = InsertInstructionPatch.CConfig(
+            asm_header=asm_header,
+            scratch_regs=[
+                'r8', 'r9', 'r10', 'r11', 'r13', 'r14', 'r15'
+                'xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7', 'xmm9', 'xmm10', 'xmm11', 'xmm12', 'xmm13', 'xmm14', 'xmm15'
+            ]
+        )
+
+        expected_output = b''.join([
+            b"The area of the circle with radius 1.500000 is 7.065000\n",
+            b"The area of the circle with radius 2.000000 is 12.560000\n",
+            b"The area of the circle with radius 4.300000 is 58.058605\n"
+        ])
+
+        self.run_one(
+            "iip_c_asm_header",
+            [InsertInstructionPatch(0x130d, instrs, language="C", c_config=config)],
+            expected_output=expected_output,
+            expected_returnCode=0,
+            target_opts={"compiler": "clang19"}
+        )
+
+    def test_insert_instruction_patch_c_asm_header2(self):
+        asm_header = "mov r12, rbp"
+
+        # Original computation computed the area as pi * radius
+        # Here our micropatch loops over the areas array and multiplies by another radius to fix the bug
+        instrs = """
+        int num_radii = 3;
+        float *areas = *((float **) (r12 - 0x20));
+        float *radii = *((float **) (r12 - 0x38));
+        for (int i = 0; i < num_radii; i++) {
+            areas[i] *= radii[i];
+        }
+        """
+
+        config = InsertInstructionPatch.CConfig(
+            asm_header=asm_header,
+            scratch_regs=[
+                'r8', 'r9', 'r10', 'r11', 'r13', 'r14', 'r15'
+                'xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7', 'xmm9', 'xmm10', 'xmm11', 'xmm12', 'xmm13', 'xmm14', 'xmm15'
+            ]
+        )
+
+        expected_output = b''.join([
+            b"The area of the circle with radius 1.500000 is 7.065000\n",
+            b"The area of the circle with radius 2.000000 is 12.560000\n",
+            b"The area of the circle with radius 4.300000 is 58.058605\n"
+        ])
+
+        self.run_one(
+            "iip_c_asm_header",
+            [InsertInstructionPatch(0x130d, instrs, language="C", c_config=config)],
+            expected_output=expected_output,
+            expected_returnCode=0,
+            target_opts={"compiler": "clang19"}
+        )
+
+    def test_insert_instruction_patch_c_float(self):
+        # Original computation calculated the square magnitude of a 3D vector as x^2 + y^2
+        # Here we insert an additional step to fix the calculation to be x^2 + y^2 + z^2
+        instrs = """
+        xmm0 += xmm2 * xmm2;
+        """
+
+        config = InsertInstructionPatch.CConfig(
+            scratch_regs=[
+                'r8', 'r9', 'r10', 'r11', 'r13', 'r14', 'r15'
+                'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7', 'xmm9', 'xmm10', 'xmm11', 'xmm12', 'xmm13', 'xmm14', 'xmm15'
+            ],
+            regs_sort=[('xmm0', 'float'), ('xmm2', 'float')]
+        )
+
+        expected_output = b''.join([
+            b"The square magnitude of the vector (0.000000, 0.000000, 0.000000) is 0.000000\n",
+            b"The square magnitude of the vector (1.000000, 2.000000, 3.000000) is 14.000000\n",
+            b"The square magnitude of the vector (-20.000000, 33.200001, 5.200000) is 1529.280029\n",
+            b"The square magnitude of the vector (3.000000, 4.000000, 0.000000) is 25.000000\n"
+        ])
+
+        self.run_one(
+            "iip_c_float",
+            [InsertInstructionPatch(0x1175, instrs, language="C", c_config=config)],
+            expected_output=expected_output,
+            expected_returnCode=0,
+            target_opts={"compiler": "clang19"}
+        )
+
     def run_one(
         self,
         filename,
@@ -313,13 +466,14 @@ class Tests(unittest.TestCase):
         inputvalue=None,
         expected_output=None,
         expected_returnCode=None,
+        target_opts=None
     ):
         filepath = os.path.join(self.bin_location, filename)
         pipe = subprocess.PIPE
 
         with tempfile.TemporaryDirectory() as td:
             tmp_file = os.path.join(td, "patched")
-            p = Patcherex(filepath)
+            p = Patcherex(filepath, target_opts=target_opts)
             for patch in patches:
                 p.patches.append(patch)
             p.apply_patches()
