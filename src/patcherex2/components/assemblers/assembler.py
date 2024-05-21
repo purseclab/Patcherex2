@@ -27,7 +27,7 @@ class Assembler:
 
     def assemble(self, code: str, base=0, symbols=None, **kwargs) -> None:
         if code == "":
-            return bytes()
+            return b""
         if symbols is None:
             symbols = {}
         logger.debug(f"Assembling `{code}` at {hex(base)}")

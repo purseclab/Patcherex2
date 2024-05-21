@@ -49,24 +49,31 @@ class Aarch64Info:
     """
 
     cc = {
-        'default': ['x0', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7'],
-        'defaultPreserveNone': None # TODO once aarch64 support lands in LLVM for preserve_none
+        "default": ["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+        "defaultPreserveNone": None,  # TODO once aarch64 support lands in LLVM for preserve_none
     }
     callee_saved = {
-        'default': ['x19', 'x20', 'x21', 'x22', 'x23', 'x24', 'x25', 'x26', 'x27', 'x28', 'x29', 'x30']
+        "default": [
+            "x19",
+            "x20",
+            "x21",
+            "x22",
+            "x23",
+            "x24",
+            "x25",
+            "x26",
+            "x27",
+            "x28",
+            "x29",
+            "x30",
+        ]
     }
-    cc_float = {
-        'default': ['v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7']
-    }
+    cc_float = {"default": ["v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7"]}
     callee_saved_float = {
-        'default': ['v8', 'v9', 'v10', 'v11', 'v12', 'v13', 'v14', 'v15']
+        "default": ["v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15"]
     }
 
-    float_types = {
-        32: 'float',
-        64: 'double',
-        128: 'long double'
-    }
+    float_types = {32: "float", 64: "double", 128: "long double"}
 
     @property
     def regs(self):
@@ -76,22 +83,15 @@ class Aarch64Info:
     def regs_float(self):
         return list(self.subregisters_float.keys())
 
-    subregisters = {
-        'x{}'.format(i):
-            {
-                64: ['x{}'.format(i)],
-                32: ['w{}'.format(i)]
-            }
-        for i in range(0, 30 + 1)
-    }
+    subregisters = {f"x{i}": {64: [f"x{i}"], 32: [f"w{i}"]} for i in range(0, 30 + 1)}
 
     subregisters_float = {
-        'v{}'.format(i): {
-            128: ['v{}'.format(i)],
-            64: ['d{}'.format(i)],
-            32: ['s{}'.format(i)],
-            16: ['h{}'.format(i)],
-            8: ['b{}'.format(i)]
+        f"v{i}": {
+            128: [f"v{i}"],
+            64: [f"d{i}"],
+            32: [f"s{i}"],
+            16: [f"h{i}"],
+            8: [f"b{i}"],
         }
         for i in range(0, 30 + 1)
     }

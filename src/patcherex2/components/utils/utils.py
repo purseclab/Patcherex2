@@ -22,7 +22,7 @@ class Utils:
         symbols: dict[str, int] = None,
         language="ASM",
         asm_header="",
-        asm_footer=""
+        asm_footer="",
     ) -> None:
         logger.debug(f"Inserting trampoline code at {hex(addr)}: {instrs}")
         symbols = symbols if symbols else {}
@@ -49,7 +49,8 @@ class Utils:
             )
         trampoline_instrs_with_jump_back = (
             # Insert the asm footer here
-            (asm_footer if language == "C" else instrs) + "\n"
+            (asm_footer if language == "C" else instrs)
+            + "\n"
             + moved_instrs
             + "\n"
             + self.p.archinfo.jmp_asm.format(dst=hex(addr + moved_instrs_len))
@@ -57,7 +58,7 @@ class Utils:
 
         if language == "C":
             symbols_copy = dict(symbols)
-            symbols_copy['_CALLBACK'] = 0
+            symbols_copy["_CALLBACK"] = 0
             asm_header_length = len(
                 self.p.assembler.assemble(
                     asm_header,
@@ -73,7 +74,7 @@ class Utils:
                     is_thumb=self.p.binary_analyzer.is_thumb(addr),
                     # Some optimization needs to be used to squash down all this parameter trickery
                     # we are doing. -Os optimizes for space
-                    extra_compiler_flags=["-Os"]
+                    extra_compiler_flags=["-Os"],
                 )
             )
         else:
@@ -81,8 +82,9 @@ class Utils:
             compiled_length = 0
 
         trampoline_size = (
-            asm_header_length + compiled_length +
-            len(
+            asm_header_length
+            + compiled_length
+            + len(
                 self.p.assembler.assemble(
                     trampoline_instrs_with_jump_back,
                     addr,  # TODO: we don't really need this addr, but better than 0x0 because 0x0 is too far away from the code
@@ -120,7 +122,7 @@ class Utils:
 
             # Compile C code
             symbols_copy = dict(symbols)
-            symbols_copy['_CALLBACK'] = mem_addr + asm_header_length + compiled_length
+            symbols_copy["_CALLBACK"] = mem_addr + asm_header_length + compiled_length
             compiled_code = self.p.compiler.compile(
                 instrs,
                 base=mem_addr + asm_header_length,
@@ -128,20 +130,26 @@ class Utils:
                 is_thumb=self.p.binary_analyzer.is_thumb(addr),
                 # Some optimization needs to be used to squash down all this parameter trickery
                 # we are doing. -Os optimizes for space
-                extra_compiler_flags=["-Os"]
+                extra_compiler_flags=["-Os"],
             )
             if len(compiled_code) != compiled_length:
-                raise RuntimeError("When the compiled patch was compiled with base address {}, the length of the patch was {} bytes. This differs from the length of {} bytes computed when the base address was 0.".format(hex(mem_addr + asm_header_length), len(compiled_code), compiled_length))
+                raise RuntimeError(
+                    f"When the compiled patch was compiled with base address {hex(mem_addr + asm_header_length)}, the length of the patch was {len(compiled_code)} bytes. This differs from the length of {compiled_length} bytes computed when the base address was 0."
+                )
         else:
-            compiled_asm_header = bytes()
-            compiled_code = bytes()
+            compiled_asm_header = b""
+            compiled_code = b""
 
         self.p.sypy_info["patcherex_added_functions"].append(hex(mem_addr))
-        trampoline_bytes = compiled_asm_header + compiled_code + self.p.assembler.assemble(
-            trampoline_instrs_with_jump_back,
-            mem_addr + asm_header_length + compiled_length,
-            symbols=symbols,
-            is_thumb=self.p.binary_analyzer.is_thumb(addr),
+        trampoline_bytes = (
+            compiled_asm_header
+            + compiled_code
+            + self.p.assembler.assemble(
+                trampoline_instrs_with_jump_back,
+                mem_addr + asm_header_length + compiled_length,
+                symbols=symbols,
+                is_thumb=self.p.binary_analyzer.is_thumb(addr),
+            )
         )
         self.p.binfmt_tool.update_binary_content(file_addr, trampoline_bytes)
         jmp_to_trampoline = self.p.assembler.assemble(

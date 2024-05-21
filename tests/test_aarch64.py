@@ -287,8 +287,29 @@ class Tests(unittest.TestCase):
 
         config = InsertInstructionPatch.CConfig(
             scratch_regs=[
-                'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10', 'x11', 'x12', 'x13', 'x14', 'x15',
-                'v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'
+                "x1",
+                "x2",
+                "x3",
+                "x4",
+                "x5",
+                "x6",
+                "x7",
+                "x8",
+                "x9",
+                "x10",
+                "x11",
+                "x12",
+                "x13",
+                "x14",
+                "x15",
+                "v0",
+                "v1",
+                "v2",
+                "v3",
+                "v4",
+                "v5",
+                "v6",
+                "v7",
             ]
         )
 
@@ -296,7 +317,7 @@ class Tests(unittest.TestCase):
             "iip_c",
             [InsertInstructionPatch(0x760, instrs, language="C", c_config=config)],
             expected_output=b"52",
-            expected_returnCode=0
+            expected_returnCode=0,
         )
 
     def test_insert_instruction_patch_c_subreg(self):
@@ -315,17 +336,38 @@ class Tests(unittest.TestCase):
 
         config = InsertInstructionPatch.CConfig(
             scratch_regs=[
-                'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10', 'x11', 'x12', 'x13', 'x14', 'x15',
-                'v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'
+                "x1",
+                "x2",
+                "x3",
+                "x4",
+                "x5",
+                "x6",
+                "x7",
+                "x8",
+                "x9",
+                "x10",
+                "x11",
+                "x12",
+                "x13",
+                "x14",
+                "x15",
+                "v0",
+                "v1",
+                "v2",
+                "v3",
+                "v4",
+                "v5",
+                "v6",
+                "v7",
             ],
-            regs_sort=['w0']
+            regs_sort=["w0"],
         )
 
         self.run_one(
             "iip_c",
             [InsertInstructionPatch(0x760, instrs, language="C", c_config=config)],
             expected_output=b"52",
-            expected_returnCode=0
+            expected_returnCode=0,
         )
 
     def test_insert_instruction_patch_c_asm_header(self):
@@ -345,23 +387,44 @@ class Tests(unittest.TestCase):
         config = InsertInstructionPatch.CConfig(
             asm_header=asm_header,
             scratch_regs=[
-                'x1', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10', 'x11', 'x13', 'x14', 'x15',
-                'v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'
+                "x1",
+                "x3",
+                "x4",
+                "x5",
+                "x6",
+                "x7",
+                "x8",
+                "x9",
+                "x10",
+                "x11",
+                "x13",
+                "x14",
+                "x15",
+                "v0",
+                "v1",
+                "v2",
+                "v3",
+                "v4",
+                "v5",
+                "v6",
+                "v7",
+            ],
+        )
+
+        expected_output = b"".join(
+            [
+                b"The area of the circle with radius 1.500000 is 7.065000\n",
+                b"The area of the circle with radius 2.000000 is 12.560000\n",
+                b"The area of the circle with radius 4.300000 is 58.058605\n",
             ]
         )
 
-        expected_output = b''.join([
-            b"The area of the circle with radius 1.500000 is 7.065000\n",
-            b"The area of the circle with radius 2.000000 is 12.560000\n",
-            b"The area of the circle with radius 4.300000 is 58.058605\n"
-        ])
-
         self.run_one(
             "iip_c_asm_header",
-            [InsertInstructionPatch(0xa20, instrs, language="C", c_config=config)],
+            [InsertInstructionPatch(0xA20, instrs, language="C", c_config=config)],
             expected_output=expected_output,
             expected_returnCode=0,
-            target_opts={"compiler": "clang19"}
+            target_opts={"compiler": "clang19"},
         )
 
     def test_insert_instruction_patch_c_asm_header2(self):
@@ -381,23 +444,44 @@ class Tests(unittest.TestCase):
         config = InsertInstructionPatch.CConfig(
             asm_header=asm_header,
             scratch_regs=[
-                'x1', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10', 'x11', 'x13', 'x14', 'x15',
-                'v0', 'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7'
+                "x1",
+                "x3",
+                "x4",
+                "x5",
+                "x6",
+                "x7",
+                "x8",
+                "x9",
+                "x10",
+                "x11",
+                "x13",
+                "x14",
+                "x15",
+                "v0",
+                "v1",
+                "v2",
+                "v3",
+                "v4",
+                "v5",
+                "v6",
+                "v7",
+            ],
+        )
+
+        expected_output = b"".join(
+            [
+                b"The area of the circle with radius 1.500000 is 7.065000\n",
+                b"The area of the circle with radius 2.000000 is 12.560000\n",
+                b"The area of the circle with radius 4.300000 is 58.058605\n",
             ]
         )
 
-        expected_output = b''.join([
-            b"The area of the circle with radius 1.500000 is 7.065000\n",
-            b"The area of the circle with radius 2.000000 is 12.560000\n",
-            b"The area of the circle with radius 4.300000 is 58.058605\n"
-        ])
-
         self.run_one(
             "iip_c_asm_header",
-            [InsertInstructionPatch(0xa20, instrs, language="C", c_config=config)],
+            [InsertInstructionPatch(0xA20, instrs, language="C", c_config=config)],
             expected_output=expected_output,
             expected_returnCode=0,
-            target_opts={"compiler": "clang19"}
+            target_opts={"compiler": "clang19"},
         )
 
     def test_insert_instruction_patch_c_float(self):
@@ -409,25 +493,45 @@ class Tests(unittest.TestCase):
 
         config = InsertInstructionPatch.CConfig(
             scratch_regs=[
-                'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10', 'x11', 'x12', 'x13', 'x14', 'x15',
-                'v3', 'v4', 'v5', 'v6', 'v7'
+                "x1",
+                "x2",
+                "x3",
+                "x4",
+                "x5",
+                "x6",
+                "x7",
+                "x8",
+                "x9",
+                "x10",
+                "x11",
+                "x12",
+                "x13",
+                "x14",
+                "x15",
+                "v3",
+                "v4",
+                "v5",
+                "v6",
+                "v7",
             ],
-            regs_sort=['s0', 's1', 's2']
+            regs_sort=["s0", "s1", "s2"],
         )
 
-        expected_output = b''.join([
-            b"The square magnitude of the vector (0.000000, 0.000000, 0.000000) is 0.000000\n",
-            b"The square magnitude of the vector (1.000000, 2.000000, 3.000000) is 14.000000\n",
-            b"The square magnitude of the vector (-20.000000, 33.200001, 5.200000) is 1529.280029\n",
-            b"The square magnitude of the vector (3.000000, 4.000000, 0.000000) is 25.000000\n"
-        ])
+        expected_output = b"".join(
+            [
+                b"The square magnitude of the vector (0.000000, 0.000000, 0.000000) is 0.000000\n",
+                b"The square magnitude of the vector (1.000000, 2.000000, 3.000000) is 14.000000\n",
+                b"The square magnitude of the vector (-20.000000, 33.200001, 5.200000) is 1529.280029\n",
+                b"The square magnitude of the vector (3.000000, 4.000000, 0.000000) is 25.000000\n",
+            ]
+        )
 
         self.run_one(
             "iip_c_float",
             [InsertInstructionPatch(0x774, instrs, language="C", c_config=config)],
             expected_output=expected_output,
             expected_returnCode=0,
-            target_opts={"compiler": "clang19"}
+            target_opts={"compiler": "clang19"},
         )
 
     def run_one(
@@ -438,7 +542,7 @@ class Tests(unittest.TestCase):
         inputvalue=None,
         expected_output=None,
         expected_returnCode=None,
-        target_opts=None
+        target_opts=None,
     ):
         filepath = os.path.join(self.bin_location, filename)
         pipe = subprocess.PIPE

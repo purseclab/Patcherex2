@@ -25,7 +25,9 @@ class Target:
         raise NotImplementedError("The calling convention for this target is unknown")
 
     def get_cc_float(self, archinfo=None):
-        raise NotImplementedError("The floating point calling convention for this target is unknown")
+        raise NotImplementedError(
+            "The floating point calling convention for this target is unknown"
+        )
 
     def get_archinfo(self, archinfo):
         raise NotImplementedError("get_archinfo not implemented")

@@ -80,18 +80,18 @@ class ElfAmd64Linux(Target):
     def get_cc(self, preserve_none=False, archinfo=None):
         archinfo = self.get_archinfo(archinfo)
         if preserve_none:
-            return archinfo.cc['LinuxPreserveNone']
+            return archinfo.cc["LinuxPreserveNone"]
         else:
-            return archinfo.cc['Linux']
+            return archinfo.cc["Linux"]
 
     def get_cc_float(self, archinfo=None):
         archinfo = self.get_archinfo(archinfo)
-        return archinfo.cc_float['Linux']
+        return archinfo.cc_float["Linux"]
 
     def get_callee_saved(self, archinfo=None):
         archinfo = self.get_archinfo(archinfo)
-        return archinfo.callee_saved['Linux']
+        return archinfo.callee_saved["Linux"]
 
     def get_callee_saved_float(self, archinfo=None):
         archinfo = self.get_archinfo(archinfo)
-        return archinfo.callee_saved_float['Linux']
+        return archinfo.callee_saved_float["Linux"]
