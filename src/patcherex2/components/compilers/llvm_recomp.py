@@ -152,13 +152,29 @@ class LLVMRecomp(Clang):
             _symbols.update(symbols)
 
             with open(os.path.join(td, "obj.o"), "rb") as f:
+                elf = ELFFile(f)
                 linker_script_rodata_sections = " ".join(
                     [
                         f". = ALIGN({section['sh_addralign']}); *({section.name})"
-                        for section in ELFFile(f).iter_sections()
+                        for section in elf.iter_sections()
                         if section.name.startswith(".rodata")
                     ]
                 )
+
+                # automatically add symbols like off_deadbeef, dword_deadbeef, etc.
+                for sym in elf.get_section_by_name(".symtab").iter_symbols():
+                    if (
+                        sym.entry.st_shndx == "SHN_UNDEF"
+                        and sym.name
+                        and "_" in sym.name
+                    ):
+                        try:
+                            _, addr = sym.name.split("_", 1)
+                            addr = int(addr, 16)
+                            if sym.name not in _symbols:
+                                _symbols[sym.name] = addr
+                        except ValueError:
+                            pass
             linker_script_symbols = "".join(
                 f"{name} = {hex(addr)};" for name, addr in _symbols.items()
             )
@@ -186,7 +202,14 @@ class LLVMRecomp(Clang):
             ld = cle.Loader(
                 os.path.join(td, "obj_linked.o"), main_opts={"base_addr": 0x0}
             )
+
+            patcherex2_section = next(
+                (s for s in ld.main_object.sections if s.name == ".patcherex2"), None
+            )
+            compiled_start = ld.all_objects[0].entry + base
+
             compiled = ld.memory.load(
-                ld.all_objects[0].entry + base, ld.memory.max_addr
+                compiled_start,
+                patcherex2_section.memsize - compiled_start,
             )
         return compiled

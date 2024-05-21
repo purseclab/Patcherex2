@@ -65,6 +65,18 @@ class IHex(BinFmtTool):
         if offset + len(new_content) > self.file_size:
             self.file_size = offset + len(new_content)
 
+    def get_binary_content(self, offset: int, size: int) -> bytes:
+        # check if it's in the file updates
+        for update in self.file_updates:
+            if offset >= update["offset"] and offset + size <= update["offset"] + len(
+                update["content"]
+            ):
+                return update["content"][
+                    offset - update["offset"] : offset - update["offset"] + size
+                ]
+        # otherwise read from the file
+        return self._ihex.tobinarray(start=offset, size=size)
+
     def append_to_binary_content(self, new_content: bytes) -> None:
         self.file_updates.append({"offset": self.file_size, "content": new_content})
         self.file_size += len(new_content)
