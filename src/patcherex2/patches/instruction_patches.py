@@ -220,7 +220,7 @@ class InsertInstructionPatch(Patch):
         self.detour_pos = detour_pos
         self.symbols = symbols if symbols else {}
         self.is_thumb = is_thumb
-        self.language = language
+        self.language = language.upper()
         self.c_config = self.CConfig() if c_config is None else c_config
         self.save_context = (
             kwargs["save_context"] if "save_context" in kwargs else False
