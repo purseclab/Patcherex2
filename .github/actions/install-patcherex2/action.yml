@@ -18,6 +18,13 @@ runs:
           libc6-powerpc-cross libc6-powerpc-ppc64-cross \
           libc6-mipsel-cross libc6-mips64el-cross \
           libc6-ppc64el-cross
+    - name: Install clang-19 lld-19
+      shell: bash
+      run: |
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy main" | sudo tee /etc/apt/sources.list.d/llvm.list
+        sudo apt-get update
+        sudo apt-get install -y clang-19 lld-19
     - name: Install Patchrex2
       shell: bash
       run: |
