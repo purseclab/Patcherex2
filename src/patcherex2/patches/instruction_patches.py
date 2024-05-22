@@ -253,7 +253,12 @@ class InsertInstructionPatch(Patch):
             [] if self.c_config.regs_sort is None else list(self.c_config.regs_sort)
         )
 
-        calling_convention = p.target.get_cc(preserve_none=p.compiler.preserve_none)
+        # TODO: make it os agnostic?
+        calling_convention = (
+            p.archinfo.cc["LinuxPreserveNone"]
+            if p.compiler.preserve_none
+            else p.archinfo.cc["Linux"]
+        )
         subregister_table = p.archinfo.subregisters
         subregister_float_table = p.archinfo.subregisters_float
 
@@ -265,7 +270,9 @@ class InsertInstructionPatch(Patch):
         # some registers via 'register uint64_t rbx asm("rbx");', the compiler will insert
         # push and pop instructions to save these registers.
         extra_saved = (
-            extra_saved - set(calling_convention) - set(p.target.get_callee_saved())
+            extra_saved
+            - set(calling_convention)
+            - set(p.archinfo.callee_saved["Linux"])
         )
         extra_saved_in = list(extra_saved)
         # We don't want to necessarily output registers that have been marked as scratch
@@ -282,12 +289,12 @@ class InsertInstructionPatch(Patch):
             extra_saved_out, subregister_table, c_regs_sort, uint_converter
         )
 
-        calling_convention_float: list[str] = p.target.get_cc_float()
+        calling_convention_float: list[str] = p.archinfo.cc_float["Linux"]
         extra_saved_float = set(p.archinfo.regs_float)
         extra_saved_float = (
             extra_saved_float
             - set(calling_convention_float)
-            - set(p.target.get_callee_saved_float())
+            - set(p.archinfo.callee_saved_float["Linux"])
         )
         extra_saved_float_in = list(extra_saved_float)
         extra_saved_float_out = list(extra_saved_float - c_scratch_regs)

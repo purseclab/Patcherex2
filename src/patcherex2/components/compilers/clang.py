@@ -12,8 +12,7 @@ class Clang(Compiler):
         self, p, clang_version=15, compiler_flags: list[str] | None = None
     ) -> None:
         super().__init__(p)
-        if clang_version >= 19:
-            self.preserve_none = True
+        self.preserve_none = clang_version >= 19
         if compiler_flags is None:
             compiler_flags = []
         self._compiler = f"clang-{clang_version}"

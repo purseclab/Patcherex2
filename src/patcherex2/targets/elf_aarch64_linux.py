@@ -79,27 +79,3 @@ class ElfAArch64Linux(Target):
         if archinfo == "default":
             return Aarch64Info()
         raise NotImplementedError()
-
-    def get_cc(self, preserve_none=False, archinfo=None):
-        archinfo = self.get_archinfo(archinfo)
-        if preserve_none:
-            cc = archinfo.cc["defaultPreserveNone"]
-            if cc is None:
-                logger.warning("preserve_none for ARM64 is not implemented yet!")
-                return archinfo.cc["default"]
-            else:
-                return cc
-        else:
-            return archinfo.cc["default"]
-
-    def get_cc_float(self, archinfo=None):
-        archinfo = self.get_archinfo(archinfo)
-        return archinfo.cc_float["default"]
-
-    def get_callee_saved(self, archinfo=None):
-        archinfo = self.get_archinfo(archinfo)
-        return archinfo.callee_saved["default"]
-
-    def get_callee_saved_float(self, archinfo=None):
-        archinfo = self.get_archinfo(archinfo)
-        return archinfo.callee_saved_float["default"]

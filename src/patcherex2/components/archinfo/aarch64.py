@@ -49,11 +49,13 @@ class Aarch64Info:
     """
 
     cc = {
-        "default": ["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"],
-        "defaultPreserveNone": None,  # TODO once aarch64 support lands in LLVM for preserve_none
+        "Linux": ["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+        # TODO: update LinuxPreserveNone once aarch64 support lands
+        # in LLVM for preserve_none, currently defaults to Linux
+        "LinuxPreserveNone": ["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"],
     }
     callee_saved = {
-        "default": [
+        "Linux": [
             "x19",
             "x20",
             "x21",
@@ -68,9 +70,9 @@ class Aarch64Info:
             "x30",
         ]
     }
-    cc_float = {"default": ["v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7"]}
+    cc_float = {"Linux": ["v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7"]}
     callee_saved_float = {
-        "default": ["v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15"]
+        "Linux": ["v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15"]
     }
 
     float_types = {32: "float", 64: "double", 128: "long double"}
