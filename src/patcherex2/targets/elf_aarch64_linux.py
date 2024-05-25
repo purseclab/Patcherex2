@@ -1,7 +1,9 @@
-from ..components.allocation_managers.allocation_manager import AllocationManager
+from ..components.allocation_managers.allocation_manager import \
+    AllocationManager
 from ..components.archinfo.aarch64 import Aarch64Info
 from ..components.assemblers.keystone import Keystone, keystone
 from ..components.binary_analyzers.angr import Angr
+from ..components.binary_analyzers.ghidra import Ghidra
 from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.clang import Clang
 from ..components.disassemblers.capstone import Capstone, capstone
@@ -56,6 +58,8 @@ class ElfAArch64Linux(Target):
         binary_analyzer = binary_analyzer or "angr"
         if binary_analyzer == "angr":
             return Angr(self.binary_path)
+        if binary_analyzer == "ghidra":
+            return Ghidra(self.binary_path)
         raise NotImplementedError()
 
     def get_utils(self, utils):

@@ -1,14 +1,12 @@
 import logging
 
 from ..components.allocation_managers.allocation_manager import (
-    AllocationManager,
-    MappedBlock,
-    MemoryFlag,
-)
+    AllocationManager, MappedBlock, MemoryFlag)
 from ..components.archinfo.sparc import SparcInfo
 from ..components.assemblers.bcc import Bcc as BccAssembler
 from ..components.assemblers.keystone_sparc import KeystoneSparc, keystone
 from ..components.binary_analyzers.angr import Angr
+from ..components.binary_analyzers.ghidra import Ghidra
 from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.bcc import Bcc as BccCompiler
 from ..components.disassemblers.capstone import Capstone, capstone
@@ -21,7 +19,8 @@ logger = logging.getLogger(__name__)
 class CustomElf(ELF):
     def _init_memory_analysis(self):
         # remove all non-RWX segments
-        self._segments = [s for s in self._segments if s["p_flags"] & 0b111 == 0b111]
+        self._segments = [
+            s for s in self._segments if s["p_flags"] & 0b111 == 0b111]
         block = MappedBlock(
             self._segments[0]["p_offset"],
             self._segments[0]["p_vaddr"],
@@ -77,6 +76,8 @@ class ElfLeon3Bare(Target):
         binary_analyzer = binary_analyzer or "angr"
         if binary_analyzer == "angr":
             return Angr(self.binary_path)
+        if binary_analyzer == "ghidra":
+            return Ghidra(self.binary_path)
         raise NotImplementedError()
 
     def get_utils(self, utils):
