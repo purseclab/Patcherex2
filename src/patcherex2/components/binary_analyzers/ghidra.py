@@ -1,4 +1,5 @@
 import pyhidra
+from sympy import is_nthpow_residue
 
 from .binary_analyzer import BinaryAnalyzer
 
@@ -91,6 +92,8 @@ class Ghidra(BinaryAnalyzer):
                 continue
             symbols[f.getName()] = self.normalize_addr(
                 f.getEntryPoint().getOffset())
+            if self.is_thumb(symbols[f.getName()]):
+                symbols[f.getName()] += 1
         return symbols
 
     def get_function(self, name_or_addr: int | str) -> dict[str, int] | None:
@@ -107,6 +110,7 @@ class Ghidra(BinaryAnalyzer):
             func = funcs[0]
         else:
             raise Exception("Invalid type for argument")
+
 
         b = func.getBody()
         return {"addr": self.normalize_addr(b.getMinAddress().getOffset()), "size": b.getNumAddresses()}
