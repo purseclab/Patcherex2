@@ -66,7 +66,7 @@ def get_assembler(self, assembler):
 You can select the assembler like this:
 
 ```python
-p = Patcherex("/path/to/binary", target_opts={"assembler": "gas"})
+p = Patcherex("/path/to/binary", components={"assembler": "gas"})
 ```
 
 This will use the `Gas` assembler instead of the default `Keystone` assembler.

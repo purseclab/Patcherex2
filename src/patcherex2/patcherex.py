@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import logging
 
+from .components.binary_analyzers.ghidra import Ghidra
 from .patches import *
 from .patches import __all__ as all_patches
 from .targets import Target
-from .components.binary_analyzers.ghidra import Ghidra
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class Patcherex:
         self,
         binary_path: str,
         target_cls: type[Target] | None = None,
-        target_opts: dict[str, str] | None = None,
+        components: dict[str, str] | None = None,
         components_opts: dict[str, dict[str, str]] | None = None,
     ) -> None:
         """
@@ -28,11 +28,11 @@ class Patcherex:
 
         :param binary_path: The path of the binary to patch.
         :param target_cls: Specified architecture class to use, otherwise it is automatically detected, defaults to None
-        :param target_opts: Options to specify components for the target, defaults to None
+        :param components: Options to specify components for the target, defaults to None
         :param components_opts: Options for configuring each component for the target, defaults to None
         """
-        if target_opts is None:
-            target_opts = {}
+        if components is None:
+            components = {}
         if components_opts is None:
             components_opts = {}
         self.binary_path = binary_path
@@ -62,7 +62,7 @@ class Patcherex:
                 component,
                 self.target.get_component(
                     component,
-                    target_opts.get(component),
+                    components.get(component),
                     components_opts.get(component),
                 ),
             )
@@ -85,14 +85,13 @@ class Patcherex:
         )
         assert len(self.patch_order) == len(all_patches)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Shuts down any resources used by Patcherex2.
         This needs to be called when using Ghidra as the binary analyzer when done patching.
         """
         if isinstance(self.binary_analyzer, Ghidra):
             self.binary_analyzer.shutdown()
-
 
     def apply_patches(self) -> None:
         """
