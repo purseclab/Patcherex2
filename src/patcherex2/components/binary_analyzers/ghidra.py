@@ -19,9 +19,13 @@ class Ghidra(BinaryAnalyzer):
         self.ctx.__exit__(None, None, None)
 
     def normalize_addr(self, addr):
+        if not self.currentProgram.getRelocationTable().isRelocatable():
+            return addr
         return addr - self.currentProgram.getImageBase().getOffset()
 
     def denormalize_addr(self, addr):
+        if not self.currentProgram.getRelocationTable().isRelocatable():
+            return addr
         return addr + self.currentProgram.getImageBase().getOffset()
 
     def mem_addr_to_file_offset(self, addr: int) -> int:
@@ -57,7 +61,7 @@ class Ghidra(BinaryAnalyzer):
         b = instr.getBytes()
         for i in range(1, num_instr):
             instr = instr.getNext()
-            b += instr.getBytes()
+            b = b"".join([b, instr.getBytes()])
         return b
 
     def get_unused_funcs(self) -> list[dict[str, int]]:
@@ -85,7 +89,8 @@ class Ghidra(BinaryAnalyzer):
             f = fi.next()
             if f.getName() in symbols.keys():
                 continue
-            symbols[f.getName()] = self.normalize_addr(f.getEntryPoint().getOffset())
+            symbols[f.getName()] = self.normalize_addr(
+                f.getEntryPoint().getOffset())
         return symbols
 
     def get_function(self, name_or_addr: int | str) -> dict[str, int] | None:
@@ -113,4 +118,4 @@ class Ghidra(BinaryAnalyzer):
             return False
         v = self.currentProgram.getProgramContext().getRegisterValue(r,
                                                                      self.flatapi.toAddr(addr))
-        return v.unsignedValueIgnoreMask == 1
+        return v.unsignedValueIgnoreMask != 0
