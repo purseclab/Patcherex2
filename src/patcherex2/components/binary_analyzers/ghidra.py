@@ -15,7 +15,7 @@ class Ghidra(BinaryAnalyzer):
         self.bbm = self.ghidra.program.model.block.BasicBlockModel(
             self.currentProgram)
 
-    def __del__(self):
+    def shutdown(self):
         self.ctx.__exit__(None, None, None)
 
     def normalize_addr(self, addr):

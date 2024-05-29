@@ -6,6 +6,7 @@ import logging
 from .patches import *
 from .patches import __all__ as all_patches
 from .targets import Target
+from .components.binary_analyzers.ghidra import Ghidra
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,15 @@ class Patcherex:
             ModifyFunctionPatch,
         )
         assert len(self.patch_order) == len(all_patches)
+
+    def shutdown(self):
+        """
+        Shuts down any resources used by Patcherex2.
+        This needs to be called when using Ghidra as the binary analyzer when done patching.
+        """
+        if isinstance(self.binary_analyzer, Ghidra):
+            self.binary_analyzer.shutdown()
+
 
     def apply_patches(self) -> None:
         """
