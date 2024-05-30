@@ -154,7 +154,7 @@ class InsertInstructionPatch(Patch):
             Note that you can still read from scratch registers stored in the variables. What the scratch\
             register denotation will indicate however is that the register can be re-used after the variable\
             is no longer live.
-            :param Iterable[str | tuple[str, int] | tuple[str, str]] regs_sort: Some architectures have subregisters\
+            :param regs_sort: Some architectures have subregisters\
             which allow access to a portion of a register, such as the lower 32 bits of a 64 bit register. If you want\
             to use a subregister instead of the full register you can request this by passing in a list of subregisters\
             here. Note that if you specify a subregister here, the full parent register is not available in the C\
