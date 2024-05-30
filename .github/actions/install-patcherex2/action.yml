@@ -11,13 +11,14 @@ runs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          qemu-user \
           clang-15 lld-15 \
-          libc6-armhf-cross libc6-arm64-cross \
-          libc6-mips-cross libc6-mips64-cross \
-          libc6-powerpc-cross libc6-powerpc-ppc64-cross \
-          libc6-mipsel-cross libc6-mips64el-cross \
-          libc6-ppc64el-cross
+          qemu-user \
+          gcc-multilib \
+          libc6-dev-armhf-cross libc6-dev-arm64-cross \
+          libc6-dev-mips-cross libc6-dev-mips64-cross \
+          libc6-dev-powerpc-cross libc6-dev-ppc64-cross \
+          libc6-dev-mipsel-cross libc6-dev-mips64el-cross \
+          libc6-dev-ppc64el-cross \
     - name: Install clang-19 lld-19
       shell: bash
       run: |
