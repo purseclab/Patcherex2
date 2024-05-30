@@ -33,7 +33,7 @@ docker run --rm -it -v ${PWD}:/workdir -w /workdir ghcr.io/purseclab/patcherex2
 <summary>Build from latest commit</summary>
 
 ```bash
-docker build -t --platform linux/amd64 patcherex2 https://github.com/purseclab/Patcherex2.git
+docker build -t patcherex2 --platform linux/amd64 https://github.com/purseclab/Patcherex2.git
 docker run --rm -it -v ${PWD}:/workdir -w /workdir patcherex2
 ```
 </details>
