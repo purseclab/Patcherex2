@@ -3,8 +3,9 @@ FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    git wget \
+    git wget unzip \
     virtualenvwrapper python3-dev python3-pip python-is-python3 python3-venv \
+    openjdk-17-jdk \
     clang-15 lld-15 \
     qemu-user \
     gcc-multilib \
@@ -20,6 +21,10 @@ RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - \
     && apt-get update && apt-get install -y clang-19 lld-19 \
     && rm -rf /var/lib/apt/lists/*
 
+RUN wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_11.0.3_build/ghidra_11.0.3_PUBLIC_20240410.zip \
+    && unzip /ghidra_11.0.3_PUBLIC_20240410.zip
+
+ENV GHIDRA_INSTALL_DIR=/ghidra_11.0.3_PUBLIC
 
 COPY . /patcherex2
 

@@ -16,6 +16,7 @@ dependencies = [
     "keystone-engine",
     "intelhex",
     "requests",
+    "pyhidra"
 ]
 
 [project.urls]
