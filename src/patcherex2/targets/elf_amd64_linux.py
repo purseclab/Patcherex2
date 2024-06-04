@@ -42,6 +42,8 @@ class ElfAmd64Linux(Target):
         compiler = compiler or "clang"
         if compiler == "clang":
             return Clang(self.p)
+        elif compiler == "clang19":
+            return Clang(self.p, clang_version=19)
         raise NotImplementedError()
 
     def get_disassembler(self, disassembler):

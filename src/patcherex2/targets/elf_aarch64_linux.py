@@ -1,5 +1,6 @@
-from ..components.allocation_managers.allocation_manager import \
-    AllocationManager
+import logging
+
+from ..components.allocation_managers.allocation_manager import AllocationManager
 from ..components.archinfo.aarch64 import Aarch64Info
 from ..components.assemblers.keystone import Keystone, keystone
 from ..components.binary_analyzers.angr import Angr
@@ -9,6 +10,8 @@ from ..components.compilers.clang import Clang
 from ..components.disassemblers.capstone import Capstone, capstone
 from ..components.utils.utils import Utils
 from .target import Target
+
+logger = logging.getLogger(__name__)
 
 
 class ElfAArch64Linux(Target):
@@ -40,6 +43,12 @@ class ElfAArch64Linux(Target):
         compiler = compiler or "clang"
         if compiler == "clang":
             return Clang(self.p, compiler_flags=["-target", "aarch64-linux-gnu"])
+        elif compiler == "clang19":
+            return Clang(
+                self.p,
+                compiler_flags=["-target", "aarch64-linux-gnu"],
+                clang_version=19,
+            )
         raise NotImplementedError()
 
     def get_disassembler(self, disassembler):
