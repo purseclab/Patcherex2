@@ -1,7 +1,10 @@
+import logging
+
 import pyhidra
-from sympy import is_nthpow_residue
 
 from .binary_analyzer import BinaryAnalyzer
+
+logger = logging.getLogger(__name__)
 
 
 class Ghidra(BinaryAnalyzer):
@@ -34,6 +37,7 @@ class Ghidra(BinaryAnalyzer):
         return self.currentProgram.getMemory().getAddressSourceInfo(self.flatapi.toAddr(addr)).getFileOffset()
 
     def get_basic_block(self, addr: int) -> dict[str, int | list[int]]:
+        logger.info("getting basic block at %x with ghidra", addr)
         addr = self.denormalize_addr(addr)
 
         block = self.bbm.getFirstCodeBlockContaining(self.flatapi.toAddr(
@@ -63,9 +67,12 @@ class Ghidra(BinaryAnalyzer):
         for i in range(1, num_instr):
             instr = instr.getNext()
             b = b"".join([b, instr.getBytes()])
+        logger.info("got instr bytes of length %d for %d instrs at %x with ghidra", len(
+            b), num_instr, addr)
         return b
 
     def get_unused_funcs(self) -> list[dict[str, int]]:
+        logger.info("getting unused funcs with ghidra")
         fi = self.currentProgram.getListing().getFunctions(True)
         unused_funcs = []
         while fi.hasNext():
@@ -77,6 +84,7 @@ class Ghidra(BinaryAnalyzer):
         return unused_funcs
 
     def get_all_symbols(self) -> dict[str, int]:
+        logger.info("getting all symbols with ghidra")
         symbols = {}
         # si = self.currentProgram.getSymbolTable().getAllSymbols(True)
         # while si.hasNext():
@@ -111,7 +119,6 @@ class Ghidra(BinaryAnalyzer):
         else:
             raise Exception("Invalid type for argument")
 
-
         b = func.getBody()
         return {"addr": self.normalize_addr(b.getMinAddress().getOffset()), "size": b.getNumAddresses()}
 
@@ -122,4 +129,7 @@ class Ghidra(BinaryAnalyzer):
             return False
         v = self.currentProgram.getProgramContext().getRegisterValue(r,
                                                                      self.flatapi.toAddr(addr))
-        return v.unsignedValueIgnoreMask != 0
+        t = v.unsignedValueIgnoreMask.intValue() == 1
+        logger.info("address %x %s thumb from ghidra",
+                    addr, "is" if t else "is not")
+        return t
