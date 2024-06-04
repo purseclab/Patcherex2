@@ -40,14 +40,14 @@ c_scratch_regs = [
     'xmm0', 'xmm1', 'xmm2', 'xmm3', 'xmm4', 'xmm5', 'xmm6', 'xmm7', 'xmm9', 'xmm10', 'xmm11', 'xmm12', 'xmm13', 'xmm14', 'xmm15'
 ]
 
-# By default floating point registers will have the 'float' type. We can use c_float_types to override
+# By default floating point registers will have the 'float' type. We can use c_regs_sort to override
 # certain registers so they hold different types. In this example we denote that xmm8 is of type double
-c_float_types = {'xmm8': 'double'}
+c_regs_sort = [('xmm8', 'double')]
 
 config = InsertInstructionPatch.CConfig(
     c_forward_header = c_forward_header,
     scratch_regs=c_scratch_regs,
-    float_types=c_float_types,
+    regs_sort=c_regs_sort,
     asm_header=asm_header
 )
 
