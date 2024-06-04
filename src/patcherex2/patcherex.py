@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import logging
 
+from .components.binary_analyzers.ghidra import Ghidra
 from .patches import *
 from .patches import __all__ as all_patches
 from .targets import Target
-from .components.binary_analyzers.ghidra import Ghidra
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,6 @@ class Patcherex:
         """
         if isinstance(self.binary_analyzer, Ghidra):
             self.binary_analyzer.shutdown()
-
 
     def apply_patches(self) -> None:
         """

@@ -1,5 +1,4 @@
-from ..components.allocation_managers.allocation_manager import \
-    AllocationManager
+from ..components.allocation_managers.allocation_manager import AllocationManager
 from ..components.archinfo.amd64 import Amd64Info
 from ..components.assemblers.keystone import Keystone, keystone
 from ..components.binary_analyzers.angr import Angr

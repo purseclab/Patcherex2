@@ -1,5 +1,4 @@
-from ..components.allocation_managers.allocation_manager import \
-    AllocationManager
+from ..components.allocation_managers.allocation_manager import AllocationManager
 from ..components.archinfo.ppc import PpcInfo
 from ..components.assemblers.keystone import Keystone, keystone
 from ..components.binary_analyzers.angr import Angr

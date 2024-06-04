@@ -14,10 +14,10 @@ class Ghidra(BinaryAnalyzer):
         self.currentProgram = self.flatapi.getCurrentProgram()
 
         import ghidra
+
         self.ghidra = ghidra
 
-        self.bbm = self.ghidra.program.model.block.BasicBlockModel(
-            self.currentProgram)
+        self.bbm = self.ghidra.program.model.block.BasicBlockModel(self.currentProgram)
 
     def shutdown(self):
         self.ctx.__exit__(None, None, None)
@@ -35,41 +35,42 @@ class Ghidra(BinaryAnalyzer):
 
     def mem_addr_to_file_offset(self, addr: int) -> int:
         addr = self.denormalize_addr(addr)
-        return self.currentProgram.getMemory().getAddressSourceInfo(addr).getFileOffset()
+        return (
+            self.currentProgram.getMemory().getAddressSourceInfo(addr).getFileOffset()
+        )
 
     def get_basic_block(self, addr: int) -> dict[str, int | list[int]]:
         logger.info(f"getting basic block at 0x{addr} with ghidra")
         addr = self.denormalize_addr(addr)
 
         block = self.bbm.getFirstCodeBlockContaining(
-            addr, self.ghidra.util.task.TaskMonitor.DUMMY)
+            addr, self.ghidra.util.task.TaskMonitor.DUMMY
+        )
         if block is None:
-            raise Exception(
-                f"Cannot find block containing address 0x{addr}")
+            raise Exception(f"Cannot find block containing address 0x{addr}")
         instrs = []
         ii = self.currentProgram.getListing().getInstructions(block, True)
         for i in ii:
-            instrs.append(self.normalize_addr(
-                i.getAddress()))
+            instrs.append(self.normalize_addr(i.getAddress()))
         return {
             "start": self.normalize_addr(block.getMinAddress()),
-            "end": self.normalize_addr(block.getMinAddress())+block.getNumAddresses(),
+            "end": self.normalize_addr(block.getMinAddress()) + block.getNumAddresses(),
             "size": block.getNumAddresses(),
-            "instruction_addrs": instrs
+            "instruction_addrs": instrs,
         }
 
     def get_instr_bytes_at(self, addr: int, num_instr=1):
         addr = self.denormalize_addr(addr)
-        instr = self.currentProgram.getListing(
-        ).getInstructionContaining(addr)
+        instr = self.currentProgram.getListing().getInstructionContaining(addr)
         if instr is None:
             return None
         b = instr.getBytes()
-        for i in range(1, num_instr):
+        for _i in range(1, num_instr):
             instr = instr.getNext()
             b = b"".join([b, instr.getBytes()])
         logger.info(
-            f"got instr bytes of length {len(b)} for {num_instr} instrs at 0x{addr} with ghidra")
+            f"got instr bytes of length {len(b)} for {num_instr} instrs at 0x{addr} with ghidra"
+        )
         return b
 
     def get_unused_funcs(self) -> list[dict[str, int]]:
@@ -80,7 +81,11 @@ class Ghidra(BinaryAnalyzer):
             if not f.getSymbol().hasReferences():
                 b = f.getBody()
                 unused_funcs.append(
-                    {"addr": self.normalize_addr(b.getMinAddress()), "size": b.getNumAddresses()})
+                    {
+                        "addr": self.normalize_addr(b.getMinAddress()),
+                        "size": b.getNumAddresses(),
+                    }
+                )
         return unused_funcs
 
     def get_all_symbols(self) -> dict[str, int]:
@@ -96,8 +101,7 @@ class Ghidra(BinaryAnalyzer):
         for f in fi:
             if f.getName() in symbols.keys():
                 continue
-            symbols[f.getName()] = self.normalize_addr(
-                f.getEntryPoint())
+            symbols[f.getName()] = self.normalize_addr(f.getEntryPoint())
             if self.is_thumb(symbols[f.getName()]):
                 symbols[f.getName()] += 1
         return symbols
@@ -105,8 +109,7 @@ class Ghidra(BinaryAnalyzer):
     def get_function(self, name_or_addr: int | str) -> dict[str, int] | None:
         if isinstance(name_or_addr, int):
             name_or_addr = self.denormalize_addr(name_or_addr)
-            func = self.currentProgram.getListing(
-            ).getFunctionContaining(name_or_addr)
+            func = self.currentProgram.getListing().getFunctionContaining(name_or_addr)
             if func is None:
                 return None
         elif isinstance(name_or_addr, str):
@@ -118,7 +121,10 @@ class Ghidra(BinaryAnalyzer):
             raise Exception("Invalid type for argument")
 
         b = func.getBody()
-        return {"addr": self.normalize_addr(b.getMinAddress()), "size": b.getNumAddresses()}
+        return {
+            "addr": self.normalize_addr(b.getMinAddress()),
+            "size": b.getNumAddresses(),
+        }
 
     def is_thumb(self, addr: int) -> bool:
         addr = self.denormalize_addr(addr)
@@ -127,6 +133,5 @@ class Ghidra(BinaryAnalyzer):
             return False
         v = self.currentProgram.getProgramContext().getRegisterValue(r, addr)
         t = v.unsignedValueIgnoreMask.intValue() == 1
-        logger.info(
-            f"address 0x{addr} {'is' if t else 'is not'} thumb from ghidra")
+        logger.info(f"address 0x{addr} {'is' if t else 'is not'} thumb from ghidra")
         return t

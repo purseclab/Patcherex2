@@ -288,7 +288,7 @@ class Tests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as td:
             tmp_file = os.path.join(td, "patched")
-            p = Patcherex(filepath,target_opts={"binary_analyzer":"ghidra"})
+            p = Patcherex(filepath, target_opts={"binary_analyzer": "ghidra"})
             for patch in patches:
                 p.patches.append(patch)
             p.apply_patches()
