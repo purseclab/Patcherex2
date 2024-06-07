@@ -9,6 +9,7 @@ from ..components.archinfo.sparc import SparcInfo
 from ..components.assemblers.bcc import Bcc as BccAssembler
 from ..components.assemblers.keystone_sparc import KeystoneSparc, keystone
 from ..components.binary_analyzers.angr import Angr
+from ..components.binary_analyzers.ghidra import Ghidra
 from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.bcc import Bcc as BccCompiler
 from ..components.disassemblers.capstone import Capstone, capstone
@@ -77,6 +78,8 @@ class ElfLeon3Bare(Target):
         binary_analyzer = binary_analyzer or "angr"
         if binary_analyzer == "angr":
             return Angr(self.binary_path)
+        if binary_analyzer == "ghidra":
+            return Ghidra(self.binary_path)
         raise NotImplementedError()
 
     def get_utils(self, utils):
