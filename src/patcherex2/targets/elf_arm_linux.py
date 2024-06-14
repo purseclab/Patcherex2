@@ -37,6 +37,12 @@ class ElfArmLinux(Target):
         compiler = compiler or "clang"
         if compiler == "clang":
             return ClangArm(self.p, compiler_flags=["-target", "arm-linux-gnueabihf"])
+        elif compiler == "clang19":
+            return ClangArm(
+                self.p,
+                compiler_flags=["-target", "arm-linux-gnueabihf"],
+                clang_version=19,
+            )
         raise NotImplementedError()
 
     def get_disassembler(self, disassembler):

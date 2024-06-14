@@ -297,6 +297,40 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    def test_insert_instruction_patch_c(self):
+        # Original computation was (n + 2) * 2 where n = 4
+        # New computation inserts a factorial step at the beginning
+        # The new computation is (n! + 2) * 2 where n=4
+        instrs = """
+        uint32_t n = r0;
+        for (uint32_t i = 1; i < n; i++) {
+            r0 *= i;
+        }
+        """
+
+        config = InsertInstructionPatch.CConfig(
+            scratch_regs=[
+                "r1",
+                "r2",
+                "r3",
+                "d0",
+                "d1",
+                "d2",
+                "d3",
+                "d4",
+                "d5",
+                "d6",
+                "d7",
+            ]
+        )
+
+        self.run_one(
+            "iip_c",
+            [InsertInstructionPatch(0x1062C, instrs, language="C", c_config=config)],
+            expected_output=b"52",
+            expected_returnCode=0,
+        )
+
     def run_one(
         self,
         filename,
@@ -305,13 +339,14 @@ class Tests(unittest.TestCase):
         inputvalue=None,
         expected_output=None,
         expected_returnCode=None,
+        target_opts=None,
     ):
         filepath = os.path.join(self.bin_location, filename)
         pipe = subprocess.PIPE
 
         with tempfile.TemporaryDirectory() as td:
             tmp_file = os.path.join(td, "patched")
-            p = Patcherex(filepath)
+            p = Patcherex(filepath, target_opts=target_opts)
             for patch in patches:
                 p.patches.append(patch)
             p.apply_patches()
