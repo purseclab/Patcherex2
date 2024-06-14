@@ -331,6 +331,92 @@ class Tests(unittest.TestCase):
             expected_returnCode=0,
         )
 
+    def test_insert_instruction_patch_c_asm_header(self):
+        asm_header = "mov r12, r11"
+
+        # Original computation computed the area as pi * radius
+        # Here our micropatch loops over the areas array and multiplies by another radius to fix the bug
+        instrs = """
+        int num_radii = *((int *) (r12 - 0x10));
+        float *areas = *((float **) (r12 - 0x20));
+        float *radii = *((float **) (r12 - 0x0c));
+        for (int i = 0; i < num_radii; i++) {
+            areas[i] *= radii[i];
+        }
+        """
+
+        config = InsertInstructionPatch.CConfig(
+            asm_header=asm_header,
+            scratch_regs=[
+                "r0",
+                "r1",
+                "r2",
+                "r3",
+                "d0",
+                "d1",
+                "d2",
+                "d3",
+                "d4",
+                "d5",
+                "d6",
+                "d7",
+            ],
+        )
+
+        expected_output = b"".join(
+            [
+                b"The area of the circle with radius 1.500000 is 7.065000\n",
+                b"The area of the circle with radius 2.000000 is 12.560000\n",
+                b"The area of the circle with radius 4.300000 is 58.058605\n",
+            ]
+        )
+
+        self.run_one(
+            "iip_c_asm_header",
+            [InsertInstructionPatch(0x1077C, instrs, language="C", c_config=config)],
+            expected_output=expected_output,
+            expected_returnCode=0,
+        )
+
+    def test_insert_instruction_patch_c_float(self):
+        # Original computation calculated the square magnitude of a 3D vector as x^2 + y^2
+        # Here we insert an additional step to fix the calculation to be x^2 + y^2 + z^2
+        instrs = """
+        s6 = *(float*)r12;
+        s0 += s6 * s6;
+        """
+
+        config = InsertInstructionPatch.CConfig(
+            asm_header="mov r12, r13",
+            scratch_regs=[
+                "r0",
+                "r1",
+                "r2",
+                "r3",
+                "d4",
+                "d5",
+                "d6",
+                "d7",
+            ],
+            regs_sort=["s0", "s2", "s4", "s6"],
+        )
+
+        expected_output = b"".join(
+            [
+                b"The square magnitude of the vector (0.000000, 0.000000, 0.000000) is 0.000000\n",
+                b"The square magnitude of the vector (1.000000, 2.000000, 3.000000) is 14.000000\n",
+                b"The square magnitude of the vector (-20.000000, 33.200001, 5.200000) is 1529.280029\n",
+                b"The square magnitude of the vector (3.000000, 4.000000, 0.000000) is 25.000000\n",
+            ]
+        )
+
+        self.run_one(
+            "iip_c_float",
+            [InsertInstructionPatch(0x1067C, instrs, language="C", c_config=config)],
+            expected_output=expected_output,
+            expected_returnCode=0,
+        )
+
     def run_one(
         self,
         filename,
