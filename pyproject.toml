@@ -10,7 +10,7 @@ readme = "README.md"
 dependencies = [
     "angr",
     "pyelftools",
-    "pypcode",
+    "pypcode==2.1.0",
     "lark",
     "lief",
     "keystone-engine",
