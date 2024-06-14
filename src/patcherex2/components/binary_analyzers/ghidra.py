@@ -1,7 +1,5 @@
 import logging
 
-import pyhidra
-
 from .binary_analyzer import BinaryAnalyzer
 
 logger = logging.getLogger(__name__)
@@ -9,6 +7,8 @@ logger = logging.getLogger(__name__)
 
 class Ghidra(BinaryAnalyzer):
     def __init__(self, binary_path: str, **kwargs):
+        import pyhidra
+
         self.ctx = pyhidra.open_program(binary_path)
         self.flatapi = self.ctx.__enter__()
         self.currentProgram = self.flatapi.getCurrentProgram()

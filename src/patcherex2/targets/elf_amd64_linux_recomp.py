@@ -18,7 +18,7 @@ class ElfAmd64LinuxRecomp(ElfAmd64Linux):
     def get_binary_analyzer(self, binary_analyzer, **kwargs):
         binary_analyzer = binary_analyzer or "angr"
         if binary_analyzer == "angr":
-            return Angr(self.binary_path)
+            return Angr(self.binary_path, **kwargs)
         if binary_analyzer == "ghidra":
             return Ghidra(self.binary_path, **kwargs)
         raise NotImplementedError()
