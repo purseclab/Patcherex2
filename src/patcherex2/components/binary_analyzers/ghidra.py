@@ -35,9 +35,12 @@ class Ghidra(BinaryAnalyzer):
 
     def mem_addr_to_file_offset(self, addr: int) -> int:
         addr = self.denormalize_addr(addr)
-        return (
-            self.currentProgram.getMemory().getAddressSourceInfo(addr).getFileOffset()
-        )
+        try:
+            return (
+                self.currentProgram.getMemory().getAddressSourceInfo(addr).getFileOffset()
+            )
+        except Exception:
+            raise Exception(f"Can't get file offset for {hex(addr)}")
 
     def get_basic_block(self, addr: int) -> dict[str, int | list[int]]:
         logger.info(f"getting basic block at 0x{addr} with ghidra")
