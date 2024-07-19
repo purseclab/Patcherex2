@@ -161,7 +161,7 @@ class AllocationManager:
         for block in self.blocks[FileBlock]:
             if block.size == -1:
                 file_addr = block.addr
-                block.addr += 0x2000
+                block.addr += 0x10000
         for block in self.blocks[MemoryBlock]:
             if block.size == -1:
                 # NOTE: mem_addr % p_align should equal to file_addr % p_align
@@ -177,13 +177,13 @@ class AllocationManager:
                     mem_addr = block.addr + (file_addr % max_seg_align)
                 else:
                     mem_addr = block.addr + (file_addr % 0x1000)
-                block.addr = mem_addr + 0x2000
+                block.addr = mem_addr + 0x10000
         if file_addr and mem_addr:
             self.add_block(
-                MappedBlock(file_addr, mem_addr, 0x2000, is_free=True, flag=flag)
+                MappedBlock(file_addr, mem_addr, 0x10000, is_free=True, flag=flag)
             )
             self.new_mapped_blocks.append(
-                MappedBlock(file_addr, mem_addr, 0x2000, is_free=True, flag=flag)
+                MappedBlock(file_addr, mem_addr, 0x10000, is_free=True, flag=flag)
             )
             return True
         return False
