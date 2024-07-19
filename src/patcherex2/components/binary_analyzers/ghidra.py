@@ -40,7 +40,7 @@ class Ghidra(BinaryAnalyzer):
                 self.currentProgram.getMemory().getAddressSourceInfo(addr).getFileOffset()
             )
         except Exception:
-            raise Exception(f"Can't get file offset for {hex(addr)}")
+            raise Exception("Can't get file offset for addr")
 
     def get_basic_block(self, addr: int) -> dict[str, int | list[int]]:
         logger.info(f"getting basic block at 0x{addr} with ghidra")
