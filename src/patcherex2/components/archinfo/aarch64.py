@@ -50,9 +50,31 @@ class Aarch64Info:
 
     cc = {
         "Linux": ["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"],
-        # TODO: update LinuxPreserveNone once aarch64 support lands
-        # in LLVM for preserve_none, currently defaults to Linux
-        "LinuxPreserveNone": ["x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+        "LinuxPreserveNone": [
+            "x20",
+            "x21",
+            "x22",
+            "x23",
+            "x24",
+            "x25",
+            "x26",
+            "x27",
+            "x28",
+            "x0",
+            "x1",
+            "x2",
+            "x3",
+            "x4",
+            "x5",
+            "x6",
+            "x7",
+            "x10",
+            "x11",
+            "x12",
+            "x13",
+            "x14",
+            "x9",
+        ],
     }
     callee_saved = {
         "Linux": [
