@@ -1,4 +1,5 @@
 import logging
+import tempfile
 
 from .binary_analyzer import BinaryAnalyzer
 
@@ -9,8 +10,11 @@ class Ghidra(BinaryAnalyzer):
     def __init__(self, binary_path: str, **kwargs):
         import pyhidra
 
-        self.ctx = pyhidra.open_program(binary_path)
-        self.flatapi = self.ctx.__enter__()
+        self.temp_proj_dir_ctx = tempfile.TemporaryDirectory()
+        self.temp_proj_dir = self.temp_proj_dir_ctx.__enter__()
+
+        self.pyhidra_ctx = pyhidra.open_program(binary_path, self.temp_proj_dir)
+        self.flatapi = self.pyhidra_ctx.__enter__()
         self.currentProgram = self.flatapi.getCurrentProgram()
 
         import ghidra
@@ -20,7 +24,8 @@ class Ghidra(BinaryAnalyzer):
         self.bbm = self.ghidra.program.model.block.BasicBlockModel(self.currentProgram)
 
     def shutdown(self):
-        self.ctx.__exit__(None, None, None)
+        self.pyhidra_ctx.__exit__(None, None, None)
+        self.temp_proj_dir_ctx.__exit__(None, None, None)
 
     def normalize_addr(self, addr):
         addr = addr.getOffset()
