@@ -6,7 +6,6 @@ import os
 import shutil
 import subprocess
 import tempfile
-import unittest
 
 import pytest
 
@@ -15,15 +14,16 @@ from patcherex2 import *
 logging.getLogger("patcherex2").setLevel("DEBUG")
 
 
-class Tests(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.bin_location = str(
+class Tests:
+    @pytest.fixture(autouse=True, scope="class", params=["angr", "ghidra"])
+    def setup(self, request):
+        request.cls.bin_location = str(
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
                 "./test_binaries/ppc",
             )
         )
+        request.cls.binary_analyzer = request.param
 
     def test_raw_file_patch(self):
         self.run_one(
@@ -197,11 +197,14 @@ class Tests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as td:
             tmp_file = os.path.join(td, "patched")
-            p = Patcherex(filepath)
+            p = Patcherex(
+                filepath, target_opts={"binary_analyzer": self.binary_analyzer}
+            )
             for patch in patches:
                 p.patches.append(patch)
             p.apply_patches()
             p.save_binary(tmp_file)
+            p.shutdown()
             # os.system(f"readelf -hlS {tmp_file}")
 
             p = subprocess.Popen(
@@ -213,13 +216,13 @@ class Tests(unittest.TestCase):
             res = p.communicate(inputvalue)
             if expected_output:
                 if res[0] != expected_output:
-                    self.fail(
+                    pytest.fail(
                         f"AssertionError: {res[0]} != {expected_output}, binary dumped: {self.dump_file(tmp_file)}"
                     )
                 # self.assertEqual(res[0], expected_output)
             if expected_returnCode:
                 if p.returncode != expected_returnCode:
-                    self.fail(
+                    pytest.fail(
                         f"AssertionError: {p.returncode} != {expected_returnCode}, binary dumped: {self.dump_file(tmp_file)}"
                     )
                 # self.assertEqual(p.returncode, expected_returnCode)
@@ -227,7 +230,3 @@ class Tests(unittest.TestCase):
     def dump_file(self, file):
         shutil.copy(file, "/tmp/patcherex_failed_binary")
         return "/tmp/patcherex_failed_binary"
-
-
-if __name__ == "__main__":
-    unittest.main()
