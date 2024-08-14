@@ -29,6 +29,6 @@ ENV GHIDRA_INSTALL_DIR=/ghidra_11.0.3_PUBLIC
 COPY . /patcherex2
 
 RUN pip install -U pip pytest ruff
-RUN pip install -e /patcherex2
+RUN pip install -e /patcherex2[all]
 
 CMD ["/bin/bash"]

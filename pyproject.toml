@@ -11,13 +11,15 @@ dependencies = [
     "angr",
     "pyelftools",
     "pypcode",
-    "lark",
     "lief",
     "keystone-engine",
     "intelhex",
-    "requests",
-    "pyhidra"
+    "requests"
 ]
+
+[project.optional-dependencies]
+ghidra = ["pyhidra"]
+all = ["patcherex2[ghidra]"]
 
 [project.urls]
 "Homepage" = "https://github.com/purseclab/Patcherex2"
