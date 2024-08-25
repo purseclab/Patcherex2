@@ -182,6 +182,9 @@ class ELF(BinFmtTool):
             key=lambda x: x["p_offset"],
         )
 
+        if len(load_segments) == 0:
+            return
+
         block = FileBlock(self.file_size, -1)
         self.p.allocation_manager.add_block(block)
 
