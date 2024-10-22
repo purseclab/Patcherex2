@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "patcherex2"
-version = "0.0.0"
+dynamic = ["version"]
 requires-python = ">=3.8"
 readme = "README.md"
 dependencies = [
@@ -34,3 +34,6 @@ exclude = ["examples"]
 
 [tool.ruff.lint]
 extend-select = ["I", "N", "UP", "B"]
+
+[tool.setuptools_scm]
+# empty
