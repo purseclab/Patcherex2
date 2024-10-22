@@ -1,7 +1,8 @@
 # ruff: noqa
+from importlib import metadata
+
 from .patcherex import Patcherex
 from .patches import *
-from importlib import metadata
 
 __version__ = metadata.version("patcherex2")
 
