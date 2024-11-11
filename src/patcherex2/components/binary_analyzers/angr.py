@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import traceback
 
 import angr
 from archinfo import ArchARM
@@ -73,36 +74,61 @@ class Angr(BinaryAnalyzer):
             addr += 1
         addr = self.denormalize_addr(addr)
 
-        func = self.p.kb.functions.function(
-            self.cfg.model.get_any_node(addr, anyaddr=True).function_address
-        )
-        ri = self.p.analyses.RegionIdentifier(func)
-        graph = ri._graph.copy()
-        ri._make_supergraph(graph)
+        try:
+            func = self.p.kb.functions.function(
+                self.cfg.model.get_any_node(addr, anyaddr=True).function_address
+            )
+            ri = self.p.analyses.RegionIdentifier(func)
+            graph = ri._graph.copy()
+            ri._make_supergraph(graph)
 
-        for multinode in graph.nodes():
-            nodes = multinode.nodes if hasattr(multinode, "nodes") else [multinode]
-            start = multinode.addr
-            size = sum(node.size for node in nodes)
-            end = start + size
+            for multinode in graph.nodes():
+                nodes = multinode.nodes if hasattr(multinode, "nodes") else [multinode]
+                start = multinode.addr
+                size = sum(node.size for node in nodes)
+                end = start + size
 
-            instr_addrs = [
-                instr_addr
-                for node in nodes
-                for instr_addr in func.get_block(node.addr).instruction_addrs
-            ]
+                instr_addrs = [
+                    instr_addr
+                    for node in nodes
+                    for instr_addr in func.get_block(node.addr).instruction_addrs
+                ]
 
-            if addr in instr_addrs:
-                return {
-                    "start": self.normalize_addr(start),
-                    "end": self.normalize_addr(end),
-                    "size": size,
-                    "instruction_addrs": [
-                        self.normalize_addr(instr_addr)
-                        - (1 if self.is_thumb(self.normalize_addr(instr_addr)) else 0)
-                        for instr_addr in instr_addrs
-                    ],
-                }
+                if addr in instr_addrs:
+                    return {
+                        "start": self.normalize_addr(start),
+                        "end": self.normalize_addr(end),
+                        "size": size,
+                        "instruction_addrs": [
+                            self.normalize_addr(instr_addr)
+                            - (
+                                1
+                                if self.is_thumb(self.normalize_addr(instr_addr))
+                                else 0
+                            )
+                            for instr_addr in instr_addrs
+                        ],
+                    }
+        except Exception:
+            logger.error(
+                f"angr RegionIdentifier failed for function containing {hex(addr)}, falling back to use cfg nodes\n{traceback.format_exc()}"
+            )
+            bb = None
+            for node in self.cfg.model.nodes():
+                if addr in node.instruction_addrs:
+                    bb = node
+                    break
+            assert bb is not None
+            return {
+                "start": self.normalize_addr(bb.addr),
+                "end": self.normalize_addr(bb.addr + bb.size),
+                "size": bb.size,
+                "instruction_addrs": [
+                    self.normalize_addr(addr)
+                    - (1 if self.is_thumb(self.normalize_addr(addr)) else 0)
+                    for addr in bb.instruction_addrs
+                ],
+            }
 
         raise Exception(f"Cannot find a block containing address {hex(addr)}")
 
