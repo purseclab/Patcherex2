@@ -1,6 +1,9 @@
-import copy
+from elftools.construct.lib import Container
 
-from ..components.allocation_managers.allocation_manager import MappedBlock, MemoryFlag
+from ..components.allocation_managers.allocation_manager import (
+    FileBlock,
+    MemoryBlock,
+)
 from ..components.binfmt_tools.elf import ELF
 from .elf_arm_linux import ElfArmLinux
 
@@ -9,7 +12,14 @@ class CustomElf(ELF):
     def _init_memory_analysis(self):
         """
         Information from NXP's MCUXpresso IDE:
-        Flash is code, RAM4 is data
+        Flash is code, RAM4 is where data being loaded to
+
+        * For additional code, we can just put them in the free flash space
+        * For additional data, we also put them in the free flash space, but
+        we need to update ResetISR to copy them to RAM4
+
+        * The flasher (LinkServer) seems only care about segment headers, so
+        we can safely ignore the section headers.
 
         Type   | Name          | Alias | Location   | Size
         -------|---------------|-------|------------|----------
@@ -20,86 +30,123 @@ class CustomElf(ELF):
         RAM    | BOARD_SDRAM   | RAM4  | 0x80000000 | 0x1e00000
         RAM    | NCACHE_REGION | RAM5  | 0x81e00000 | 0x200000
         """
-        # Extend LOAD (0x60000000) segment
-        # Extend LOAD (0x80000000) segment
+
+        # add free flash space to allocation manager
+        flash_start = 0x60000000
+        flash_end = 0x64000000
+        highest_flash_addr = 0x60000000
+        highest_file_offset = 0
         for segment in self._segments:
-            if segment["p_vaddr"] == 0x60000000:
-                block = MappedBlock(
-                    segment["p_offset"],
-                    segment["p_vaddr"],
-                    segment["p_memsz"],
-                    is_free=False,
-                    flag=MemoryFlag.RX,
-                )
-                self.p.allocation_manager.add_block(block)
+            seg_start = segment["p_paddr"]
+            seg_end = segment["p_paddr"] + segment["p_memsz"]
+            if (
+                flash_start <= seg_start < flash_end
+                and flash_start <= seg_end < flash_end
+                and seg_end > highest_flash_addr
+            ):
+                highest_flash_addr = seg_end
 
-                round_up = (segment["p_memsz"] + 0xFFFF) & ~0xFFFF
-                block = MappedBlock(
-                    segment["p_offset"] + segment["p_memsz"],
-                    segment["p_vaddr"] + segment["p_memsz"],
-                    round_up - segment["p_memsz"],
-                    is_free=True,
-                    flag=MemoryFlag.RX,
-                )
-                self.p.allocation_manager.add_block(block)
-                self.p.allocation_manager.new_mapped_blocks.append(copy.deepcopy(block))
-                # segment["p_memsz"] = round_up
-                # segment["p_filesz"] = round_up
-            if segment["p_vaddr"] == 0x80000000:
-                block = MappedBlock(
-                    segment["p_offset"],
-                    segment["p_vaddr"],
-                    segment["p_memsz"],
-                    is_free=False,
-                    flag=MemoryFlag.RW,
-                )
-                self.p.allocation_manager.add_block(block)
+            if segment["p_offset"] + segment["p_filesz"] > highest_file_offset:
+                highest_file_offset = segment["p_offset"] + segment["p_filesz"]
 
-                round_up = (segment["p_memsz"] + 0xFFFF) & ~0xFFFF
-                block = MappedBlock(
-                    segment["p_offset"] + segment["p_memsz"],
-                    segment["p_vaddr"] + segment["p_memsz"],
-                    round_up - segment["p_memsz"],
-                    is_free=True,
-                    flag=MemoryFlag.RW,
-                )
-                self.p.allocation_manager.add_block(block)
-                self.p.allocation_manager.new_mapped_blocks.append(copy.deepcopy(block))
-                # segment["p_memsz"] = round_up
-                # segment["p_filesz"] = round_up
+        highest_file_offset = (highest_file_offset + 0xFFFF) & ~0xFFFF
+        block = FileBlock(highest_file_offset, -1)
+        self.p.allocation_manager.add_block(block)
+        block = MemoryBlock(highest_flash_addr, -1)
+        self.p.allocation_manager.add_block(block)
+
+        return
 
     def finalize(self):
-        # remove EXIDX segment
-        self._segments = [s for s in self._segments if s["p_type"] != "PT_ARM_EXIDX"]
-        super().finalize()
+        self.p.allocation_manager.finalize()
+        if len(self.p.allocation_manager.new_mapped_blocks) == 0:
+            return
 
-        # extend .text, .data section
-        code_size, data_size = None, None
+        max_align = max([segment["p_align"] for segment in self._segments] + [0])
+
+        # create new load segment for each new mapped block
+        for block in self.p.allocation_manager.new_mapped_blocks:
+            self._segments.append(
+                Container(
+                    **{
+                        "p_type": "PT_LOAD",
+                        "p_offset": block.file_addr,
+                        "p_filesz": block.size,
+                        "p_vaddr": block.mem_addr,
+                        "p_paddr": block.mem_addr,
+                        "p_memsz": block.size,
+                        "p_flags": block.flag,
+                        "p_align": max_align,
+                    }
+                )
+            )
+
+        # sort segments by p_offset
+        self._segments = sorted(self._segments, key=lambda x: x["p_offset"])
+
+        # try to merge load segments if they are adjacent and have the same flags and same alignment
+        # new size = sum of sizes of the two segments + gap between them
+        while True:
+            new_segments = []
+            i = 0
+            while i < len(self._segments) - 1:
+                prev_seg = self._segments[i]
+                next_seg = self._segments[i + 1]
+                if (
+                    prev_seg["p_type"] == next_seg["p_type"] == "PT_LOAD"
+                    and prev_seg["p_offset"] + prev_seg["p_filesz"]
+                    == next_seg["p_offset"]
+                    and prev_seg["p_vaddr"] + prev_seg["p_memsz"] == next_seg["p_vaddr"]
+                    and prev_seg["p_flags"] == next_seg["p_flags"]
+                    and prev_seg["p_align"] == next_seg["p_align"]
+                ):
+                    new_segments.append(
+                        Container(
+                            **{
+                                "p_type": "PT_LOAD",
+                                "p_offset": prev_seg["p_offset"],
+                                "p_filesz": prev_seg["p_filesz"]
+                                + next_seg["p_filesz"]
+                                + (
+                                    next_seg["p_offset"]
+                                    - (prev_seg["p_offset"] + prev_seg["p_filesz"])
+                                ),
+                                "p_vaddr": prev_seg["p_vaddr"],
+                                "p_paddr": prev_seg["p_paddr"],
+                                "p_memsz": prev_seg["p_memsz"]
+                                + next_seg["p_memsz"]
+                                + (
+                                    next_seg["p_vaddr"]
+                                    - (prev_seg["p_vaddr"] + prev_seg["p_memsz"])
+                                ),
+                                "p_flags": prev_seg["p_flags"],
+                                "p_align": prev_seg["p_align"],
+                            }
+                        )
+                    )
+                    i += 2
+                else:
+                    new_segments.append(prev_seg)
+                    i += 1
+            if i == len(self._segments) - 1:
+                new_segments.append(self._segments[i])
+            if new_segments == self._segments:
+                break
+            self._segments = new_segments
+
+        # generate new phdr at end of the file and update ehdr
+        last_seg = sorted(self._segments, key=lambda x: x["p_offset"])[-1]
+        phdr_start = last_seg["p_offset"] + last_seg["p_filesz"]
+        new_phdr = b""
         for segment in self._segments:
-            if segment["p_vaddr"] == 0x60000000:
-                code_size = segment["p_memsz"]
-            if segment["p_vaddr"] == 0x80000000:
-                data_size = segment["p_memsz"]
-        assert code_size is not None and data_size is not None
-        for idx, section in enumerate(self._elf.iter_sections()):
-            if section.name == ".text":
-                section_header = section.header
-                section_header["sh_size"] = (
-                    code_size + 0x60000000 - section_header["sh_addr"]
-                )
-                self.p.binfmt_tool.update_binary_content(
-                    self._elf.header["e_shoff"] + idx * self._elf.header["e_shentsize"],
-                    self._elf.structs.Elf_Shdr.build(section_header),
-                )
-            if section.name == ".data":
-                section_header = section.header
-                section_header["sh_size"] = (
-                    data_size + 0x80000000 - section_header["sh_addr"]
-                )
-                self.p.binfmt_tool.update_binary_content(
-                    self._elf.header["e_shoff"] + idx * self._elf.header["e_shentsize"],
-                    self._elf.structs.Elf_Shdr.build(section_header),
-                )
+            new_phdr += self._elf.structs.Elf_Phdr.build(segment)
+        self.p.binfmt_tool.update_binary_content(phdr_start, new_phdr)
+
+        ehdr = self._elf.header
+        ehdr["e_phnum"] = len(self._segments)
+        ehdr["e_phoff"] = phdr_start
+        new_ehdr = self._elf.structs.Elf_Ehdr.build(ehdr)
+        self.p.binfmt_tool.update_binary_content(0, new_ehdr)
 
 
 class ElfArmMimxrt1052(ElfArmLinux):
@@ -110,7 +157,5 @@ class ElfArmMimxrt1052(ElfArmLinux):
     def get_binfmt_tool(self, binfmt_tool):
         binfmt_tool = binfmt_tool or "default"
         if binfmt_tool == "default":
-            return ELF(self.p, self.binary_path)
-        if binfmt_tool == "custom":
             return CustomElf(self.p, self.binary_path)
         raise NotImplementedError()
