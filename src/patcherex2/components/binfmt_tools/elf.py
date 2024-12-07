@@ -24,6 +24,7 @@ class ELF(BinFmtTool):
         self._file = open(binary_path, "rb")
         self._elf = ELFFile(self._file)
         self._segments = [segment.header for segment in self._elf.iter_segments()]
+        self._sections = [section.header for section in self._elf.iter_sections()]
         self.file_updates = []
 
         self.file_size = os.stat(self.binary_path).st_size

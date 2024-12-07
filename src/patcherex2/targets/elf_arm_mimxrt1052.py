@@ -21,6 +21,10 @@ class CustomElf(ELF):
         * The flasher (LinkServer) seems only care about segment headers, so
         we can safely ignore the section headers.
 
+        * The IDE will strip the binary then call the flasher, and strip will
+        remove the segment we added, so we need to add a fake corresponding
+        section to make sure the segment is not removed.
+
         Type   | Name          | Alias | Location   | Size
         -------|---------------|-------|------------|----------
         Flash  | BOARD_FLASH   | Flash | 0x60000000 | 0x4000000
@@ -77,6 +81,23 @@ class CustomElf(ELF):
                         "p_memsz": block.size,
                         "p_flags": block.flag,
                         "p_align": max_align,
+                    }
+                )
+            )
+
+            self._sections.append(
+                Container(
+                    **{
+                        "sh_name": 0,
+                        "sh_type": "SHT_PROGBITS",
+                        "sh_flags": 2,
+                        "sh_addr": block.mem_addr,
+                        "sh_offset": block.file_addr,
+                        "sh_size": block.size,
+                        "sh_link": 0,
+                        "sh_info": 0,
+                        "sh_addralign": max_align,
+                        "sh_entsize": 0,
                     }
                 )
             )
@@ -145,6 +166,16 @@ class CustomElf(ELF):
         ehdr = self._elf.header
         ehdr["e_phnum"] = len(self._segments)
         ehdr["e_phoff"] = phdr_start
+
+        # generate new shdr at end of the file and update ehdr
+        shdr_start = phdr_start + len(new_phdr)
+        new_shdr = b""
+        for section in self._sections:
+            new_shdr += self._elf.structs.Elf_Shdr.build(section)
+        self.p.binfmt_tool.update_binary_content(shdr_start, new_shdr)
+
+        ehdr["e_shnum"] = len(self._sections)
+        ehdr["e_shoff"] = shdr_start
         new_ehdr = self._elf.structs.Elf_Ehdr.build(ehdr)
         self.p.binfmt_tool.update_binary_content(0, new_ehdr)
 
