@@ -15,6 +15,11 @@ class Keystone(Assembler):
         self.ks = keystone.Ks(arch, mode)
 
     def _assemble(self, code: str, base=0, **kwargs) -> bytes:
-        binary, _ = self.ks.asm(code, base)
-        logger.debug(f"Assembled bytes: {bytes(binary)}")
-        return bytes(binary)
+        try:
+            binary, _ = self.ks.asm(code, base)
+            logger.debug(f"Assembled bytes: {bytes(binary)}")
+            return bytes(binary)
+        except Exception as e:
+            raise Exception(
+                f'Failed to assemble: """\n{code}\n"""\nat base: {hex(base)}'
+            ) from e

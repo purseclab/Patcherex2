@@ -19,7 +19,12 @@ class KeystoneArm(Assembler):
         )
 
     def _assemble(self, code: str, base=0, is_thumb=False) -> bytes:
-        ks = self.ks_thumb if is_thumb else self.ks_arm
-        binary, _ = ks.asm(code, base)
-        logger.debug(f"Assembled bytes: {bytes(binary)}")
-        return bytes(binary)
+        try:
+            ks = self.ks_thumb if is_thumb else self.ks_arm
+            binary, _ = ks.asm(code, base)
+            logger.debug(f"Assembled bytes: {bytes(binary)}")
+            return bytes(binary)
+        except Exception as e:
+            raise Exception(
+                f'Failed to assemble: """\n{code}\n"""\nat base: {hex(base)}'
+            ) from e
