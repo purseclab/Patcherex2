@@ -8,6 +8,9 @@ from .patches import *
 from .patches import __all__ as all_patches
 from .targets import Target
 
+logging.Logger.manager.loggerDict["patcherex"] = logging.Logger.manager.loggerDict[
+    "patcherex2"
+]
 logger = logging.getLogger(__name__)
 
 
