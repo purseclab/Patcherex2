@@ -57,13 +57,18 @@ class ELF(BinFmtTool):
 
         # Spaces in LOAD segments AND between sections
         for segment in load_segments:
+            segment_file_end = segment["p_offset"] + segment["p_filesz"]
+            segment_mem_end = segment["p_vaddr"] + segment["p_memsz"]
             for curr_sec, next_sec in zip(alloc_sections, alloc_sections[1:]):
                 if segment.section_in_segment(curr_sec) and segment.section_in_segment(
                     next_sec
                 ):
                     gap_start = curr_sec["sh_addr"] + curr_sec["sh_size"]
                     gap_size = next_sec["sh_addr"] - gap_start
-                    if gap_size > 0:
+                    if gap_size > 0 and (
+                        segment_file_end > curr_sec["sh_offset"] + curr_sec["sh_size"]
+                        and segment_mem_end > gap_start
+                    ):
                         flag = (
                             MemoryFlag.RW
                             if segment["p_flags"] & P_FLAGS.PF_W
@@ -116,7 +121,7 @@ class ELF(BinFmtTool):
                 gap_size = first_sec["sh_addr"] - gap_start
                 if (
                     gap_size > 0 and segment["p_offset"] != 0
-                ):  # TODO: file addr 0 is kinda special, but does this check good enough?
+                ):  # TODO: file addr 0 is kinda special, but is this check good enough?
                     flag = (
                         MemoryFlag.RW
                         if segment["p_flags"] & P_FLAGS.PF_W
@@ -131,9 +136,15 @@ class ELF(BinFmtTool):
                     )
                     self.p.allocation_manager.add_block(block)
             if last_sec:
+                segment_file_end = segment["p_offset"] + segment["p_filesz"]
+                segment_mem_end = segment["p_vaddr"] + segment["p_memsz"]
                 gap_start = last_sec["sh_addr"] + last_sec["sh_size"]
                 gap_size = segment["p_vaddr"] + segment["p_memsz"] - gap_start
-                if gap_size > 0:
+                if (
+                    gap_size > 0
+                    and segment_file_end > last_sec["sh_offset"] + last_sec["sh_size"]
+                    and segment_mem_end > gap_start
+                ):
                     flag = (
                         MemoryFlag.RW
                         if segment["p_flags"] & P_FLAGS.PF_W
