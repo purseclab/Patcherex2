@@ -500,7 +500,7 @@ class ELF(BinFmtTool):
 
     def update_binary_content(self, offset: int, new_content: bytes) -> None:
         logger.debug(
-            f"Updating offset {hex(offset)} with content ({len(new_content)} bytes) {new_content}"
+            f"Updating offset {hex(offset)} with content ({len(new_content)} bytes) {new_content.hex()}"
         )
         for update in self.file_updates:
             if offset >= update["offset"] and offset < update["offset"] + len(

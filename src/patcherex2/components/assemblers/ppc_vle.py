@@ -101,5 +101,5 @@ class PpcVle(Assembler):
                 if base != 0:
                     f.seek(base)
                 binary = f.read()
-                logger.debug(f"Assembled bytes: {bytes(binary)}")
+                logger.debug(f"Assembled bytes: {bytes(binary).hex()}")
                 return bytes(binary)

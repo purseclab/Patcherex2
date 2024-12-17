@@ -22,7 +22,7 @@ class KeystoneArm(Assembler):
         try:
             ks = self.ks_thumb if is_thumb else self.ks_arm
             binary, _ = ks.asm(code, base)
-            logger.debug(f"Assembled bytes: {bytes(binary)}")
+            logger.debug(f"Assembled bytes: {bytes(binary).hex()}")
             return bytes(binary)
         except Exception as e:
             raise Exception(

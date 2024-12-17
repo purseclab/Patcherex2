@@ -17,7 +17,7 @@ class Keystone(Assembler):
     def _assemble(self, code: str, base=0, **kwargs) -> bytes:
         try:
             binary, _ = self.ks.asm(code, base)
-            logger.debug(f"Assembled bytes: {bytes(binary)}")
+            logger.debug(f"Assembled bytes: {bytes(binary).hex()}")
             return bytes(binary)
         except Exception as e:
             raise Exception(
