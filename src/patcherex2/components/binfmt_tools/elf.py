@@ -63,11 +63,15 @@ class ELF(BinFmtTool):
                 if segment.section_in_segment(curr_sec) and segment.section_in_segment(
                     next_sec
                 ):
-                    gap_start = curr_sec["sh_addr"] + curr_sec["sh_size"]
-                    gap_size = next_sec["sh_addr"] - gap_start
-                    if gap_size > 0 and (
-                        segment_file_end > curr_sec["sh_offset"] + curr_sec["sh_size"]
-                        and segment_mem_end > gap_start
+                    gap_file_start = curr_sec["sh_offset"] + curr_sec["sh_size"]
+                    gap_file_size = next_sec["sh_offset"] - gap_file_start
+                    gap_mem_start = curr_sec["sh_addr"] + curr_sec["sh_size"]
+                    gap_mem_size = next_sec["sh_addr"] - gap_mem_start
+                    if (
+                        gap_mem_size > 0
+                        and gap_file_size > 0
+                        and segment_file_end > gap_file_start
+                        and segment_mem_end > gap_mem_start
                     ):
                         flag = (
                             MemoryFlag.RW
@@ -75,9 +79,9 @@ class ELF(BinFmtTool):
                             else MemoryFlag.RX
                         )
                         block = MappedBlock(
-                            curr_sec["sh_offset"] + curr_sec["sh_size"],
-                            gap_start,
-                            gap_size,
+                            gap_file_start,
+                            gap_mem_start,
+                            min(gap_file_size, gap_mem_size),
                             is_free=True,
                             flag=flag,
                         )
@@ -100,6 +104,8 @@ class ELF(BinFmtTool):
 
         # of course also before and after the first and last section in a LOAD segment
         for segment in load_segments:
+            segment_file_end = segment["p_offset"] + segment["p_filesz"]
+            segment_mem_end = segment["p_vaddr"] + segment["p_memsz"]
             first_sec = next(
                 (
                     section
@@ -117,33 +123,34 @@ class ELF(BinFmtTool):
                 None,
             )
             if first_sec:
-                gap_start = segment["p_vaddr"]
-                gap_size = first_sec["sh_addr"] - gap_start
-                if (
-                    gap_size > 0 and segment["p_offset"] != 0
-                ):  # TODO: file addr 0 is kinda special, but is this check good enough?
+                gap_file_start = segment["p_offset"]
+                gap_file_size = first_sec["sh_offset"] - gap_file_start
+                gap_mem_start = segment["p_vaddr"]
+                gap_mem_size = first_sec["sh_addr"] - gap_mem_start
+                if gap_mem_size > 0 and gap_file_start > 0:
                     flag = (
                         MemoryFlag.RW
                         if segment["p_flags"] & P_FLAGS.PF_W
                         else MemoryFlag.RX
                     )
                     block = MappedBlock(
-                        segment["p_offset"],
-                        gap_start,
-                        gap_size,
+                        gap_file_start,
+                        gap_mem_start,
+                        min(gap_file_size, gap_mem_size),
                         is_free=True,
                         flag=flag,
                     )
                     self.p.allocation_manager.add_block(block)
             if last_sec:
-                segment_file_end = segment["p_offset"] + segment["p_filesz"]
-                segment_mem_end = segment["p_vaddr"] + segment["p_memsz"]
-                gap_start = last_sec["sh_addr"] + last_sec["sh_size"]
-                gap_size = segment["p_vaddr"] + segment["p_memsz"] - gap_start
+                gap_file_start = last_sec["sh_offset"] + last_sec["sh_size"]
+                gap_file_size = segment_file_end - gap_file_start
+                gap_mem_start = last_sec["sh_addr"] + last_sec["sh_size"]
+                gap_mem_size = segment_mem_end - gap_mem_start
                 if (
-                    gap_size > 0
-                    and segment_file_end > last_sec["sh_offset"] + last_sec["sh_size"]
-                    and segment_mem_end > gap_start
+                    gap_mem_size > 0
+                    and gap_file_size > 0
+                    and segment_file_end > gap_file_start
+                    and segment_mem_end > gap_mem_start
                 ):
                     flag = (
                         MemoryFlag.RW
@@ -152,8 +159,8 @@ class ELF(BinFmtTool):
                     )
                     block = MappedBlock(
                         last_sec["sh_offset"] + last_sec["sh_size"],
-                        gap_start,
-                        gap_size,
+                        gap_mem_start,
+                        min(gap_file_size, gap_mem_size),
                         is_free=True,
                         flag=flag,
                     )
