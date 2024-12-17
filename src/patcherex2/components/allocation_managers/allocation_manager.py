@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import enum
 import logging
+from pprint import pformat
 
 logger = logging.getLogger(__name__)
 
@@ -246,5 +247,5 @@ class AllocationManager:
             if block.file_addr + block.size > self.p.binfmt_tool.file_size:
                 self.p.binfmt_tool.file_size = block.file_addr + block.size
 
-        logger.debug(f"finalized blocks: {self.blocks}")
-        logger.debug(f"new mapped blocks: {self.new_mapped_blocks}")
+        logger.debug(f"finalized blocks: \n{pformat(list(self.blocks.values()))}")
+        logger.debug(f"new mapped blocks: \n{pformat(self.new_mapped_blocks)}")
