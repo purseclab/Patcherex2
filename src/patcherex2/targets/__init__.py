@@ -2,6 +2,7 @@ from .bin_arm_bare import BinArmBare
 from .elf_aarch64_linux import ElfAArch64Linux
 from .elf_amd64_linux import ElfAmd64Linux
 from .elf_amd64_linux_recomp import ElfAmd64LinuxRecomp
+from .elf_arm_bare import ElfArmBare
 from .elf_arm_linux import ElfArmLinux
 from .elf_arm_linux_recomp import ElfArmLinuxRecomp
 from .elf_arm_mimxrt1052 import ElfArmMimxrt1052
@@ -22,6 +23,7 @@ __all__ = [
     "ElfAArch64Linux",
     "ElfAmd64Linux",
     "ElfAmd64LinuxRecomp",
+    "ElfArmBare",
     "ElfArmLinux",
     "ElfArmLinuxRecomp",
     "ElfArmMimxrt1052",

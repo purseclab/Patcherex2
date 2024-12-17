@@ -55,12 +55,27 @@ class MemoryFlag(enum.IntFlag):
 
 class MappedBlock(Block):
     def __init__(
-        self, file_addr: int, mem_addr: int, size: int, is_free=True, flag=None
+        self,
+        file_addr: int,
+        mem_addr: int,
+        size: int,
+        is_free=True,
+        flag=None,
+        load_mem_addr: int = None,
     ) -> None:
+        """
+        :param file_addr: file address of the block
+        :param mem_addr: virtual memory address of the block
+        :param size: size of the block
+        :param is_free: whether the block is free
+        :param flag: memory flag of the block
+        :param load_mem_addr: load memory address of the block, if not provided, it will be the same as mem_addr
+        """
         super().__init__(None, size, is_free)
         self.file_addr = file_addr
         self.mem_addr = mem_addr
         self.flag = flag
+        self.load_mem_addr = load_mem_addr if load_mem_addr else mem_addr
 
     def __lt__(self, other: MappedBlock) -> bool:
         return self.mem_addr < other.mem_addr
