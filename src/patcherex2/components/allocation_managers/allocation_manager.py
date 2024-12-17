@@ -82,7 +82,11 @@ class MappedBlock(Block):
         return self.mem_addr < other.mem_addr
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} file_addr={hex(self.file_addr)} mem_addr={hex(self.mem_addr)} size={hex(self.size)} is_free={self.is_free} flag={str(self.flag)}>"
+        repr = f"<{self.__class__.__name__} file_addr={hex(self.file_addr)} mem_addr={hex(self.mem_addr)} size={hex(self.size)} is_free={self.is_free} flag={str(self.flag)}"
+        if self.load_mem_addr != self.mem_addr:
+            repr += f" load_mem_addr={hex(self.load_mem_addr)}"
+        repr += ">"
+        return repr
 
     def coalesce(self, other: MappedBlock) -> bool:
         if (
