@@ -174,9 +174,9 @@ class AllocationManager:
                         [segment["p_align"] for segment in self.p.binfmt_tool._segments]
                         + [0]
                     )
-                    mem_addr = block.addr + (file_addr % max_seg_align)
+                    mem_addr = block.addr + (file_addr - block.addr) % max_seg_align
                 else:
-                    mem_addr = block.addr + (file_addr % 0x1000)
+                    mem_addr = block.addr + (file_addr - block.addr) % 0x1000
                 block.addr = mem_addr + 0x10000
         if file_addr and mem_addr:
             self.add_block(

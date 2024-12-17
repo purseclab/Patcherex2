@@ -56,9 +56,7 @@ class InsertDataPatch(Patch):
         if self.addr:
             p.binfmt_tool.update_binary_content(self.addr, self.data)
         elif self.name:
-            block = p.allocation_manager.allocate(
-                len(self.data), flag=MemoryFlag.RWX
-            )  # FIXME: why RW not work?
+            block = p.allocation_manager.allocate(len(self.data), flag=MemoryFlag.RW)
             p.symbols[self.name] = block.mem_addr
             p.binfmt_tool.update_binary_content(block.file_addr, self.data)
 
