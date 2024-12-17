@@ -70,7 +70,7 @@ class Angr(BinaryAnalyzer):
 
     def get_basic_block(self, addr: int) -> dict[str, int | list[int]]:
         # NOTE: angr splits basic blocks at call instructions, so we need to handle this
-        if self.is_thumb(addr):
+        if self.is_thumb(addr) and addr % 2 == 0:
             addr += 1
         addr = self.denormalize_addr(addr)
 

@@ -1,3 +1,4 @@
+from .bin_arm_bare import BinArmBare
 from .elf_aarch64_linux import ElfAArch64Linux
 from .elf_amd64_linux import ElfAmd64Linux
 from .elf_amd64_linux_recomp import ElfAmd64LinuxRecomp
@@ -17,6 +18,7 @@ from .ihex_ppc_bare import IHexPPCBare
 from .target import Target
 
 __all__ = [
+    "BinArmBare",
     "ElfAArch64Linux",
     "ElfAmd64Linux",
     "ElfAmd64LinuxRecomp",
