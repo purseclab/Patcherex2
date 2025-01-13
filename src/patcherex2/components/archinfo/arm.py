@@ -44,6 +44,6 @@ class ArmInfo:
 
     subregisters_float = {}
     for i in range(0, 16):
-        subregisters_float[f"d{i}"] = {64: [f"d{i}"], 32: [f"s{2*i}"]}
+        subregisters_float[f"d{i}"] = {64: [f"d{i}"], 32: [f"s{2 * i}"]}
     for i in range(16, 32):
         subregisters_float[f"d{i}"] = {64: [f"d{i}"]}

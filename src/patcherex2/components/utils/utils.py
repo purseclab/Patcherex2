@@ -26,9 +26,9 @@ class Utils:
     ) -> None:
         logger.debug(f"Inserting trampoline code at {hex(addr)}: {instrs}")
         symbols = symbols if symbols else {}
-        assert force_insert or self.is_valid_insert_point(
-            addr
-        ), f"Cannot insert instruction at {hex(addr)}"
+        assert force_insert or self.is_valid_insert_point(addr), (
+            f"Cannot insert instruction at {hex(addr)}"
+        )
         if not force_insert:
             moved_instrs = self.get_instrs_to_be_moved(addr)
             moved_instrs_len = len(

@@ -58,7 +58,7 @@ class LLVMRecomp(Clang):
                         "-o",
                         os.path.join(td, "code.ll"),
                         os.path.join(td, "code.c"),
-                        "-I" "/usr/lib/clang/15/include",
+                        "-I/usr/lib/clang/15/include",
                     ]
                 )
                 subprocess.run(args, check=True, capture_output=True)
