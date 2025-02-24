@@ -14,6 +14,7 @@ from .elf_mipsel_linux import ElfMipselLinux
 from .elf_ppc64_linux import ElfPpc64Linux
 from .elf_ppc64le_linux import ElfPpc64leLinux
 from .elf_ppc_linux import ElfPpcLinux
+from .elf_s390x_linux import ElfS390xLinux
 from .elf_x86_linux import ElfX86Linux
 from .ihex_ppc_bare import IHexPPCBare
 from .target import Target
@@ -35,6 +36,7 @@ __all__ = [
     "ElfPpc64Linux",
     "ElfPpc64leLinux",
     "ElfPpcLinux",
+    "ElfS390xLinux",
     "ElfX86Linux",
     "IHexPPCBare",
     "Target",

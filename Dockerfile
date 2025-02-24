@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     libc6-mips-cross libc6-mips64-cross \
     libc6-powerpc-cross libc6-powerpc-ppc64-cross \
     libc6-mipsel-cross libc6-mips64el-cross \
-    libc6-ppc64el-cross \
+    libc6-ppc64el-cross libc6-s390x-cross \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc \

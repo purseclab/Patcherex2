@@ -18,7 +18,7 @@ runs:
           libc6-dev-mips-cross libc6-dev-mips64-cross \
           libc6-dev-powerpc-cross libc6-dev-ppc64-cross \
           libc6-dev-mipsel-cross libc6-dev-mips64el-cross \
-          libc6-dev-ppc64el-cross \
+          libc6-dev-ppc64el-cross libc6-s390x-cross \
     - name: Install clang-19 lld-19
       shell: bash
       run: |
