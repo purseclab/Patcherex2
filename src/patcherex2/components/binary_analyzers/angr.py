@@ -169,7 +169,9 @@ class Angr(BinaryAnalyzer):
             symbols[symbol.name] = self.normalize_addr(symbol.rebased_addr)
         for func in self.p.kb.functions.values():
             # make it compatible with old angr versions
-            if func.is_simprocedure or (getattr(func, "is_alignment", func.alignment)):
+            if func.is_simprocedure or getattr(
+                func, "is_alignment", getattr(func, "alignment", False)
+            ):
                 continue
             symbols[func.name] = self.normalize_addr(func.addr)
         return symbols
