@@ -12,7 +12,9 @@ class ElfArmLinuxRecomp(ElfArmLinux):
     def get_compiler(self, compiler):
         compiler = compiler or "llvm_recomp"
         if compiler == "llvm_recomp":
-            return LLVMRecompArm(self.p)
+            return LLVMRecompArm(
+                self.p, compiler_flags=["-target", "arm-linux-gnueabihf"]
+            )
         raise NotImplementedError()
 
     def get_binary_analyzer(self, binary_analyzer, **kwargs):
