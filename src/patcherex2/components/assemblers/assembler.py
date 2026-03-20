@@ -10,9 +10,11 @@ class Assembler:
     def resolve_symbols(self, code: str, symbols=None):
         if symbols is None:
             symbols = {}
+        if not hasattr(self, "_binary_symbols_cache"):
+            self._binary_symbols_cache = self.p.binary_analyzer.get_all_symbols()
         _symbols = {}
         _symbols.update(self.p.symbols)
-        _symbols.update(self.p.binary_analyzer.get_all_symbols())
+        _symbols.update(self._binary_symbols_cache)
         _symbols.update(symbols)
 
         for symbol, addr in _symbols.items():
