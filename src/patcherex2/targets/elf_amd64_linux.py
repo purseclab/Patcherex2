@@ -3,6 +3,7 @@ from ..components.archinfo.amd64 import Amd64Info
 from ..components.assemblers.keystone import Keystone, keystone
 from ..components.binary_analyzers.angr import Angr
 from ..components.binary_analyzers.ghidra import Ghidra
+from ..components.binary_analyzers.ida import Ida
 from ..components.binfmt_tools.elf import ELF
 from ..components.compilers.clang import Clang
 from ..components.disassemblers.capstone import Capstone, capstone
@@ -66,6 +67,8 @@ class ElfAmd64Linux(Target):
             return Angr(self.binary_path, **kwargs)
         if binary_analyzer == "ghidra":
             return Ghidra(self.binary_path, **kwargs)
+        if binary_analyzer == "ida":
+            return Ida(self.binary_path, **kwargs)
         raise NotImplementedError()
 
     def get_utils(self, utils):

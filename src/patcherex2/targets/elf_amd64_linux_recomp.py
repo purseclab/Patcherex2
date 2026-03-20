@@ -1,5 +1,6 @@
 from ..components.binary_analyzers.angr import Angr
 from ..components.binary_analyzers.ghidra import Ghidra
+from ..components.binary_analyzers.ida import Ida
 from ..components.compilers.llvm_recomp import LLVMRecomp
 from .elf_amd64_linux import ElfAmd64Linux
 
@@ -21,4 +22,6 @@ class ElfAmd64LinuxRecomp(ElfAmd64Linux):
             return Angr(self.binary_path, **kwargs)
         if binary_analyzer == "ghidra":
             return Ghidra(self.binary_path, **kwargs)
+        if binary_analyzer == "ida":
+            return Ida(self.binary_path, **kwargs)
         raise NotImplementedError()

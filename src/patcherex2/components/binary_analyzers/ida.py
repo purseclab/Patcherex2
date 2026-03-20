@@ -92,9 +92,14 @@ class Ida(BinaryAnalyzer):
                     ],
                 }
 
-    def get_instr_bytes_at(self, addr: int):
-        instr_len = self.ida_bytes.get_item_size(addr)
-        return self.ida_bytes.get_bytes(addr, instr_len)
+    def get_instr_bytes_at(self, addr: int, num_instr: int = 1):
+        total_bytes = b""
+        current_addr = addr
+        for _ in range(num_instr):
+            instr_len = self.ida_bytes.get_item_size(current_addr)
+            total_bytes += self.ida_bytes.get_bytes(current_addr, instr_len)
+            current_addr += instr_len
+        return total_bytes
 
     def get_unused_funcs(self) -> list[dict[str, int]]:
         logger.info("Getting unused functions with IDA")
