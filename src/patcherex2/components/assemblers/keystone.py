@@ -16,6 +16,8 @@ class Keystone(Assembler):
 
     def _assemble(self, code: str, base=0, **kwargs) -> bytes:
         try:
+            # Keystone uses semicolons as instruction separators, not newlines
+            code = code.replace("\n", ";")
             binary, _ = self.ks.asm(code, base)
             logger.debug(f"Assembled bytes: {bytes(binary).hex()}")
             return bytes(binary)

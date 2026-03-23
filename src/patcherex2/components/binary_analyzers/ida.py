@@ -3,8 +3,6 @@ from __future__ import annotations
 import logging
 import os
 
-from headless_ida import HeadlessIda
-
 from .binary_analyzer import BinaryAnalyzer
 
 logger = logging.getLogger(__name__)
@@ -14,6 +12,8 @@ class Ida(BinaryAnalyzer):
     _DEFAULT_LOAD_BASE = 0x0
 
     def __init__(self, binary_path: str, **kwargs) -> None:
+        from headless_ida import HeadlessIda
+
         self.binary_path = binary_path
         self.kwargs = kwargs
         self.ida_installation_path = (

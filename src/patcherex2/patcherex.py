@@ -103,8 +103,8 @@ class Patcherex:
         # TODO: sort patches properly
         # self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
         self.patches.sort(
-            key=lambda x: not isinstance(
-                x, (ModifyDataPatch, InsertDataPatch, RemoveDataPatch)
+            key=lambda x: (
+                not isinstance(x, (ModifyDataPatch, InsertDataPatch, RemoveDataPatch))
             )
         )
         logger.debug(f"Applying patches: {self.patches}")

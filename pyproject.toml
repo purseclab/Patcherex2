@@ -19,7 +19,8 @@ dependencies = [
 
 [project.optional-dependencies]
 ghidra = ["pyhidra"]
-all = ["patcherex2[ghidra]"]
+ida = ["headless-ida"]
+all = ["patcherex2[ghidra]", "patcherex2[ida]"]
 
 [project.urls]
 "Homepage" = "https://github.com/purseclab/Patcherex2"
