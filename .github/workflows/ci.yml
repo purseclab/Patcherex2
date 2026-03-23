@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install Patcherex2
         uses: ./.github/actions/install-patcherex2
       - name: Install Packages
@@ -31,7 +31,7 @@ jobs:
         run: python3 -m ruff check .
       - name: Checkout Private Tests
         if: matrix.task == 'private-test' && github.event_name != 'pull_request'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: purseclab/patcherex2-private
           ssh-key: ${{ secrets.PRIVATE_TESTS_DEPLOY_KEY }}
