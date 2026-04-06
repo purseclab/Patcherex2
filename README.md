@@ -74,5 +74,5 @@ ModifyFunctionPatch          | 🟨 | 🟩 | 🟩 | 🟩 | 🟨 | 🟨 | 🟨 | 
 
 
 ## Acknowledgements
-This project was developed as part of the [DARPA AMP](https://www.darpa.mil/program/assured-micropatching) program, under contract N6600120C4031.
+This project was initially developed as part of the [DARPA AMP](https://www.darpa.mil/program/assured-micropatching) program, under contract N6600120C4031. This project is also supported by NSF, under [Award \# 2442339](https://www.nsf.gov/awardsearch/show-award?AWD_ID=2442339).
 
