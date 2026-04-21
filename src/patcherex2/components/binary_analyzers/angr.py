@@ -78,20 +78,30 @@ class Angr(BinaryAnalyzer):
             func = self.p.kb.functions.function(
                 self.cfg.model.get_any_node(addr, anyaddr=True).function_address
             )
+            func.normalize()
             ri = self.p.analyses.RegionIdentifier(func)
             graph = ri._graph.copy()
             ri._make_supergraph(graph)
 
+            def _flatten(n):
+                if hasattr(n, "nodes"):  # MultiNode
+                    for sub in n.nodes:
+                        yield from _flatten(sub)
+                elif hasattr(n, "graph"):  # GraphRegion (angr >= 9.2.x)
+                    for sub in n.graph.nodes():
+                        yield from _flatten(sub)
+                else:
+                    yield n
+
             for multinode in graph.nodes():
-                nodes = multinode.nodes if hasattr(multinode, "nodes") else [multinode]
+                nodes = list(_flatten(multinode))
                 start = multinode.addr
-                size = sum(node.size for node in nodes)
+                cfg_blocks = [func.get_block(node.addr) for node in nodes]
+                size = sum(b.size for b in cfg_blocks)
                 end = start + size
 
                 instr_addrs = [
-                    instr_addr
-                    for node in nodes
-                    for instr_addr in func.get_block(node.addr).instruction_addrs
+                    instr_addr for b in cfg_blocks for instr_addr in b.instruction_addrs
                 ]
 
                 if addr in instr_addrs:
