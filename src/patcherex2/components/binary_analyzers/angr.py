@@ -95,14 +95,19 @@ class Angr(BinaryAnalyzer):
 
             for multinode in graph.nodes():
                 nodes = list(_flatten(multinode))
-                start = multinode.addr
                 cfg_blocks = [func.get_block(node.addr) for node in nodes]
-                size = sum(b.size for b in cfg_blocks)
-                end = start + size
-
-                instr_addrs = [
-                    instr_addr for b in cfg_blocks for instr_addr in b.instruction_addrs
-                ]
+                instr_addrs = sorted(
+                    {
+                        instr_addr
+                        for b in cfg_blocks
+                        for instr_addr in b.instruction_addrs
+                    }
+                )
+                if not instr_addrs:
+                    continue
+                start = min(b.addr for b in cfg_blocks)
+                end = max(b.addr + b.size for b in cfg_blocks)
+                size = end - start
 
                 if addr in instr_addrs:
                     return {
