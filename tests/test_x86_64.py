@@ -595,7 +595,14 @@ class Tests:
                 stdout=pipe,
                 stderr=pipe,
             )
-            res = p.communicate(inputvalue)
+            try:
+                res = p.communicate(inputvalue, timeout=30)
+            except subprocess.TimeoutExpired:
+                p.kill()
+                p.communicate()
+                pytest.fail(
+                    f"patched binary did not exit within 30s, binary dumped: {self.dump_file(tmp_file)}"
+                )
             if expected_output:
                 if res[0] != expected_output:
                     pytest.fail(
