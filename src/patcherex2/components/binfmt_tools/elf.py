@@ -38,6 +38,14 @@ class ELF(BinFmtTool):
         # max p_align so new blocks satisfy every existing segment
         return max((segment["p_align"] for segment in self._segments), default=0x1000)
 
+    @property
+    def is_pie(self) -> bool:
+        # ET_DYN covers both PIE executables and shared libraries; both are
+        # position-independent and tolerate new LOADs at any vaddr the
+        # allocator picks. ET_EXEC has fixed vaddrs and stricter loaders
+        # reject new LOADs placed inside inter-segment gaps.
+        return self._elf.header["e_type"] == "ET_DYN"
+
     def _find_space_between_sections(self) -> None:
         load_segments = sorted(
             (
@@ -179,6 +187,11 @@ class ELF(BinFmtTool):
         )
 
         # Find Space Between Segments
+        # System mmap granularity for the "is this vaddr already mapped"
+        # check -- distinct from p_align (alignment hint). The dynamic
+        # loader mmaps each LOAD at system-page granularity regardless
+        # of p_align.
+        page = 0x1000
         for curr, next in zip(load_segments, load_segments[1:]):
             if next["p_offset"] > (curr["p_offset"] + curr["p_filesz"]):
                 block = FileBlock(
@@ -186,11 +199,10 @@ class ELF(BinFmtTool):
                     next["p_offset"] - (curr["p_offset"] + curr["p_filesz"]),
                 )
                 self.p.allocation_manager.add_block(block)
-            if next["p_vaddr"] > (curr["p_vaddr"] + curr["p_memsz"]):
-                block = MemoryBlock(
-                    curr["p_vaddr"] + curr["p_memsz"],
-                    next["p_vaddr"] - (curr["p_vaddr"] + curr["p_memsz"]),
-                )
+            gap_start = ((curr["p_vaddr"] + curr["p_memsz"]) + (page - 1)) & ~(page - 1)
+            gap_end = next["p_vaddr"] & ~(page - 1)
+            if gap_end > gap_start:
+                block = MemoryBlock(gap_start, gap_end - gap_start)
                 self.p.allocation_manager.add_block(block)
 
     def _add_end_of_file_block(self) -> None:
