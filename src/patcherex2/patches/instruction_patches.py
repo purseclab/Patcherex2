@@ -114,10 +114,9 @@ def convert_to_subregisters(
             parent = parent_regs[reg_name]
             if parent in rewrites:
                 raise ValueError(
-                    "The following two input registers overlapped while computing the calling convention: "
-                    + r
-                    + " and "
-                    + rewrites[parent][1]
+                    f"The following two input registers overlapped while "
+                    f"computing the calling convention: {reg_name} and "
+                    f"{rewrites[parent][0]}"
                 )
             rewrites[parent] = (reg_name, reg_type)
 
@@ -406,7 +405,7 @@ class InsertInstructionPatch(Patch):
         )
 
     def _apply_asm(self, p) -> None:
-        if self.addr:
+        if self.addr is not None:
             if "SAVE_CONTEXT" in self.instr:
                 self.instr = self.instr.replace(
                     "SAVE_CONTEXT", f"\n{p.archinfo.save_context_asm}\n"

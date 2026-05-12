@@ -7,7 +7,9 @@ class Target:
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        cls.target_classes.append(cls)
+        # dedup so importlib.reload doesn't double-register
+        if cls not in cls.target_classes:
+            cls.target_classes.append(cls)
 
     @classmethod
     def detect_target(cls, p, binary_path):

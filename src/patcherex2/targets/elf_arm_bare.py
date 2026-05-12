@@ -34,39 +34,17 @@ class CustomAllocationManager(AllocationManager):
                 file_addr = block.addr
                 block.addr += 0x10000
         if flag == MemoryFlag.RW:
+            page_align = self.p.binfmt_tool.page_alignment()
             for block in self.blocks[RamBlock]:
                 if block.size == -1:
-                    if self.p.binfmt_tool.__class__.__name__ == "ELF":
-                        max_seg_align = max(
-                            [
-                                segment["p_align"]
-                                for segment in self.p.binfmt_tool._segments
-                            ]
-                            + [0]
-                        )
-                        virtual_mem_addr = (
-                            block.addr + (file_addr - block.addr) % max_seg_align
-                        )
-                    else:
-                        virtual_mem_addr = (
-                            block.addr + (file_addr - block.addr) % 0x1000
-                        )
+                    # mem_addr % p_align == file_addr % p_align (see `man elf`)
+                    virtual_mem_addr = (
+                        block.addr + (file_addr - block.addr) % page_align
+                    )
                     block.addr = virtual_mem_addr + 0x10000
             for block in self.blocks[FlashBlock]:
                 if block.size == -1:
-                    if self.p.binfmt_tool.__class__.__name__ == "ELF":
-                        max_seg_align = max(
-                            [
-                                segment["p_align"]
-                                for segment in self.p.binfmt_tool._segments
-                            ]
-                            + [0]
-                        )
-                        load_mem_addr = (
-                            block.addr + (file_addr - block.addr) % max_seg_align
-                        )
-                    else:
-                        load_mem_addr = block.addr + (file_addr - block.addr) % 0x1000
+                    load_mem_addr = block.addr + (file_addr - block.addr) % page_align
                     block.addr = load_mem_addr + 0x10000
             if file_addr and load_mem_addr and virtual_mem_addr:
                 block = MappedBlock(
@@ -83,24 +61,9 @@ class CustomAllocationManager(AllocationManager):
         elif flag == MemoryFlag.RX:
             for block in self.blocks[FlashBlock]:
                 if block.size == -1:
-                    # NOTE: mem_addr % p_align should equal to file_addr % p_align
-                    # Check `man elf` and search for `p_align` for more information
-                    # FIXME: shouldn't do any assumption on component type, reimpl in a better way
-                    # FIXME: even worse, importing ELF will cause circular import
-                    # TODO: consider merge allocation_manager and binfmt_tool into one component
-                    if self.p.binfmt_tool.__class__.__name__ == "ELF":
-                        max_seg_align = max(
-                            [
-                                segment["p_align"]
-                                for segment in self.p.binfmt_tool._segments
-                            ]
-                            + [0]
-                        )
-                        load_mem_addr = (
-                            block.addr + (file_addr - block.addr) % max_seg_align
-                        )
-                    else:
-                        load_mem_addr = block.addr + (file_addr - block.addr) % 0x1000
+                    # mem_addr % p_align == file_addr % p_align (see `man elf`)
+                    page_align = self.p.binfmt_tool.page_alignment()
+                    load_mem_addr = block.addr + (file_addr - block.addr) % page_align
                     block.addr = load_mem_addr + 0x10000
             if file_addr and load_mem_addr:
                 block = MappedBlock(

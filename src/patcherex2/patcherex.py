@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 
-from .components.binary_analyzers.ghidra import Ghidra
 from .patches import *
 from .patches import __all__ as all_patches
 from .targets import Target
@@ -90,29 +89,45 @@ class Patcherex:
 
     def shutdown(self):
         """
-        Shuts down any resources used by Patcherex2.
-        This needs to be called when using Ghidra as the binary analyzer when done patching.
+        Required when using Ghidra (which spawns a JVM via pyhidra).
+        Calls .shutdown() on every component that defines it.
         """
-        if isinstance(self.binary_analyzer, Ghidra):
-            self.binary_analyzer.shutdown()
+        for component in (
+            "assembler",
+            "disassembler",
+            "compiler",
+            "binary_analyzer",
+            "allocation_manager",
+            "binfmt_tool",
+            "utils",
+            "archinfo",
+        ):
+            obj = getattr(self, component, None)
+            if obj is not None and hasattr(obj, "shutdown"):
+                obj.shutdown()
 
     def apply_patches(self) -> None:
         """
         Applies all added patches to the binary. Call this when you have added all the patches you want.
         """
-        # TODO: sort patches properly
-        # self.patches.sort(key=lambda x: self.patch_order.index(type(x)))
-        self.patches.sort(
-            key=lambda x: (
-                not isinstance(x, (ModifyDataPatch, InsertDataPatch, RemoveDataPatch))
-            )
-        )
+
+        # data/labels first, then instructions, then functions
+        def _sort_key(patch):
+            try:
+                return self.patch_order.index(type(patch))
+            except ValueError as e:
+                raise ValueError(
+                    f"Unknown patch type {type(patch).__name__!r}; "
+                    f"register it in Patcherex.patch_order"
+                ) from e
+
+        self.patches.sort(key=_sort_key)
         logger.debug(f"Applying patches: {self.patches}")
         for patch in self.patches:
             patch.apply(self)
         self.binfmt_tool.finalize()
 
-    def save_binary(self, filename: str = None) -> None:
+    def save_binary(self, filename: str | None = None) -> None:
         """
         Save the patched binary to a file.
 

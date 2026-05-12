@@ -12,7 +12,9 @@ class Block:
 
     def __init_subclass__(cls, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
-        Block.subclasses.append(cls)
+        # dedup so importlib.reload doesn't double-register
+        if cls not in Block.subclasses:
+            Block.subclasses.append(cls)
 
     def __init__(self, addr: int, size: int, is_free=True) -> None:
         self.addr = addr
@@ -184,19 +186,9 @@ class AllocationManager:
                 block.addr += 0x10000
         for block in self.blocks[MemoryBlock]:
             if block.size == -1:
-                # NOTE: mem_addr % p_align should equal to file_addr % p_align
-                # Check `man elf` and search for `p_align` for more information
-                # FIXME: shouldn't do any assumption on component type, reimpl in a better way
-                # FIXME: even worse, importing ELF will cause circular import
-                # TODO: consider merge allocation_manager and binfmt_tool into one component
-                if self.p.binfmt_tool.__class__.__name__ == "ELF":
-                    max_seg_align = max(
-                        [segment["p_align"] for segment in self.p.binfmt_tool._segments]
-                        + [0]
-                    )
-                    mem_addr = block.addr + (file_addr - block.addr) % max_seg_align
-                else:
-                    mem_addr = block.addr + (file_addr - block.addr) % 0x1000
+                # mem_addr % p_align == file_addr % p_align (see `man elf`)
+                page_align = self.p.binfmt_tool.page_alignment()
+                mem_addr = block.addr + (file_addr - block.addr) % page_align
                 block.addr = mem_addr + 0x10000
         if file_addr and mem_addr:
             self.add_block(

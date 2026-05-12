@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import logging
 import os
 
@@ -21,20 +22,21 @@ logger = logging.getLogger(__name__)
 class ELF(BinFmtTool):
     def __init__(self, p, binary_path: str) -> None:
         super().__init__(p, binary_path)
-        self._file = open(binary_path, "rb")
+        with open(binary_path, "rb") as f:
+            self.original_binary_content = f.read()
+        self._file = io.BytesIO(self.original_binary_content)
         self._elf = ELFFile(self._file)
         self._segments = [segment.header for segment in self._elf.iter_segments()]
         self._sections = [section.header for section in self._elf.iter_sections()]
         self.file_updates = []
 
         self.file_size = os.stat(self.binary_path).st_size
-        with open(self.binary_path, "rb") as f:
-            self.original_binary_content = f.read()
         self.updated_binary_content = self.original_binary_content
         self._init_memory_analysis()
 
-    def __del__(self) -> None:
-        self._file.close()
+    def page_alignment(self) -> int:
+        # max p_align so new blocks satisfy every existing segment
+        return max((segment["p_align"] for segment in self._segments), default=0x1000)
 
     def _find_space_between_sections(self) -> None:
         load_segments = sorted(

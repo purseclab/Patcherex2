@@ -37,7 +37,7 @@ class ModifyRawBytesPatch(Patch):
             offset = self.addr
         elif self.addr_type == "mem":
             offset = p.binary_analyzer.mem_addr_to_file_offset(self.addr)
-            if not offset:
+            if offset is None:
                 logger.warning(
                     "failed to convert mem addr to file offset, will just default to raw addr"
                 )

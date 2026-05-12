@@ -13,13 +13,9 @@ logger = logging.getLogger(__name__)
 class IHex(BinFmtTool):
     def __init__(self, p, binary_path: str) -> None:
         super().__init__(p, binary_path)
-        self._file = open(binary_path, "rb")
         self._ihex = intelhex.IntelHex(binary_path)
         self.file_size = self._ihex.maxaddr() + 1
         self.file_updates = []
-
-    def __del__(self) -> None:
-        self._file.close()
 
     def _init_memory_analysis(self) -> None:
         pass

@@ -26,12 +26,22 @@ class PpcVle(Disassembler):
 
             try:
                 proc = subprocess.run(
-                    f"{os.path.join(self.assets_path, 'powerpc-eabivle-objdump')} -D -b binary --adjust-vma={hex(base)} -m powerpc:common -EB {os.path.join(td, 'code')}.bin | tail +8",
-                    shell=True,
+                    [
+                        os.path.join(self.assets_path, "powerpc-eabivle-objdump"),
+                        "-D",
+                        "-b",
+                        "binary",
+                        f"--adjust-vma={hex(base)}",
+                        "-m",
+                        "powerpc:common",
+                        "-EB",
+                        os.path.join(td, "code.bin"),
+                    ],
                     check=True,
                     capture_output=True,
                 )
-                str_result = proc.stdout.decode("utf-8")
+                # skip objdump's 7 header lines
+                str_result = "\n".join(proc.stdout.decode("utf-8").splitlines()[7:])
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
                 raise e

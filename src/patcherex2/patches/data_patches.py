@@ -53,7 +53,7 @@ class InsertDataPatch(Patch):
 
         :param p: Patcherex instance.
         """
-        if self.addr:
+        if self.addr is not None:
             p.binfmt_tool.update_binary_content(self.addr, self.data)
         elif self.name:
             block = p.allocation_manager.allocate(len(self.data), flag=MemoryFlag.RW)

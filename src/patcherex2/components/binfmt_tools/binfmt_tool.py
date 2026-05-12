@@ -14,8 +14,12 @@ class BinFmtTool:
     def save_binary(self, filename=None) -> None:
         raise NotImplementedError()
 
-    def update_binary_content(self, offset: str, new_content: bytes) -> None:
+    def update_binary_content(self, offset: int, new_content: bytes) -> None:
         raise NotImplementedError()
 
     def append_to_binary_content(self, new_content: bytes) -> None:
         raise NotImplementedError()
+
+    def page_alignment(self) -> int:
+        # ELF overrides with max segment p_align
+        return 0x1000
