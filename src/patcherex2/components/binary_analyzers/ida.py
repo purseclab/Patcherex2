@@ -146,7 +146,7 @@ class Ida(BinaryAnalyzer):
             return None
         return {
             "addr": self.normalize_addr(func.start_ea),
-            "size": func.size,
+            "size": func.end_ea - func.start_ea,
         }
 
     def is_thumb(self, addr: int) -> bool:

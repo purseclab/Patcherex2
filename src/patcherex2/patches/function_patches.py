@@ -150,7 +150,7 @@ class InsertFunctionPatch(Patch):
 
         :param p: Patcherex instance.
         """
-        if self.addr:
+        if self.addr is not None:
             if self.prefunc:
                 if "SAVE_CONTEXT" in self.prefunc:
                     self.prefunc = self.prefunc.replace(
