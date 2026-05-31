@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import logging
 import os
+import struct
 
 from elftools.construct.lib import Container
 from elftools.elf.constants import P_FLAGS, SH_FLAGS
@@ -19,6 +20,53 @@ from .binfmt_tool import BinFmtTool
 logger = logging.getLogger(__name__)
 
 
+def pack_rel_entry(
+    mem_offset: int,
+    r_info_value: int,
+    is_64: bool,
+    is_le: bool,
+    is_rela: bool,
+    is_mips64: bool = False,
+    addend: int = 0,
+) -> bytes:
+    """Pack one ELF Rel/Rela entry. r_info layout is arch-specific:
+
+    - 32-bit ELF: r_info = sym<<8 | type
+    - 64-bit standard: r_info = sym<<32 | type
+    - MIPS n64 (`is_mips64=True`): the 8-byte r_info field is
+      structured as sym(4) + ssym(1) + type3(1) + type2(1) + type(1).
+      archinfo encodes the four type bytes in r_info_value's low 32
+      bits as `type | type2<<8 | type3<<16 | ssym<<24`; sym lives in
+      the high 32 bits.
+
+    `addend` is appended only for Rela. For RELATIVE relocs the loader
+    sets `*slot = base + addend` (Rela) or `*slot += base` (Rel), so the
+    caller is responsible for choosing addend = symbol's static value
+    on Rela archs.
+    """
+    end = "<" if is_le else ">"
+    word_fmt = "Q" if is_64 else "I"
+    out = struct.pack(f"{end}{word_fmt}", mem_offset)
+    if is_mips64:
+        sym = (r_info_value >> 32) & 0xFFFFFFFF
+        low = r_info_value & 0xFFFFFFFF
+        out += struct.pack(f"{end}I", sym)
+        # per-byte fields are positional regardless of endianness
+        out += bytes(
+            [
+                (low >> 24) & 0xFF,  # ssym
+                (low >> 16) & 0xFF,  # type3
+                (low >> 8) & 0xFF,  # type2
+                low & 0xFF,  # type
+            ]
+        )
+    else:
+        out += struct.pack(f"{end}{word_fmt}", r_info_value)
+    if is_rela:
+        out += struct.pack(f"{end}{word_fmt}", addend)
+    return out
+
+
 class ELF(BinFmtTool):
     def __init__(self, p, binary_path: str) -> None:
         super().__init__(p, binary_path)
@@ -32,6 +80,7 @@ class ELF(BinFmtTool):
 
         self.file_size = os.stat(self.binary_path).st_size
         self.updated_binary_content = self.original_binary_content
+        self._pending_dyn_relocs: list[tuple[int, int, int]] = []
         self._init_memory_analysis()
 
     def page_alignment(self) -> int:
@@ -39,12 +88,12 @@ class ELF(BinFmtTool):
         return max((segment["p_align"] for segment in self._segments), default=0x1000)
 
     @property
+    def little_endian(self) -> bool:
+        return self._elf.little_endian
+
+    @property
     def is_pie(self) -> bool:
-        # ET_DYN covers both PIE executables and shared libraries; both are
-        # position-independent and tolerate new LOADs at any vaddr the
-        # allocator picks. ET_EXEC has fixed vaddrs and stricter loaders
-        # reject new LOADs placed inside inter-segment gaps.
-        return self._elf.header["e_type"] == "ET_DYN"
+        return self._elf.header.e_type == "ET_DYN"
 
     def _find_space_between_sections(self) -> None:
         load_segments = sorted(
@@ -262,7 +311,106 @@ class ELF(BinFmtTool):
         #             "callback": self._extend_segment
         #         })
 
+    def add_dynamic_relocations(self, entries) -> None:
+        self._pending_dyn_relocs.extend(entries)
+
+    def _scan_dynamic_rel_tags(self):
+        """Locate DT_REL[A]/DT_REL[A]SZ/DT_REL[A]ENT and report whether
+        the binary uses Rel or Rela format. Raises if .dynamic or the
+        relocation tag is missing."""
+        dyn_section = self._elf.get_section_by_name(".dynamic")
+        if dyn_section is None:
+            raise RuntimeError(
+                "binary has no .dynamic section; can't add dynamic relocations"
+            )
+        info = {
+            "is_rela": False,
+            "addr": None,
+            "size": 0,
+            "ent": 0,
+            "count": None,
+            "section": dyn_section,
+        }
+        for tag in dyn_section.iter_tags():
+            t = tag.entry.d_tag
+            v = tag.entry.d_val
+            if t == "DT_REL":
+                info["addr"] = v
+            elif t == "DT_RELA":
+                info["addr"] = v
+                info["is_rela"] = True
+            elif t in ("DT_RELSZ", "DT_RELASZ"):
+                info["size"] = v
+            elif t in ("DT_RELENT", "DT_RELAENT"):
+                info["ent"] = v
+            elif t in ("DT_RELCOUNT", "DT_RELACOUNT"):
+                info["count"] = v
+        if info["addr"] is None:
+            raise RuntimeError(
+                "binary has no DT_REL/DT_RELA tag; can't add dynamic relocations"
+            )
+        return info
+
+    def _emit_dynamic_relocations(self) -> None:
+        """Build a fresh REL/RELA table containing existing entries plus
+        our additions, place it in a newly allocated R block, and repoint
+        DT_REL[A] + DT_REL[A]SZ in .dynamic."""
+        if not self._pending_dyn_relocs:
+            return
+
+        is_64 = self._elf.elfclass == 64
+        is_le = self._elf.little_endian
+        is_mips64 = is_64 and self._elf.header.e_machine == "EM_MIPS"
+        info = self._scan_dynamic_rel_tags()
+        is_rela = info["is_rela"]
+        entry_size = (3 if is_rela else 2) * (8 if is_64 else 4)
+        if info["ent"] and info["ent"] != entry_size:
+            raise RuntimeError(f"DT_REL[A]ENT={info['ent']} != computed {entry_size}")
+
+        existing_file_off = self.p.binary_analyzer.mem_addr_to_file_offset(info["addr"])
+        existing_bytes = self.get_binary_content(existing_file_off, info["size"])
+
+        new_bytes = b"".join(
+            pack_rel_entry(off, r_info, is_64, is_le, is_rela, is_mips64, addend=addend)
+            for off, r_info, addend in self._pending_dyn_relocs
+        )
+        # Prepend new RELATIVE entries so they extend the DT_REL[A]COUNT prefix.
+        combined = new_bytes + existing_bytes
+        new_block = self.p.allocation_manager.allocate(
+            len(combined), align=entry_size, flag=MemoryFlag.R
+        )
+        self.update_binary_content(new_block.file_addr, combined)
+
+        # Patch DT_REL[A], DT_REL[A]SZ, and DT_REL[A]COUNT in-place.
+        end = "<" if is_le else ">"
+        word_fmt = "Q" if is_64 else "I"
+        target_addr_tag = "DT_RELA" if is_rela else "DT_REL"
+        target_size_tag = "DT_RELASZ" if is_rela else "DT_RELSZ"
+        target_count_tag = "DT_RELACOUNT" if is_rela else "DT_RELCOUNT"
+        new_entries_count = len(self._pending_dyn_relocs)
+        ent_bytes = (8 if is_64 else 4) * 2
+        dyn_file_off = info["section"]["sh_offset"]
+        for i, tag in enumerate(info["section"].iter_tags()):
+            if tag.entry.d_tag == target_addr_tag:
+                new_val = new_block.mem_addr
+            elif tag.entry.d_tag == target_size_tag:
+                new_val = len(combined)
+            elif tag.entry.d_tag == target_count_tag and info["count"] is not None:
+                new_val = info["count"] + new_entries_count
+            else:
+                continue
+            val_off = dyn_file_off + i * ent_bytes + (8 if is_64 else 4)
+            self.update_binary_content(
+                val_off, struct.pack(f"{end}{word_fmt}", new_val)
+            )
+
+        logger.debug(
+            f"Wrote {len(self._pending_dyn_relocs)} new dynamic relocations; "
+            f".rel{'a' if is_rela else ''}.dyn moved to {hex(new_block.mem_addr)} size {len(combined)}"
+        )
+
     def finalize(self) -> None:
+        self._emit_dynamic_relocations()
         self.p.allocation_manager.finalize()
 
         if len(self.p.allocation_manager.new_mapped_blocks) == 0:
@@ -277,16 +425,14 @@ class ELF(BinFmtTool):
         for block in self.p.allocation_manager.new_mapped_blocks:
             self._segments.append(
                 Container(
-                    **{
-                        "p_type": "PT_LOAD",
-                        "p_offset": block.file_addr,
-                        "p_filesz": block.size,
-                        "p_vaddr": block.mem_addr,
-                        "p_paddr": block.mem_addr,
-                        "p_memsz": block.size,
-                        "p_flags": block.flag,
-                        "p_align": max_align,  # TODO: what could be a good value for this?
-                    }
+                    p_type="PT_LOAD",
+                    p_offset=block.file_addr,
+                    p_filesz=block.size,
+                    p_vaddr=block.mem_addr,
+                    p_paddr=block.mem_addr,
+                    p_memsz=block.size,
+                    p_flags=block.flag,
+                    p_align=max_align,  # TODO: what could be a good value for this?
                 )
             )
 
@@ -311,26 +457,24 @@ class ELF(BinFmtTool):
                 ):
                     new_segments.append(
                         Container(
-                            **{
-                                "p_type": "PT_LOAD",
-                                "p_offset": prev_seg["p_offset"],
-                                "p_filesz": prev_seg["p_filesz"]
-                                + next_seg["p_filesz"]
-                                + (
-                                    next_seg["p_offset"]
-                                    - (prev_seg["p_offset"] + prev_seg["p_filesz"])
-                                ),
-                                "p_vaddr": prev_seg["p_vaddr"],
-                                "p_paddr": prev_seg["p_paddr"],
-                                "p_memsz": prev_seg["p_memsz"]
-                                + next_seg["p_memsz"]
-                                + (
-                                    next_seg["p_vaddr"]
-                                    - (prev_seg["p_vaddr"] + prev_seg["p_memsz"])
-                                ),
-                                "p_flags": prev_seg["p_flags"],
-                                "p_align": prev_seg["p_align"],
-                            }
+                            p_type="PT_LOAD",
+                            p_offset=prev_seg["p_offset"],
+                            p_filesz=prev_seg["p_filesz"]
+                            + next_seg["p_filesz"]
+                            + (
+                                next_seg["p_offset"]
+                                - (prev_seg["p_offset"] + prev_seg["p_filesz"])
+                            ),
+                            p_vaddr=prev_seg["p_vaddr"],
+                            p_paddr=prev_seg["p_paddr"],
+                            p_memsz=prev_seg["p_memsz"]
+                            + next_seg["p_memsz"]
+                            + (
+                                next_seg["p_vaddr"]
+                                - (prev_seg["p_vaddr"] + prev_seg["p_memsz"])
+                            ),
+                            p_flags=prev_seg["p_flags"],
+                            p_align=prev_seg["p_align"],
                         )
                     )
                     i += 2
@@ -367,16 +511,14 @@ class ELF(BinFmtTool):
         else:
             # create new load segment for phdr (values are undetermined yet)
             phdr_load_segment = Container(
-                **{
-                    "p_type": "PT_LOAD",
-                    "p_offset": 0,
-                    "p_filesz": 0,
-                    "p_vaddr": 0,
-                    "p_paddr": 0,
-                    "p_memsz": 0,
-                    "p_flags": 0x4,
-                    "p_align": 0x1000,
-                }
+                p_type="PT_LOAD",
+                p_offset=0,
+                p_filesz=0,
+                p_vaddr=0,
+                p_paddr=0,
+                p_memsz=0,
+                p_flags=0x4,
+                p_align=0x1000,
             )
             self._segments.append(phdr_load_segment)
 
@@ -495,17 +637,16 @@ class ELF(BinFmtTool):
             self.p.binfmt_tool.update_binary_content(0, new_ehdr)
 
     def save_binary(self, filename: str | None = None) -> None:
-        self.updated_binary_content = self.updated_binary_content.ljust(
-            self.file_size, b"\x00"
-        )
+        # bytearray for in-place edits (was O(N²) bytes-rebuild per update)
+        content = bytearray(self.updated_binary_content.ljust(self.file_size, b"\x00"))
         for update in self.file_updates:
-            self.updated_binary_content = (
-                self.updated_binary_content[: update["offset"]]
-                + update["content"]
-                + self.updated_binary_content[
-                    update["offset"] + len(update["content"]) :
-                ]
-            )
+            offset = update["offset"]
+            data = update["content"]
+            end = offset + len(data)
+            if end > len(content):
+                content.extend(b"\x00" * (end - len(content)))
+            content[offset:end] = data
+        self.updated_binary_content = bytes(content)
         if filename is None:
             filename = f"{self.binary_path}.patched"
         with open(filename, "wb") as f:
@@ -528,13 +669,12 @@ class ELF(BinFmtTool):
             self.file_size = offset + len(new_content)
 
     def get_binary_content(self, offset: int, size: int) -> bytes:
-        # check if it's in file_updates
         for update in self.file_updates:
             if offset >= update["offset"] and offset + size <= update["offset"] + len(
                 update["content"]
             ):
-                return update["content"][offset - update["offset"] :]
-        # otherwise return from original binary
+                start = offset - update["offset"]
+                return update["content"][start : start + size]
         return self.original_binary_content[offset : offset + size]
 
     def append_to_binary_content(self, new_content: bytes) -> None:
