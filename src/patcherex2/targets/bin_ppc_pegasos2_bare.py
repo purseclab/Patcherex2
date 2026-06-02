@@ -18,12 +18,10 @@ from ..components.allocation_managers.allocation_manager import (
 )
 from ..components.archinfo.ppc import PpcInfo
 from ..components.assemblers.keystone import Keystone, keystone
-from ..components.assemblers.nyxstone import Nyxstone as NyxstoneAssembler
 from ..components.binary_analyzers.angr import Angr
 from ..components.binfmt_tools.binary import Binary
 from ..components.compilers.clang import Clang
 from ..components.disassemblers.capstone import Capstone, capstone
-from ..components.disassemblers.nyxstone import Nyxstone as NyxstoneDisassembler
 from ..components.utils.utils import Utils
 from .target import Target
 
@@ -104,6 +102,10 @@ class BinPpcPegasos2Bare(Target):
                 keystone.KS_MODE_BIG_ENDIAN + keystone.KS_MODE_PPC32,
             )
         if assembler == "nyxstone":
+            from ..components.assemblers.nyxstone import (
+                Nyxstone as NyxstoneAssembler,
+            )
+
             return NyxstoneAssembler(
                 self.p,
                 "powerpc-unknown-linux-gnu",
@@ -113,8 +115,12 @@ class BinPpcPegasos2Bare(Target):
         raise NotImplementedError()
 
     def get_disassembler(self, disassembler):
-        disassembler = disassembler or "nyxstone"
+        disassembler = disassembler or "capstone"
         if disassembler == "nyxstone":
+            from ..components.disassemblers.nyxstone import (
+                Nyxstone as NyxstoneDisassembler,
+            )
+
             return NyxstoneDisassembler(
                 "powerpc-unknown-linux-gnu",
                 "7450",
