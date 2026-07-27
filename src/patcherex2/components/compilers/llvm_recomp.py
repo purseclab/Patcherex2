@@ -64,10 +64,10 @@ class LLVMRecomp(Clang):
                 subprocess.run(args, check=True, capture_output=True)
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
-                raise e
+                raise
 
             # ll --force-dso-local --> ll
-            if "dso_local_fix" in kwargs and kwargs["dso_local_fix"]:
+            if kwargs.get("dso_local_fix"):
                 try:
                     args = [
                         f"opt-{self._clang_version}",
@@ -81,10 +81,10 @@ class LLVMRecomp(Clang):
                     subprocess.run(args, check=True, capture_output=True)
                 except subprocess.CalledProcessError as e:
                     logger.error(e.stderr.decode("utf-8"))
-                    raise e
+                    raise
 
             # ll -> o
-            if "stacklayout" in kwargs and kwargs["stacklayout"]:
+            if kwargs.get("stacklayout"):
                 with open(os.path.join(td, "stacklayout.json"), "w") as f:
                     json.dump(kwargs["stacklayout"], f)
                 try:
@@ -99,7 +99,7 @@ class LLVMRecomp(Clang):
                     subprocess.run(args, check=True, capture_output=True)
                 except subprocess.CalledProcessError as e:
                     logger.error(e.stderr.decode("utf-8"))
-                    raise e
+                    raise
                 try:
                     args = [
                         f"llc-{self._clang_version}",
@@ -115,7 +115,7 @@ class LLVMRecomp(Clang):
                     subprocess.run(args, check=True, capture_output=True)
                 except subprocess.CalledProcessError as e:
                     logger.error(e.stderr.decode("utf-8"))
-                    raise e
+                    raise
                 try:
                     args = [
                         f"llc-{self._clang_version}",
@@ -129,7 +129,7 @@ class LLVMRecomp(Clang):
                     subprocess.run(args, check=True, capture_output=True)
                 except subprocess.CalledProcessError as e:
                     logger.error(e.stderr.decode("utf-8"))
-                    raise e
+                    raise
             else:
                 try:
                     args = [
@@ -143,7 +143,7 @@ class LLVMRecomp(Clang):
                     subprocess.run(args, check=True, capture_output=True)
                 except subprocess.CalledProcessError as e:
                     logger.error(e.stderr.decode("utf-8"))
-                    raise e
+                    raise
 
             # linker script
             _symbols = {}
@@ -196,7 +196,7 @@ class LLVMRecomp(Clang):
                 subprocess.run(args, check=True, capture_output=True)
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
-                raise e
+                raise
 
             # extract compiled code
             ld = cle.Loader(

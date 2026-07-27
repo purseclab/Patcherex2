@@ -24,12 +24,7 @@ class PpcVle(Assembler):
             instr_count = 0
             for line in code.splitlines():
                 line = line.strip()
-                if (
-                    line.startswith(".")
-                    or line.startswith("#")
-                    or line == ""
-                    or line.endswith(":")
-                ):
+                if line.startswith((".", "#")) or line == "" or line.endswith(":"):
                     continue
                 # if line matches "b 0x*" or "bl 0x*", add it to the branch_instrs dict
                 if re.match(r"b[a-z]* 0x[0-9a-fA-F]+", line):
@@ -46,12 +41,7 @@ class PpcVle(Assembler):
 
             instr_count = 0
             for line_count, line in enumerate(code.splitlines()):
-                if (
-                    line.startswith(".")
-                    or line.startswith("#")
-                    or line == ""
-                    or line.endswith(":")
-                ):
+                if line.startswith((".", "#")) or line == "" or line.endswith(":"):
                     continue
                 if instr_count in branch_instrs:
                     code = code.splitlines()
@@ -79,7 +69,7 @@ class PpcVle(Assembler):
                 )
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
-                raise e
+                raise
             try:
                 subprocess.run(
                     [
@@ -96,7 +86,7 @@ class PpcVle(Assembler):
                 )
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
-                raise e
+                raise
             with open(os.path.join(td, "obj.bin"), "rb") as f:
                 if base != 0:
                     f.seek(base)

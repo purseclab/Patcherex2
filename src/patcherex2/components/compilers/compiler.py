@@ -51,7 +51,7 @@ class Compiler:
                 subprocess.run(args, check=True, capture_output=True)
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
-                raise e
+                raise
 
             # linker script
             _symbols = {}
@@ -91,7 +91,7 @@ class Compiler:
                 subprocess.run(args, check=True, capture_output=True)
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
-                raise e
+                raise
 
             # extract compiled code
             ld = cle.Loader(

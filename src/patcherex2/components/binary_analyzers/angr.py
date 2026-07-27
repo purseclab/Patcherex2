@@ -124,7 +124,7 @@ class Angr(BinaryAnalyzer):
                             for instr_addr in instr_addrs
                         ],
                     }
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.error(
                 f"angr RegionIdentifier failed for function containing {hex(addr)}, falling back to use cfg nodes\n{traceback.format_exc()}"
             )
@@ -145,7 +145,7 @@ class Angr(BinaryAnalyzer):
                 ],
             }
 
-        raise Exception(f"Cannot find a block containing address {hex(addr)}")
+        raise ValueError(f"Cannot find a block containing address {hex(addr)}")
 
     def get_instr_bytes_at(self, addr: int, num_instr=1) -> angr.Block:
         addr += 1 if self.is_thumb(addr) else 0
@@ -161,7 +161,7 @@ class Angr(BinaryAnalyzer):
         for func in self.p.kb.functions.values():
             if func.size == 0:
                 continue
-            for dst, _ in self.p.kb.xrefs.xrefs_by_dst.items():
+            for dst in self.p.kb.xrefs.xrefs_by_dst:
                 if dst == func.addr:
                     break
             else:
@@ -206,7 +206,7 @@ class Angr(BinaryAnalyzer):
                 }
             return None
         else:
-            raise Exception(f"Invalid type for name_or_addr: {type(name_or_addr)}")
+            raise TypeError(f"Invalid type for name_or_addr: {type(name_or_addr)}")
 
     def is_thumb(self, addr: int) -> bool:
         if not isinstance(self.p.arch, ArchARM):
@@ -216,9 +216,8 @@ class Angr(BinaryAnalyzer):
         for node in self.cfg.model.nodes():
             if addr in node.instruction_addrs:
                 return node.thumb
+        if addr % 2 == 0:
+            return self.is_thumb(self.normalize_addr(addr + 1))
         else:
-            if addr % 2 == 0:
-                return self.is_thumb(self.normalize_addr(addr + 1))
-            else:
-                logger.error(f"Cannot find a block containing address {hex(addr)}")
-                return False
+            logger.error(f"Cannot find a block containing address {hex(addr)}")
+            return False

@@ -50,16 +50,15 @@ class CustomElf(ELF):
             ):
                 highest_flash_addr = seg_end
 
-            if segment["p_offset"] + segment["p_filesz"] > highest_file_offset:
-                highest_file_offset = segment["p_offset"] + segment["p_filesz"]
+            highest_file_offset = max(
+                highest_file_offset, segment["p_offset"] + segment["p_filesz"]
+            )
 
         highest_file_offset = (highest_file_offset + 0xFFFF) & ~0xFFFF
         block = FileBlock(highest_file_offset, -1)
         self.p.allocation_manager.add_block(block)
         block = MemoryBlock(highest_flash_addr, -1)
         self.p.allocation_manager.add_block(block)
-
-        return
 
     def finalize(self):
         self.p.allocation_manager.finalize()
@@ -72,33 +71,29 @@ class CustomElf(ELF):
         for block in self.p.allocation_manager.new_mapped_blocks:
             self._segments.append(
                 Container(
-                    **{
-                        "p_type": "PT_LOAD",
-                        "p_offset": block.file_addr,
-                        "p_filesz": block.size,
-                        "p_vaddr": block.mem_addr,
-                        "p_paddr": block.mem_addr,
-                        "p_memsz": block.size,
-                        "p_flags": block.flag,
-                        "p_align": max_align,
-                    }
+                    p_type="PT_LOAD",
+                    p_offset=block.file_addr,
+                    p_filesz=block.size,
+                    p_vaddr=block.mem_addr,
+                    p_paddr=block.mem_addr,
+                    p_memsz=block.size,
+                    p_flags=block.flag,
+                    p_align=max_align,
                 )
             )
 
             self._sections.append(
                 Container(
-                    **{
-                        "sh_name": 0,
-                        "sh_type": "SHT_PROGBITS",
-                        "sh_flags": 2,
-                        "sh_addr": block.mem_addr,
-                        "sh_offset": block.file_addr,
-                        "sh_size": block.size,
-                        "sh_link": 0,
-                        "sh_info": 0,
-                        "sh_addralign": max_align,
-                        "sh_entsize": 0,
-                    }
+                    sh_name=0,
+                    sh_type="SHT_PROGBITS",
+                    sh_flags=2,
+                    sh_addr=block.mem_addr,
+                    sh_offset=block.file_addr,
+                    sh_size=block.size,
+                    sh_link=0,
+                    sh_info=0,
+                    sh_addralign=max_align,
+                    sh_entsize=0,
                 )
             )
 
@@ -123,26 +118,24 @@ class CustomElf(ELF):
                 ):
                     new_segments.append(
                         Container(
-                            **{
-                                "p_type": "PT_LOAD",
-                                "p_offset": prev_seg["p_offset"],
-                                "p_filesz": prev_seg["p_filesz"]
-                                + next_seg["p_filesz"]
-                                + (
-                                    next_seg["p_offset"]
-                                    - (prev_seg["p_offset"] + prev_seg["p_filesz"])
-                                ),
-                                "p_vaddr": prev_seg["p_vaddr"],
-                                "p_paddr": prev_seg["p_paddr"],
-                                "p_memsz": prev_seg["p_memsz"]
-                                + next_seg["p_memsz"]
-                                + (
-                                    next_seg["p_vaddr"]
-                                    - (prev_seg["p_vaddr"] + prev_seg["p_memsz"])
-                                ),
-                                "p_flags": prev_seg["p_flags"],
-                                "p_align": prev_seg["p_align"],
-                            }
+                            p_type="PT_LOAD",
+                            p_offset=prev_seg["p_offset"],
+                            p_filesz=prev_seg["p_filesz"]
+                            + next_seg["p_filesz"]
+                            + (
+                                next_seg["p_offset"]
+                                - (prev_seg["p_offset"] + prev_seg["p_filesz"])
+                            ),
+                            p_vaddr=prev_seg["p_vaddr"],
+                            p_paddr=prev_seg["p_paddr"],
+                            p_memsz=prev_seg["p_memsz"]
+                            + next_seg["p_memsz"]
+                            + (
+                                next_seg["p_vaddr"]
+                                - (prev_seg["p_vaddr"] + prev_seg["p_memsz"])
+                            ),
+                            p_flags=prev_seg["p_flags"],
+                            p_align=prev_seg["p_align"],
                         )
                     )
                     i += 2
@@ -156,7 +149,7 @@ class CustomElf(ELF):
             self._segments = new_segments
 
         # generate new phdr at end of the file and update ehdr
-        last_seg = sorted(self._segments, key=lambda x: x["p_offset"])[-1]
+        last_seg = max(self._segments, key=lambda x: x["p_offset"])
         phdr_start = last_seg["p_offset"] + last_seg["p_filesz"]
         new_phdr = b""
         for segment in self._segments:

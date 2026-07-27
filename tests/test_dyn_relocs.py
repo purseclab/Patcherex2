@@ -14,60 +14,66 @@ R_X86_64_RELATIVE = 8
 
 _PACK_CASES = {
     "32rel_le": (
-        dict(
-            mem_offset=0x12345678,
-            r_info_value=8,
-            is_64=False,
-            is_le=True,
-            is_rela=False,
-        ),
+        {
+            "mem_offset": 0x12345678,
+            "r_info_value": 8,
+            "is_64": False,
+            "is_le": True,
+            "is_rela": False,
+        },
         "7856341208000000",
     ),
     "32rel_be": (
-        dict(
-            mem_offset=0x12345678,
-            r_info_value=8,
-            is_64=False,
-            is_le=False,
-            is_rela=False,
-        ),
+        {
+            "mem_offset": 0x12345678,
+            "r_info_value": 8,
+            "is_64": False,
+            "is_le": False,
+            "is_rela": False,
+        },
         "1234567800000008",
     ),
     "64rela_ppc64": (
-        dict(
-            mem_offset=0xCAFEBABE_DEADBEEF,
-            r_info_value=22,
-            is_64=True,
-            is_le=True,
-            is_rela=True,
-            addend=0x12345678,
-        ),
+        {
+            "mem_offset": 0xCAFEBABE_DEADBEEF,
+            "r_info_value": 22,
+            "is_64": True,
+            "is_le": True,
+            "is_rela": True,
+            "addend": 0x12345678,
+        },
         "efbeaddebebafeca16000000000000007856341200000000",
     ),
     "mips64_le": (
-        dict(
-            mem_offset=0x33558,
-            r_info_value=0x1203,
-            is_64=True,
-            is_le=True,
-            is_rela=False,
-            is_mips64=True,
-        ),
+        {
+            "mem_offset": 0x33558,
+            "r_info_value": 0x1203,
+            "is_64": True,
+            "is_le": True,
+            "is_rela": False,
+            "is_mips64": True,
+        },
         "58350300000000000000000000001203",
     ),
     "mips64_be": (
-        dict(
-            mem_offset=0x33558,
-            r_info_value=0x1203,
-            is_64=True,
-            is_le=False,
-            is_rela=False,
-            is_mips64=True,
-        ),
+        {
+            "mem_offset": 0x33558,
+            "r_info_value": 0x1203,
+            "is_64": True,
+            "is_le": False,
+            "is_rela": False,
+            "is_mips64": True,
+        },
         "00000000000335580000000000001203",
     ),
     "64rel_no_addend": (
-        dict(mem_offset=0x100, r_info_value=8, is_64=True, is_le=True, is_rela=False),
+        {
+            "mem_offset": 0x100,
+            "r_info_value": 8,
+            "is_64": True,
+            "is_le": True,
+            "is_rela": False,
+        },
         "00010000000000000800000000000000",
     ),
 }
@@ -117,7 +123,7 @@ def _first_relative(binary: str):
 def _run(path: str):
     """Execute a binary, returning (stdout, returncode); skip if the host can't."""
     try:
-        r = subprocess.run([path], capture_output=True, timeout=30)
+        r = subprocess.run([path], capture_output=True, timeout=30, check=False)
     except (OSError, subprocess.SubprocessError) as e:
         pytest.skip(f"cannot execute test binary on this host: {e}")
     return r.stdout, r.returncode

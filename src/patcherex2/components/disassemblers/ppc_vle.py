@@ -44,7 +44,7 @@ class PpcVle(Disassembler):
                 str_result = "\n".join(proc.stdout.decode("utf-8").splitlines()[7:])
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
-                raise e
+                raise
 
         result = []
         for line in str_result.splitlines():

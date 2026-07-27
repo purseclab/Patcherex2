@@ -21,7 +21,7 @@ class Ida(BinaryAnalyzer):
             if "ida_installation_path" in kwargs
             else os.getenv("IDA_INSTALLATION_PATH")
         )
-        self.processor = kwargs["processor"] if "processor" in kwargs else None
+        self.processor = kwargs.get("processor", None)
         self._headlessida = HeadlessIda(
             self.ida_installation_path, self.binary_path, processor=self.processor
         )

@@ -40,10 +40,10 @@ class ArmInfo:
     def regs_float(self):
         return list(self.subregisters_float.keys())
 
-    subregisters = {f"r{i}": {32: [f"r{i}"]} for i in range(0, 16)}
+    subregisters = {f"r{i}": {32: [f"r{i}"]} for i in range(16)}
 
     subregisters_float = {}
-    for i in range(0, 16):
+    for i in range(16):
         subregisters_float[f"d{i}"] = {64: [f"d{i}"], 32: [f"s{2 * i}"]}
     for i in range(16, 32):
         subregisters_float[f"d{i}"] = {64: [f"d{i}"]}

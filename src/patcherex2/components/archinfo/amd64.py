@@ -108,4 +108,4 @@ class Amd64Info:
         "r15": {64: ["r15"], 32: ["r15d"], 16: ["r15w"], 8: ["r15b"]},
     }
 
-    subregisters_float = {f"xmm{i}": {128: [f"xmm{i}"]} for i in range(0, 15 + 1)}
+    subregisters_float = {f"xmm{i}": {128: [f"xmm{i}"]} for i in range(15 + 1)}

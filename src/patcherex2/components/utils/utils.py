@@ -19,7 +19,7 @@ class Utils:
         instrs: str,
         force_insert=False,
         detour_pos=-1,
-        symbols: dict[str, int] = None,
+        symbols: dict[str, int] | None = None,
         language="ASM",
         asm_header="",
         asm_footer="",

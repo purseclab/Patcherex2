@@ -33,7 +33,7 @@ class Bcc(Assembler):
                 )
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
-                raise e
+                raise
             try:
                 subprocess.run(
                     [
@@ -50,7 +50,7 @@ class Bcc(Assembler):
                 )
             except subprocess.CalledProcessError as e:
                 logger.error(e.stderr.decode("utf-8"))
-                raise e
+                raise
             with open(os.path.join(td, "obj.bin"), "rb") as f:
                 if base != 0:
                     f.seek(base)

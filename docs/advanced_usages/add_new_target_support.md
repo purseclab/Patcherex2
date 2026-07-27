@@ -6,9 +6,11 @@ Patcherex2 has been designed with extensibility in mind, making it easy to add s
 
 The first step is to define a new target class that inherits from the `Target` base class. This class should specify the required components to support the target. Here's an example of the existing `elf_amd64_linux` target definition.
 
+<!-- fmt: off -->
 ```python title="src/patcherex2/targets/elf_amd64_linux.py"
 --8<-- "src/patcherex2/targets/elf_amd64_linux.py"
 ```
+<!-- fmt: on -->
 
 ### `detect_target` Method
 
@@ -88,7 +90,9 @@ def get_assembler(self, assembler, **kwargs):
 You can configure the assembler options like this:
 
 ```python
-p = Patcherex("/path/to/binary", component_opts={"assembler": {"arch": "x86", "mode": "64"}})
+p = Patcherex(
+    "/path/to/binary", component_opts={"assembler": {"arch": "x86", "mode": "64"}}
+)
 ```
 
 This will create the `SomeAssembler` instance with the provided keyword arguments:

@@ -22,12 +22,7 @@ class Nyxstone(Assembler):
         if self.target_triple == "riscv32":
             for line in code.splitlines():
                 line = line.strip()
-                if (
-                    line.startswith("j ")
-                    or line.startswith("jal ")
-                    or line.startswith("call ")
-                    or line.startswith("tail ")
-                ):
+                if line.startswith(("j ", "jal ", "call ", "tail ")):
                     parts = line.split(" ")
                     if len(parts) == 2 and not parts[1].startswith("__patcherex_"):
                         addr = int(parts[1], 0)
@@ -38,6 +33,6 @@ class Nyxstone(Assembler):
             logger.debug(f"Assembled bytes: {bytes(binary).hex()}")
             return bytes(binary)
         except Exception as e:
-            raise Exception(
+            raise ValueError(
                 f'Failed to assemble: """\n{code}\n"""\nat base: {hex(base)}'
             ) from e

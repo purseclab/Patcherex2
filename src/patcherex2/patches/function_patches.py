@@ -43,7 +43,7 @@ class ModifyFunctionPatch(Patch):
         self.detour_pos = detour_pos
         self.addr_or_name = addr_or_name
         self.symbols = symbols if symbols else {}
-        self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
+        self.compile_opts = kwargs.get("compile_opts", {})
 
     def apply(self, p: Patcherex) -> None:
         """
@@ -137,12 +137,10 @@ class InsertFunctionPatch(Patch):
         self.symbols = symbols if symbols else {}
         self.is_thumb = is_thumb
         self.force_insert = force_insert
-        self.prefunc = kwargs["prefunc"] if "prefunc" in kwargs else None
-        self.postfunc = kwargs["postfunc"] if "postfunc" in kwargs else None
-        self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
-        self.save_context = (
-            kwargs["save_context"] if "save_context" in kwargs else False
-        )
+        self.prefunc = kwargs.get("prefunc", None)
+        self.postfunc = kwargs.get("postfunc", None)
+        self.compile_opts = kwargs.get("compile_opts", {})
+        self.save_context = kwargs.get("save_context", False)
 
     def apply(self, p: Patcherex) -> None:
         """

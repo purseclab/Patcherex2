@@ -58,8 +58,7 @@ class IHex(BinFmtTool):
                     f"Cannot update offset {hex(offset)} with content {new_content}, it overlaps with a previous update"
                 )
         self.file_updates.append({"offset": offset, "content": new_content})
-        if offset + len(new_content) > self.file_size:
-            self.file_size = offset + len(new_content)
+        self.file_size = max(self.file_size, offset + len(new_content))
 
     def get_binary_content(self, offset: int, size: int) -> bytes:
         # check if it's in the file updates

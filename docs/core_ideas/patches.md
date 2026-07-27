@@ -27,9 +27,11 @@ Each tier features three patch types:
 
 ### Insert{Data, Instruction, Function}Patch
  - Syntax
+    <!-- fmt: off -->
     ```python
     Insert*Patch(addr_or_name, content)
     ```
+    <!-- fmt: on -->
     - Arguments
         - `addr_or_name`: The address or name of the {data, instruction, function} to be inserted.
             - When the first argument is an address, patcherex will insert content right before the given address.
@@ -42,9 +44,11 @@ Each tier features three patch types:
 
 ### Modify{Data, Instruction, Function}Patch
  - Syntax
+    <!-- fmt: off -->
     ```python
     Modify*Patch(addr_or_name, content)
     ```
+    <!-- fmt: on -->
     - Arguments
         - `addr_or_name`: The address or name of the {data, instruction, function} to be modified.
             - When the first argument is an address, patcherex will modify the content at the given address.
@@ -72,7 +76,7 @@ Examples:
 - This will load effective address of the data `my_data` into the `rsi` register.
     ```python
     InsertDataPatch("my_data", b"Hello, World!")
-    InsertInstructionPatch(0xdeadbeef, "lea rsi, [{my_data}]")
+    InsertInstructionPatch(0xDEADBEEF, "lea rsi, [{my_data}]")
     ```
 - This will replace the content of function `foo` to call function `bar` and return the result.
     ```python

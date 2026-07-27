@@ -4,6 +4,7 @@ import io
 import logging
 import os
 import struct
+from itertools import pairwise
 
 from elftools.construct.lib import Container
 from elftools.elf.constants import P_FLAGS, SH_FLAGS
@@ -118,7 +119,7 @@ class ELF(BinFmtTool):
         for segment in load_segments:
             segment_file_end = segment["p_offset"] + segment["p_filesz"]
             segment_mem_end = segment["p_vaddr"] + segment["p_memsz"]
-            for curr_sec, next_sec in zip(alloc_sections, alloc_sections[1:]):
+            for curr_sec, next_sec in pairwise(alloc_sections):
                 if segment.section_in_segment(curr_sec) and segment.section_in_segment(
                     next_sec
                 ):
@@ -241,7 +242,7 @@ class ELF(BinFmtTool):
         # loader mmaps each LOAD at system-page granularity regardless
         # of p_align.
         page = 0x1000
-        for curr, next in zip(load_segments, load_segments[1:]):
+        for curr, next in pairwise(load_segments):
             if next["p_offset"] > (curr["p_offset"] + curr["p_filesz"]):
                 block = FileBlock(
                     curr["p_offset"] + curr["p_filesz"],
@@ -581,9 +582,7 @@ class ELF(BinFmtTool):
                     new_load_segments_rounded  # combined segments, run again
                 )
 
-            for prev_seg, next_seg in zip(
-                load_segments_rounded[:-1], load_segments_rounded[1:]
-            ):
+            for prev_seg, next_seg in pairwise(load_segments_rounded):
                 # TODO: should we use the max_align of the segments?
                 potential_base = (
                     max(prev_seg[1], self.p.binfmt_tool.file_size) + (max_align - 1)
@@ -665,8 +664,7 @@ class ELF(BinFmtTool):
                     f"Cannot update offset {hex(offset)} with content {new_content}, it overlaps with a previous update"
                 )
         self.file_updates.append({"offset": offset, "content": new_content})
-        if offset + len(new_content) > self.file_size:
-            self.file_size = offset + len(new_content)
+        self.file_size = max(self.file_size, offset + len(new_content))
 
     def get_binary_content(self, offset: int, size: int) -> bytes:
         for update in self.file_updates:

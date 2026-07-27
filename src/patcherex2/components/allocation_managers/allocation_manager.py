@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import enum
 import logging
+from itertools import pairwise
 from pprint import pformat
 
 logger = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ class MappedBlock(Block):
         size: int,
         is_free=True,
         flag=None,
-        load_mem_addr: int = None,
+        load_mem_addr: int | None = None,
     ) -> None:
         super().__init__(None, size, is_free)
         self.file_addr = file_addr
@@ -333,7 +334,7 @@ class AllocationManager:
         self.coalesce(self.blocks[type(block)])
 
     def coalesce(self, blocks: list[Block]) -> None:
-        for curr, nxt in zip(blocks, blocks[1:]):
+        for curr, nxt in pairwise(blocks):
             if curr.coalesce(nxt):
                 blocks.remove(nxt)
                 self.coalesce(blocks)
@@ -355,7 +356,8 @@ class AllocationManager:
                     block.size -= mapped.size
                     return self.finalize()
         for block in self.new_mapped_blocks:
-            if block.file_addr + block.size > self.p.binfmt_tool.file_size:
-                self.p.binfmt_tool.file_size = block.file_addr + block.size
+            self.p.binfmt_tool.file_size = max(
+                self.p.binfmt_tool.file_size, block.file_addr + block.size
+            )
         logger.debug(f"finalized blocks:\n{pformat(list(self.blocks.values()))}")
         logger.debug(f"new mapped blocks:\n{pformat(self.new_mapped_blocks)}")

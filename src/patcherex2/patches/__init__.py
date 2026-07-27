@@ -14,19 +14,19 @@ from .patch import Patch
 from .raw_patches import ModifyRawBytesPatch
 
 __all__ = [
-    "ModifyDataPatch",
     "InsertDataPatch",
-    "RemoveDataPatch",
-    "InsertLabelPatch",
-    "ModifyLabelPatch",
-    "RemoveLabelPatch",
-    "ModifyFunctionPatch",
     "InsertFunctionPatch",
-    "RemoveFunctionPatch",
-    "ModifyInstructionPatch",
     "InsertInstructionPatch",
-    "RemoveInstructionPatch",
+    "InsertLabelPatch",
+    "ModifyDataPatch",
+    "ModifyFunctionPatch",
+    "ModifyInstructionPatch",
+    "ModifyLabelPatch",
     "ModifyRawBytesPatch",
+    "RemoveDataPatch",
+    "RemoveFunctionPatch",
+    "RemoveInstructionPatch",
+    "RemoveLabelPatch",
 ]
 
 

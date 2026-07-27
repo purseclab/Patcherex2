@@ -48,8 +48,8 @@ class Ghidra(BinaryAnalyzer):
                 .getAddressSourceInfo(addr)
                 .getFileOffset()
             )
-        except Exception:
-            raise Exception("Can't get file offset for addr") from None
+        except Exception:  # noqa: BLE001
+            raise ValueError("Can't get file offset for addr") from None
 
     def get_basic_block(self, addr: int) -> dict[str, int | list[int]]:
         logger.info(f"getting basic block at 0x{addr} with ghidra")
@@ -59,7 +59,7 @@ class Ghidra(BinaryAnalyzer):
             addr, self.ghidra.util.task.TaskMonitor.DUMMY
         )
         if block is None:
-            raise Exception(f"Cannot find block containing address 0x{addr}")
+            raise ValueError(f"Cannot find block containing address 0x{addr}")
         instrs = []
         ii = self.currentProgram.getListing().getInstructions(block, True)
         for i in ii:
@@ -111,7 +111,7 @@ class Ghidra(BinaryAnalyzer):
         #         s.getAddress().getOffset())
         fi = self.currentProgram.getListing().getFunctions(True)
         for f in fi:
-            if f.getName() in symbols.keys():
+            if f.getName() in symbols:
                 continue
             symbols[f.getName()] = self.normalize_addr(f.getEntryPoint())
             if self.is_thumb(symbols[f.getName()]):
@@ -130,7 +130,7 @@ class Ghidra(BinaryAnalyzer):
                 return None
             func = funcs[0]
         else:
-            raise Exception("Invalid type for argument")
+            raise TypeError(f"Invalid type for name_or_addr: {type(name_or_addr)}")
 
         b = func.getBody()
         return {

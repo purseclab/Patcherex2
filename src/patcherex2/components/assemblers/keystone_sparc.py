@@ -19,12 +19,7 @@ class KeystoneSparc(Keystone):
         lineno = 0
         for line in code.splitlines():
             line = line.strip()
-            if (
-                line.startswith(".")
-                or line.startswith("#")
-                or line == ""
-                or line.endswith(":")
-            ):
+            if line.startswith((".", "#")) or line == "" or line.endswith(":"):
                 result += line + "\n"
                 continue
             if re.match(r"(call|b|ba) 0x[0-9a-fA-F]+", line):

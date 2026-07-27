@@ -107,7 +107,7 @@ class Aarch64Info:
     def regs_float(self):
         return list(self.subregisters_float.keys())
 
-    subregisters = {f"x{i}": {64: [f"x{i}"], 32: [f"w{i}"]} for i in range(0, 30 + 1)}
+    subregisters = {f"x{i}": {64: [f"x{i}"], 32: [f"w{i}"]} for i in range(30 + 1)}
 
     subregisters_float = {
         f"v{i}": {
@@ -117,5 +117,5 @@ class Aarch64Info:
             16: [f"h{i}"],
             8: [f"b{i}"],
         }
-        for i in range(0, 30 + 1)
+        for i in range(30 + 1)
     }

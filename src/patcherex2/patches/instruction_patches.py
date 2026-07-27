@@ -81,9 +81,9 @@ def convert_to_subregisters(
     regs = [r if isinstance(r, str) else r[0] for r in regs_sort]
 
     # reg_sizes maps registers to their size
-    reg_sizes: dict[str, int] = dict()
+    reg_sizes: dict[str, int] = {}
     # parent_regs maps all children registers to their largest parent register
-    parent_regs: dict[str, str] = dict()
+    parent_regs: dict[str, str] = {}
     for parent, subregister_info in subregisters.items():
         for child_bits, children in subregister_info.items():
             for i, child in enumerate(children):
@@ -96,7 +96,7 @@ def convert_to_subregisters(
                 parent_regs[child] = parent
 
     # The rewrites that should be applied to the cc to compute the transformed cc output
-    rewrites: dict[str, tuple[str, str]] = dict()
+    rewrites: dict[str, tuple[str, str]] = {}
     for r in regs_sort:
         if isinstance(r, str):
             reg_name = r
@@ -137,7 +137,7 @@ class InsertInstructionPatch(Patch):
         def __init__(
             self,
             c_forward_header: str = "",
-            scratch_regs: Iterable[str] = None,
+            scratch_regs: Iterable[str] | None = None,
             regs_sort: Iterable[str | tuple[str, int] | tuple[str, str]] | None = None,
             asm_header: str = "",
             asm_footer: str = "",
@@ -221,10 +221,8 @@ class InsertInstructionPatch(Patch):
         self.is_thumb = is_thumb
         self.language = language.upper()
         self.c_config = self.CConfig() if c_config is None else c_config
-        self.save_context = (
-            kwargs["save_context"] if "save_context" in kwargs else False
-        )
-        self.compile_opts = kwargs["compile_opts"] if "compile_opts" in kwargs else {}
+        self.save_context = kwargs.get("save_context", False)
+        self.compile_opts = kwargs.get("compile_opts", {})
 
     def apply(self, p):
         """
@@ -490,7 +488,7 @@ class RemoveInstructionPatch(Patch):
         if self.num_bytes is None:
             raise NotImplementedError()
         if self.num_bytes and self.num_bytes % p.archinfo.nop_size != 0:
-            raise Exception(
+            raise ValueError(
                 f"Cannot remove {self.num_bytes} bytes, must be a multiple of {p.archinfo.nop_size}"
             )
         num_nops = self.num_bytes // p.archinfo.nop_size

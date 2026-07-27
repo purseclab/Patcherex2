@@ -25,6 +25,6 @@ class KeystoneArm(Assembler):
             logger.debug(f"Assembled bytes: {bytes(binary).hex()}")
             return bytes(binary)
         except Exception as e:
-            raise Exception(
+            raise ValueError(
                 f'Failed to assemble: """\n{code}\n"""\nat base: {hex(base)}'
             ) from e
