@@ -177,9 +177,7 @@ class Utils:
                     is_thumb=self.p.binary_analyzer.is_thumb(addr),
                 )
                 return (
-                    "\n".join(
-                        [self.p.disassembler.to_asm_string(d) for d in disasms]
-                    ),
+                    "\n".join([self.p.disassembler.to_asm_string(d) for d in disasms]),
                     insn_addr - addr,
                 )
             if insn_addr == basic_block["end"]:
