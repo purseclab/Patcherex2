@@ -30,22 +30,12 @@ class Utils:
             f"Cannot insert instruction at {hex(addr)}"
         )
         if not force_insert:
-            moved_instrs = self.get_instrs_to_be_moved(addr)
-            moved_instrs_len = len(
-                self.p.assembler.assemble(
-                    moved_instrs,
-                    addr,  # TODO: we don't really need this addr, but better than 0x0 because 0x0 is too far away from the code
-                    is_thumb=self.p.binary_analyzer.is_thumb(addr),
-                )
-            )
+            moved_instrs, moved_instrs_len = self.get_instrs_to_be_moved(addr)
         else:
             moved_instrs = ""
-            moved_instrs_len = len(
-                self.p.assembler.assemble(
-                    self.get_instrs_to_be_moved(addr, ignore_unmovable=True),
-                    addr,  # TODO: we don't really need this addr, but better than 0x0 because 0x0 is too far away from the code
-                    is_thumb=self.p.binary_analyzer.is_thumb(addr),
-                )
+            _, moved_instrs_len = self.get_instrs_to_be_moved(
+                addr,
+                ignore_unmovable=True,
             )
         trampoline_instrs_with_jump_back = (
             # Insert the asm footer here
@@ -170,7 +160,9 @@ class Utils:
             self.p.binary_analyzer.mem_addr_to_file_offset(addr), jmp_to_trampoline
         )
 
-    def get_instrs_to_be_moved(self, addr: int, ignore_unmovable=False) -> str | None:
+    def get_instrs_to_be_moved(
+        self, addr: int, ignore_unmovable=False
+    ) -> tuple[str, int] | None:
         basic_block = self.p.binary_analyzer.get_basic_block(addr)
         idx = basic_block["instruction_addrs"].index(addr)
         end = addr + self.p.archinfo.jmp_size
@@ -184,8 +176,11 @@ class Utils:
                     addr,
                     is_thumb=self.p.binary_analyzer.is_thumb(addr),
                 )
-                return "\n".join(
-                    [self.p.disassembler.to_asm_string(d) for d in disasms]
+                return (
+                    "\n".join(
+                        [self.p.disassembler.to_asm_string(d) for d in disasms]
+                    ),
+                    insn_addr - addr,
                 )
             if insn_addr == basic_block["end"]:
                 # we reached the end of the basic block

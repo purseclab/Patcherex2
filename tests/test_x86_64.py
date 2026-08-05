@@ -307,6 +307,37 @@ class Tests:
             expected_returnCode=0,
         )
 
+    def test_insert_instruction_patch_relocates_long_conditional_branch(self):
+        filepath = os.path.join(self.bin_location, "issue37")
+
+        with tempfile.TemporaryDirectory() as td:
+            tmp_file = os.path.join(td, "patched")
+            p = Patcherex(
+                filepath,
+                target_opts={"binary_analyzer": self.binary_analyzer},
+            )
+            check = p.binary_analyzer.get_function("check")
+            assert check is not None
+            patch_addr = check["addr"] + 13
+            p.patches.append(InsertInstructionPatch(patch_addr, "nop"))
+            p.apply_patches()
+            p.save_binary(tmp_file)
+            p.shutdown()
+
+            for inputvalue, expected_output in (
+                (b"3\n", b"check(10, 3) -> 1\n"),
+                (b"99\n", b"check(10, 99) -> 0\n"),
+            ):
+                result = subprocess.run(
+                    [tmp_file],
+                    input=inputvalue,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    timeout=30,
+                )
+                assert result.returncode == 0, result.stderr
+                assert result.stdout == expected_output
+
     def test_insert_instruction_patch_c(self):
         # Original computation was (n + 2) * 2 where n = 4
         # New computation inserts a factorial step at the beginning
