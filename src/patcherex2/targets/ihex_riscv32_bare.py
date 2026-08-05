@@ -17,6 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 class IHexRiscv32Bare(Target):
+    expected_object_arch = {
+        "e_machine": "EM_RISCV",
+        "ei_class": "ELFCLASS32",
+        "ei_data": "ELFDATA2LSB",
+    }
+
     @staticmethod
     def detect_target(binary_path):
         return False

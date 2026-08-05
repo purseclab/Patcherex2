@@ -1,6 +1,13 @@
 class Target:
     target_classes = []
 
+    #: ELF machine (``e_machine``), class (``EI_CLASS``) and data encoding
+    #: (``EI_DATA``) that compiled patch code for this target must have. Used by
+    #: :meth:`patcherex2.components.compilers.compiler.Compiler.check_object_arch`
+    #: to reject an object built for the wrong architecture instead of writing it
+    #: into the binary. ``None`` disables the check.
+    expected_object_arch = None
+
     def __init__(self, p, binary_path):
         self.binary_path = binary_path
         self.p = p

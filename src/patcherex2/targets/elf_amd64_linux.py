@@ -12,6 +12,12 @@ from .target import Target
 
 
 class ElfAmd64Linux(Target):
+    expected_object_arch = {
+        "e_machine": "EM_X86_64",
+        "ei_class": "ELFCLASS64",
+        "ei_data": "ELFDATA2LSB",
+    }
+
     @staticmethod
     def detect_target(binary_path):
         with open(binary_path, "rb") as f:
@@ -41,9 +47,13 @@ class ElfAmd64Linux(Target):
     def get_compiler(self, compiler):
         compiler = compiler or "clang"
         if compiler == "clang":
-            return Clang(self.p)
+            return Clang(self.p, compiler_flags=["-target", "x86_64-linux-gnu"])
         elif compiler == "clang19":
-            return Clang(self.p, clang_version=19)
+            return Clang(
+                self.p,
+                compiler_flags=["-target", "x86_64-linux-gnu"],
+                clang_version=19,
+            )
         raise NotImplementedError()
 
     def get_disassembler(self, disassembler):
