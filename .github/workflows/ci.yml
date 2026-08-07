@@ -7,11 +7,31 @@ on:
     - cron: '0 14 * * 1'  # Runs at 2 PM UTC every Monday
 
 jobs:
-  ci:
+  # Lint and format only read source files, so they skip the heavy
+  # Patcherex2 install (Ghidra, cross-toolchains, angr) entirely.
+  check:
     strategy:
       fail-fast: false
       matrix:
-        task: [test, lint, format, private-test]
+        task: [lint, format]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Python 3
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - name: Install Packages
+        run: python3 -m pip install --upgrade ruff
+      - name: Run linter
+        if: matrix.task == 'lint'
+        run: python3 -m ruff check .
+      - name: Run formatter
+        if: matrix.task == 'format'
+        run: python3 -m ruff format . --check
+
+  test:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -19,24 +39,28 @@ jobs:
       - name: Install Patcherex2
         uses: ./.github/actions/install-patcherex2
       - name: Install Packages
-        run:  python3 -m pip install --upgrade pytest ruff
+        run: python3 -m pip install --upgrade pytest
       - name: Run pytest
-        if: matrix.task == 'test'
         run: python3 -m pytest
-      - name: Run formatter
-        if: matrix.task == 'format'
-        run: python3 -m ruff format . --check
-      - name: Run linter
-        if: matrix.task == 'lint'
-        run: python3 -m ruff check .
+
+  # Private tests need secrets unavailable to fork PRs, so this job is
+  # skipped on pull_request rather than installing and running nothing.
+  private-test:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install Patcherex2
+        uses: ./.github/actions/install-patcherex2
+      - name: Install Packages
+        run: python3 -m pip install --upgrade pytest
       - name: Checkout Private Tests
-        if: matrix.task == 'private-test' && github.event_name != 'pull_request'
         uses: actions/checkout@v6
         with:
           repository: purseclab/patcherex2-private
           ssh-key: ${{ secrets.PRIVATE_TESTS_DEPLOY_KEY }}
           path: private
       - name: Run pytest for Private Tests
-        if: matrix.task == 'private-test' && github.event_name != 'pull_request'
         working-directory: ./private
         run: python3 -m pytest -q --no-summary
