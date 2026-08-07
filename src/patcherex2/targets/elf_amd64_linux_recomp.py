@@ -13,7 +13,7 @@ class ElfAmd64LinuxRecomp(ElfAmd64Linux):
     def get_compiler(self, compiler):
         compiler = compiler or "llvm_recomp"
         if compiler == "llvm_recomp":
-            return LLVMRecomp(self.p)
+            return LLVMRecomp(self.p, compiler_flags=["-target", "x86_64-linux-gnu"])
         raise NotImplementedError()
 
     def get_binary_analyzer(self, binary_analyzer, **kwargs):

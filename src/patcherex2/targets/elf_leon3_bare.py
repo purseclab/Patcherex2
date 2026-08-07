@@ -34,6 +34,12 @@ class CustomElf(ELF):
 
 
 class ElfLeon3Bare(Target):
+    expected_object_arch = {
+        "e_machine": "EM_SPARC",
+        "ei_class": "ELFCLASS32",
+        "ei_data": "ELFDATA2MSB",
+    }
+
     @staticmethod
     def detect_target(binary_path):
         return False

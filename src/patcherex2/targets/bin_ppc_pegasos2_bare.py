@@ -89,6 +89,12 @@ class BarePpcBinary(Binary):
 
 
 class BinPpcPegasos2Bare(Target):
+    expected_object_arch = {
+        "e_machine": "EM_PPC",
+        "ei_class": "ELFCLASS32",
+        "ei_data": "ELFDATA2MSB",
+    }
+
     @staticmethod
     def detect_target(binary_path):
         return False

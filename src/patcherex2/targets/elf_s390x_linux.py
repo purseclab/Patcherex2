@@ -28,6 +28,12 @@ class S390xAssembler(Keystone):
 
 
 class ElfS390xLinux(Target):
+    expected_object_arch = {
+        "e_machine": "EM_S390",
+        "ei_class": "ELFCLASS64",
+        "ei_data": "ELFDATA2MSB",
+    }
+
     @staticmethod
     def detect_target(binary_path):
         with open(binary_path, "rb") as f:

@@ -153,6 +153,7 @@ class LLVMRecomp(Clang):
 
             with open(os.path.join(td, "obj.o"), "rb") as f:
                 elf = ELFFile(f)
+                self.check_object_arch(elf)
                 linker_script_rodata_sections = " ".join(
                     [
                         f". = ALIGN({section['sh_addralign']}); *({section.name})"

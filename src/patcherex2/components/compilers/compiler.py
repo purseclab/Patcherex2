@@ -11,12 +11,59 @@ from elftools.elf.elffile import ELFFile
 logger = logging.getLogger(__name__)
 
 
+class ObjectArchMismatchError(Exception):
+    """
+    Raised when compiled patch code is not for the architecture of the binary
+    being patched. Writing such an object into the target would produce a patch
+    that silently faults at runtime, so we refuse it at compile time.
+    """
+
+
 class Compiler:
     def __init__(self, p) -> None:
         self.p = p
         # preserve_none is a special attribute flag to allow us to control more registers as input to a C function
         # This feature is used for a C instruction patch
         self.preserve_none = False
+
+    def check_object_arch(self, elf: ELFFile) -> None:
+        """
+        Verify that a compiled object file matches the target's architecture.
+
+        The compiler is driven by flags (``-target``, ``-m32``, ...) that are easy
+        to get wrong or omit, and neither pyelftools nor cle objects to loading an
+        object for the wrong machine, so without this check a patch compiled for
+        the build host rather than the target is applied silently.
+
+        :param elf: The compiled object file, opened for reading.
+        :raises ObjectArchMismatchError: If the object is not for the target's
+            machine, class or data encoding.
+        """
+        expected = getattr(self.p.target, "expected_object_arch", None)
+        if not expected:
+            return
+        actual = {
+            "e_machine": elf.header["e_machine"],
+            "ei_class": elf.header["e_ident"]["EI_CLASS"],
+            "ei_data": elf.header["e_ident"]["EI_DATA"],
+        }
+        mismatched = {
+            key: (value, actual[key])
+            for key, value in expected.items()
+            if actual[key] != value
+        }
+        if mismatched:
+            details = ", ".join(
+                f"{key}: expected {want}, got {got}"
+                for key, (want, got) in mismatched.items()
+            )
+            raise ObjectArchMismatchError(
+                f"Compiled patch code does not match the target architecture "
+                f"({details}). This usually means the compiler is missing or has "
+                f"the wrong target triple, and the patch would not run on the "
+                f"binary being patched. Compiler flags: "
+                f"{getattr(self, '_compiler_flags', [])}"
+            )
 
     def compile(
         self,
@@ -63,10 +110,12 @@ class Compiler:
             # Note that even we don't include .rodata here, cle might still include it if there is
             # no gap between .text and .rodata
             with open(os.path.join(td, "obj.o"), "rb") as f:
+                elf = ELFFile(f)
+                self.check_object_arch(elf)
                 linker_script_rodata_sections = " ".join(
                     [
                         f". = ALIGN({section['sh_addralign']}); *({section.name})"
-                        for section in ELFFile(f).iter_sections()
+                        for section in elf.iter_sections()
                         if section.name.startswith(".rodata")
                     ]
                 )
