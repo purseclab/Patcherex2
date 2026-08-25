@@ -97,12 +97,16 @@ class BinFmtTool:
             update_end = update_start + len(update["content"])
             overlap_start = max(offset, update_start)
             overlap_end = min(read_end, update_end)
+
             if overlap_start >= overlap_end:
                 continue
             content[overlap_start - offset : overlap_end - offset] = update["content"][
                 overlap_start - update_start : overlap_end - update_start
             ]
         return bytes(content)
+
+    def mem_addr_to_file_offset(self, addr: int) -> int:
+        return self.p.binary_analyzer.mem_addr_to_file_offset(addr)
 
     def _init_memory_analysis(self) -> None:
         raise NotImplementedError()

@@ -293,7 +293,7 @@ class Utils:
                     file_addr = block.file_addr + offset
                     break
             else:
-                file_addr = self.p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
+                file_addr = self.p.binfmt_tool.mem_addr_to_file_offset(mem_addr)
 
         self.p.sypy_info["patcherex_added_functions"].append(hex(mem_addr))
         self.p.binfmt_tool.update_binary_content(file_addr, trampoline_bytes)
@@ -303,7 +303,8 @@ class Utils:
             is_thumb=self.p.binary_analyzer.is_thumb(addr),
         )
         self.p.binfmt_tool.update_binary_content(
-            self.p.binary_analyzer.mem_addr_to_file_offset(addr), jmp_to_trampoline
+            self.p.binfmt_tool.mem_addr_to_file_offset(addr),
+            jmp_to_trampoline,
         )
 
     def _get_instrs_to_be_moved_from_block(

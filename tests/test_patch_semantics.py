@@ -43,7 +43,8 @@ def test_remove_instruction_count_uses_decoded_instruction_lengths():
             mem_addr_to_file_offset=lambda addr: addr - 0x1000,
         ),
         binfmt_tool=SimpleNamespace(
-            update_binary_content=lambda *update: updates.append(update)
+            mem_addr_to_file_offset=lambda addr: addr - 0x1000,
+            update_binary_content=lambda *update: updates.append(update),
         ),
     )
 
@@ -67,7 +68,8 @@ def test_remove_instruction_bytes_replaces_exact_range_without_decoding():
             mem_addr_to_file_offset=lambda addr: addr - 0x1000,
         ),
         binfmt_tool=SimpleNamespace(
-            update_binary_content=lambda *update: updates.append(update)
+            mem_addr_to_file_offset=lambda addr: addr - 0x1000,
+            update_binary_content=lambda *update: updates.append(update),
         ),
     )
 
@@ -226,6 +228,7 @@ def test_modify_function_recompiles_until_final_address_bytes_fit():
         ),
         binfmt_tool=SimpleNamespace(
             is_position_independent=False,
+            mem_addr_to_file_offset=lambda addr: addr,
             update_binary_content=lambda *update: updates.append(update),
         ),
         compiler=SimpleNamespace(compile=compile_code),
@@ -248,7 +251,8 @@ def test_explicit_named_asm_detour_is_a_memory_address():
             mem_addr_to_file_offset=lambda addr: addr - 0x400000
         ),
         binfmt_tool=SimpleNamespace(
-            update_binary_content=lambda *update: updates.append(update)
+            mem_addr_to_file_offset=lambda addr: addr - 0x400000,
+            update_binary_content=lambda *update: updates.append(update),
         ),
         symbols={},
     )

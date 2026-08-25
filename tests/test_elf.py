@@ -25,6 +25,23 @@ def test_segment_permissions_are_preserved(elf_flags, expected):
     assert memory_flags_from_elf_segment_flags(elf_flags) == expected
 
 
+def test_mem_addr_to_file_offset_uses_file_backed_load_range():
+    elf = ELF.__new__(ELF)
+    elf._segments = [
+        Container(
+            p_type="PT_LOAD",
+            p_offset=0x100,
+            p_vaddr=0x400000,
+            p_filesz=0x20,
+            p_memsz=0x40,
+        )
+    ]
+
+    assert elf.mem_addr_to_file_offset(0x400010) == 0x110
+    with pytest.raises(ValueError, match="0x400030"):
+        elf.mem_addr_to_file_offset(0x400030)
+
+
 def test_new_segment_preserves_minimum_load_address_offset():
     elf = ELF.__new__(ELF)
     elf._segments = [

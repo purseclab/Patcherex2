@@ -144,6 +144,16 @@ class ELF(BinFmtTool):
     def is_position_independent(self) -> bool:
         return self._elf.header.e_type == "ET_DYN"
 
+    def mem_addr_to_file_offset(self, addr: int) -> int:
+        for segment in self._segments:
+            if segment["p_type"] != "PT_LOAD":
+                continue
+            start = segment["p_vaddr"]
+            end = start + segment["p_filesz"]
+            if start <= addr < end:
+                return segment["p_offset"] + addr - start
+        raise ValueError(f"Memory address {hex(addr)} is not mapped to the file")
+
     def _find_space_between_sections(self) -> None:
         load_segments = sorted(
             (
@@ -399,8 +409,7 @@ class ELF(BinFmtTool):
         entry_size = (3 if is_rela else 2) * (8 if is_64 else 4)
         if info["ent"] and info["ent"] != entry_size:
             raise RuntimeError(f"DT_REL[A]ENT={info['ent']} != computed {entry_size}")
-
-        existing_file_off = self.p.binary_analyzer.mem_addr_to_file_offset(info["addr"])
+        existing_file_off = self.mem_addr_to_file_offset(info["addr"])
         existing_bytes = self.get_binary_content(existing_file_off, info["size"])
 
         new_bytes = b"".join(

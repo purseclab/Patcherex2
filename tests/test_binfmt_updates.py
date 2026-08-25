@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 
 from patcherex2.components.binfmt_tools.binary import Binary
@@ -28,6 +30,23 @@ def make_binfmt_tool(tool_type):
 @pytest.fixture(params=[ELF, Binary, IHex])
 def binfmt_tool(request):
     return make_binfmt_tool(request.param)
+
+
+def test_base_binfmt_mapper_falls_back_to_analyzer():
+    tool = Binary.__new__(Binary)
+    tool.p = SimpleNamespace(
+        binary_analyzer=SimpleNamespace(
+            mem_addr_to_file_offset=lambda addr: addr - 0x400000
+        )
+    )
+
+    assert tool.mem_addr_to_file_offset(0x400100) == 0x100
+
+
+def test_ihex_file_offset_is_a_logical_address():
+    tool = IHex.__new__(IHex)
+
+    assert tool.mem_addr_to_file_offset(0x400100) == 0x400100
 
 
 def test_staged_updates_overlay_partial_reads_for_all_binary_formats(binfmt_tool):

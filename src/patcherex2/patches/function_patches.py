@@ -67,7 +67,7 @@ class ModifyFunctionPatch(Patch):
 
         compiled = compile_at(func_addr)
         if len(compiled) <= func["size"]:
-            file_addr = p.binary_analyzer.mem_addr_to_file_offset(func_addr)
+            file_addr = p.binfmt_tool.mem_addr_to_file_offset(func_addr)
             p.binfmt_tool.update_binary_content(file_addr, compiled)
             return
 
@@ -95,7 +95,7 @@ class ModifyFunctionPatch(Patch):
         if self.detour_pos != -1:
             mem_addr = self.detour_pos
             compiled = compile_at(mem_addr)
-            file_addr = p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
+            file_addr = p.binfmt_tool.mem_addr_to_file_offset(mem_addr)
             return mem_addr, file_addr, compiled
 
         block, compiled = p.utils.allocate_generated_code(
@@ -123,7 +123,7 @@ class ModifyFunctionPatch(Patch):
             is_thumb=is_thumb,
         )
         p.binfmt_tool.update_binary_content(
-            p.binary_analyzer.mem_addr_to_file_offset(source_addr),
+            p.binfmt_tool.mem_addr_to_file_offset(source_addr),
             jmp_bytes,
         )
 
@@ -251,7 +251,7 @@ class InsertFunctionPatch(Patch):
         else:
             mem_addr = self.detour_pos
             compiled = compile_at(mem_addr)
-            file_addr = p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
+            file_addr = p.binfmt_tool.mem_addr_to_file_offset(mem_addr)
 
         p.sypy_info["patcherex_added_functions"].append(hex(mem_addr))
         p.symbols[name] = mem_addr

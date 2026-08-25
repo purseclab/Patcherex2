@@ -69,7 +69,7 @@ class ModifyInstructionPatch(Patch):
                 f"Cannot fill in {remaining_size} bytes when modifying instruction, must be a multiple of {p.archinfo.nop_size}"
             )
             asm_bytes += p.archinfo.nop_bytes * (remaining_size // p.archinfo.nop_size)
-        offset = p.binary_analyzer.mem_addr_to_file_offset(self.addr)
+        offset = p.binfmt_tool.mem_addr_to_file_offset(self.addr)
         p.binfmt_tool.update_binary_content(offset, asm_bytes)
 
 
@@ -443,7 +443,7 @@ class InsertInstructionPatch(Patch):
             else:
                 mem_addr = self.detour_pos
                 assembled = assemble_at(mem_addr)
-                file_addr = p.binary_analyzer.mem_addr_to_file_offset(mem_addr)
+                file_addr = p.binfmt_tool.mem_addr_to_file_offset(mem_addr)
             p.symbols[self.name] = mem_addr
             p.binfmt_tool.update_binary_content(file_addr, assembled)
 
@@ -492,5 +492,5 @@ class RemoveInstructionPatch(Patch):
                 f"multiple of {p.archinfo.nop_size}"
             )
         num_nops = num_bytes // p.archinfo.nop_size
-        offset = p.binary_analyzer.mem_addr_to_file_offset(self.addr)
+        offset = p.binfmt_tool.mem_addr_to_file_offset(self.addr)
         p.binfmt_tool.update_binary_content(offset, p.archinfo.nop_bytes * num_nops)

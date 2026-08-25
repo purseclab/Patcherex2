@@ -166,7 +166,7 @@ class AllocationManager:
                 f"flag must be str or MemoryFlag, got {type(flag).__name__}"
             )
         block = MappedBlock(
-            self.p.binary_analyzer.mem_addr_to_file_offset(addr),
+            self.p.binfmt_tool.mem_addr_to_file_offset(addr),
             addr,
             size,
             is_free=True,

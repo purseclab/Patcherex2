@@ -135,6 +135,7 @@ def make_function_patch_patcher(allocation_addr):
         ),
         binfmt_tool=SimpleNamespace(
             is_position_independent=False,
+            mem_addr_to_file_offset=lambda addr: addr,
             update_binary_content=lambda offset, content: file_updates.append(
                 (offset, content)
             ),

@@ -23,6 +23,10 @@ class IHex(BinFmtTool):
     def finalize(self) -> None:
         pass
 
+    def mem_addr_to_file_offset(self, addr: int) -> int:
+        # IHex updates use logical addresses, not text-file byte offsets.
+        return addr
+
     def save_binary(self, filename: str | None = None) -> None:
         for update in self.file_updates:
             self._ihex.puts(update["offset"], update["content"])
